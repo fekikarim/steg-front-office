@@ -1,0 +1,118 @@
+{
+  "app": {
+    "name": "STEG — Stages & Démarches",
+    "tagline": "La plateforme intelligente des stages et des flux administratifs"
+  },
+  "nav": {
+    "home": "Accueil",
+    "internships": "Stages",
+    "companion": "Espace stagiaire",
+    "apply": "Candidater",
+    "signIn": "Se connecter",
+    "createAccount": "Créer un compte",
+    "profile": "Mon profil",
+    "applications": "Mes candidatures",
+    "signOut": "Se déconnecter"
+  },
+  "header": {
+    "skipToContent": "Aller au contenu",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "language": "Langue",
+    "theme": "Thème",
+    "themeLight": "Clair",
+    "themeDark": "Sombre",
+    "themeSystem": "Système"
+  },
+  "footer": {
+    "tagline": "Société Tunisienne de l'Électricité et du Gaz — plateforme des stages.",
+    "rights": "Tous droits réservés.",
+    "languages": "Langues"
+  },
+  "home": {
+    "badge": "Portail candidat",
+    "title": "Votre stage à la STEG commence ici",
+    "subtitle": "Déposez votre candidature, suivez son avancement et préparez votre stage en toute confiance.",
+    "ctaApply": "Candidater",
+    "ctaDiscover": "Découvrir les stages",
+    "shellNote": "Socle B0 — les pages fonctionnelles arrivent avec les phases B1 à B3."
+  },
+  "common": {
+    "loading": "Chargement…",
+    "retry": "Réessayer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "submit": "Envoyer",
+    "back": "Retour",
+    "optional": "optionnel",
+    "required": "obligatoire"
+  },
+  "states": {
+    "emptyTitle": "Rien à afficher pour le moment",
+    "emptyHint": "Les éléments apparaîtront ici dès qu'ils seront disponibles.",
+    "emptyAction": "Voir les stages",
+    "errorTitle": "Une erreur est survenue",
+    "errorHint": "Veuillez réessayer. Si le problème persiste, contactez le support en indiquant la référence ci-dessous.",
+    "errorReference": "Référence",
+    "notFoundTitle": "Page introuvable",
+    "notFoundHint": "La page demandée n'existe pas ou a été déplacée.",
+    "notFoundAction": "Retour à l'accueil"
+  },
+  "errors": {
+    "network": "Impossible de joindre le serveur. Vérifiez votre connexion puis réessayez.",
+    "unauthorized": "Votre session a expiré. Veuillez vous reconnecter.",
+    "forbidden": "Vous n'avez pas l'autorisation d'effectuer cette action.",
+    "notFound": "La ressource demandée est introuvable.",
+    "conflict": "Un changement concurrent a été détecté. Actualisez puis réessayez.",
+    "rateLimited": "Trop de tentatives. Veuillez patienter avant de réessayer.",
+    "server": "Une erreur interne est survenue. Nos équipes ont été notifiées.",
+    "unknown": "Une erreur inattendue est survenue."
+  },
+  "validation": {
+    "required": "Ce champ est obligatoire.",
+    "email": "Veuillez saisir une adresse e-mail valide.",
+    "minLength": "Veuillez saisir au moins {min} caractères.",
+    "passwordMismatch": "Les mots de passe ne correspondent pas."
+  },
+  "status": {
+    "DRAFT": "Brouillon",
+    "SUBMITTED": "Soumise",
+    "UNDER_REVIEW": "En cours d'examen",
+    "NEEDS_CORRECTION": "À corriger",
+    "ACCEPTED": "Acceptée",
+    "REJECTED": "Refusée",
+    "WITHDRAWN": "Retirée",
+    "PLANNED": "Planifié",
+    "ACTIVE": "En cours",
+    "COMPLETED": "Terminé",
+    "CANCELLED": "Annulé",
+    "ARCHIVED": "Archivé",
+    "PENDING": "En attente",
+    "APPROVED": "Approuvé",
+    "VALIDATED": "Validé",
+    "REVIEWED": "Examiné",
+    "TODO": "À faire",
+    "IN_PROGRESS": "En cours",
+    "SENT": "Envoyé",
+    "DELIVERED": "Distribué",
+    "READ": "Lu",
+    "OPENED": "Ouvert",
+    "CLOSED": "Clôturé",
+    "GENERATED": "Généré",
+    "ISSUED": "Émis",
+    "OBSERVATION": "Observation",
+    "PERFECTIONNEMENT": "Perfectionnement",
+    "PFE": "PFE",
+    "OBLIGATOIRE": "Obligatoire",
+    "OPTIONAL": "Optionnel"
+  },
+  "dropzone": {
+    "prompt": "Glissez-déposez vos fichiers ici",
+    "orBrowse": "ou cliquez pour parcourir",
+    "tooLarge": "Fichier trop volumineux (max {max} Mo).",
+    "selectedFiles": "Fichiers sélectionnés",
+    "remove": "Retirer le fichier"
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "app": {
+    "name": "STEG — Internships & Procedures",
+    "tagline": "The smart platform for internships and administrative flows"
+  },
+  "nav": {
+    "home": "Home",
+    "internships": "Internships",
+    "companion": "Intern space",
+    "apply": "Apply",
+    "signIn": "Sign in",
+    "createAccount": "Create account",
+    "profile": "My profile",
+    "applications": "My applications",
+    "signOut": "Sign out"
+  },
+  "header": {
+    "skipToContent": "Skip to content",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System"
+  },
+  "footer": {
+    "tagline": "Tunisian Company of Electricity and Gas — internship platform.",
+    "rights": "All rights reserved.",
+    "languages": "Languages"
+  },
+  "home": {
+    "badge": "Candidate portal",
+    "title": "Your STEG internship starts here",
+    "subtitle": "Submit your application, track its progress and prepare your internship with confidence.",
+    "ctaApply": "Apply",
+    "ctaDiscover": "Discover internships",
+    "shellNote": "B0 shell — feature pages arrive with phases B1 to B3."
+  },
+  "common": {
+    "loading": "Loading…",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "close": "Close",
+    "save": "Save",
+    "submit": "Submit",
+    "back": "Back",
+    "optional": "optional",
+    "required": "required"
+  },
+  "states": {
+    "emptyTitle": "Nothing to show yet",
+    "emptyHint": "Items will appear here as soon as they are available.",
+    "emptyAction": "Browse internships",
+    "errorTitle": "Something went wrong",
+    "errorHint": "Please try again. If the problem persists, contact support with the reference below.",
+    "errorReference": "Reference",
+    "notFoundTitle": "Page not found",
+    "notFoundHint": "The requested page does not exist or was moved.",
+    "notFoundAction": "Back to home"
+  },
+  "errors": {
+    "network": "Cannot reach the server. Check your connection and try again.",
+    "unauthorized": "Your session has expired. Please sign in again.",
+    "forbidden": "You are not allowed to perform this action.",
+    "notFound": "The requested resource was not found.",
+    "conflict": "A concurrent change was detected. Refresh and try again.",
+    "rateLimited": "Too many attempts. Please wait before retrying.",
+    "server": "An internal error occurred. Our teams have been notified.",
+    "unknown": "An unexpected error occurred."
+  },
+  "validation": {
+    "required": "This field is required.",
+    "email": "Please enter a valid email address.",
+    "minLength": "Please enter at least {min} characters.",
+    "passwordMismatch": "Passwords do not match."
+  },
+  "status": {
+    "DRAFT": "Draft",
+    "SUBMITTED": "Submitted",
+    "UNDER_REVIEW": "Under review",
+    "NEEDS_CORRECTION": "Needs correction",
+    "ACCEPTED": "Accepted",
+    "REJECTED": "Rejected",
+    "WITHDRAWN": "Withdrawn",
+    "PLANNED": "Planned",
+    "ACTIVE": "Active",
+    "COMPLETED": "Completed",
+    "CANCELLED": "Cancelled",
+    "ARCHIVED": "Archived",
+    "PENDING": "Pending",
+    "APPROVED": "Approved",
+    "VALIDATED": "Validated",
+    "REVIEWED": "Reviewed",
+    "TODO": "To do",
+    "IN_PROGRESS": "In progress",
+    "SENT": "Sent",
+    "DELIVERED": "Delivered",
+    "READ": "Read",
+    "OPENED": "Opened",
+    "CLOSED": "Closed",
+    "GENERATED": "Generated",
+    "ISSUED": "Issued",
+    "OBSERVATION": "Observation",
+    "PERFECTIONNEMENT": "Perfectionnement",
+    "PFE": "Final-year project",
+    "OBLIGATOIRE": "Mandatory",
+    "OPTIONAL": "Optional"
+  },
+  "dropzone": {
+    "prompt": "Drag and drop your files here",
+    "orBrowse": "or click to browse",
+    "tooLarge": "File too large (max {max} MB).",
+    "selectedFiles": "Selected files",
+    "remove": "Remove file"
+  }
+}
