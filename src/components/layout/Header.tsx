@@ -15,6 +15,7 @@ export async function Header() {
         apply: t('apply'),
         signIn: t('signIn'),
         createAccount: t('createAccount'),
+        profile: t('profile'),
         skipToContent: th('skipToContent'),
         openMenu: th('openMenu'),
         closeMenu: th('closeMenu'),

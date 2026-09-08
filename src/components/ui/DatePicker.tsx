@@ -41,7 +41,7 @@ export function DatePicker({label, hint, error, hideLabel = false, id, required,
         aria-invalid={error ? true : undefined}
         aria-describedby={cx(hintId, errorId) || undefined}
         className={cx(
-          'h-10 w-full cursor-pointer rounded-lg border border-zinc-300 bg-white px-3 text-sm text-zinc-900 hover:border-zinc-400 disabled:cursor-not-allowed disabled:bg-zinc-50 disabled:opacity-70 dark:border-zinc-700 dark:bg-navy-900 dark:text-zinc-100 dark:disabled:bg-white/5 dark:[color-scheme:dark]',
+          'h-10 w-full cursor-pointer rounded-lg border border-zinc-300 bg-white px-3 text-base text-zinc-900 hover:border-zinc-400 disabled:cursor-not-allowed disabled:bg-zinc-50 disabled:opacity-70 dark:border-zinc-700 dark:bg-navy-900 dark:text-zinc-100 dark:disabled:bg-white/5 dark:[color-scheme:dark]',
           error && 'border-accent-600 dark:border-accent-100',
         )}
         {...rest}

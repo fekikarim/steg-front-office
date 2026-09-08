@@ -4,22 +4,38 @@ import {createContext, useCallback, useContext, useEffect, useMemo, useState, ty
 
 export type SessionStatus = 'loading' | 'authenticated' | 'anonymous';
 
-interface LoginResult {
+type AuthReason =
+  | 'duplicate-email'
+  | 'invalid-credentials'
+  | 'locked'
+  | 'rate-limited'
+  | 'unknown';
+
+interface AuthResult {
   ok: boolean;
+  reason?: AuthReason;
   message?: string;
   fieldErrors?: Array<{field?: string; message?: string}>;
 }
 
 interface AuthContextValue {
   status: SessionStatus;
-  login: (email: string, password: string) => Promise<LoginResult>;
+  login: (email: string, password: string) => Promise<AuthResult>;
+  register: (payload: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+  }) => Promise<AuthResult>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
   status: 'loading',
-  login: async () => ({ok: false}),
+  login: async () => ({ok: false, reason: 'unknown'}),
+  register: async () => ({ok: false, reason: 'unknown'}),
   logout: async () => {},
   refreshSession: async () => {},
 });
@@ -28,9 +44,9 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
-async function readJson(res: Response): Promise<{message?: string; fieldErrors?: Array<{field?: string; message?: string}>}> {
+async function readJson(res: Response): Promise<{reason?: string; message?: string; fieldErrors?: Array<{field?: string; message?: string}>}> {
   try {
-    return (await res.json()) as {message?: string; fieldErrors?: Array<{field?: string; message?: string}>};
+    return (await res.json()) as {reason?: string; message?: string; fieldErrors?: Array<{field?: string; message?: string}>};
   } catch {
     return {};
   }
@@ -62,7 +78,7 @@ export function AuthProvider({children}: {children: ReactNode}) {
     void refreshSession();
   }, [refreshSession]);
 
-  const login = useCallback(async (email: string, password: string): Promise<LoginResult> => {
+  const login = useCallback(async (email: string, password: string): Promise<AuthResult> => {
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
@@ -74,9 +90,9 @@ export function AuthProvider({children}: {children: ReactNode}) {
         return {ok: true};
       }
       const data = await readJson(res);
-      return {ok: false, message: data.message, fieldErrors: data.fieldErrors};
+      return {ok: false, reason: data.reason as AuthReason | undefined, message: data.message, fieldErrors: data.fieldErrors};
     } catch {
-      return {ok: false};
+      return {ok: false, reason: 'unknown'};
     }
   }, []);
 
@@ -88,9 +104,36 @@ export function AuthProvider({children}: {children: ReactNode}) {
     }
   }, []);
 
+  const register = useCallback(
+    async (payload: {
+      email: string;
+      password: string;
+      firstName: string;
+      lastName: string;
+      phone?: string;
+    }): Promise<AuthResult> => {
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload),
+        });
+        if (res.ok || res.status === 201) {
+          setStatus('authenticated');
+          return {ok: true};
+        }
+        const data = await readJson(res);
+        return {ok: false, reason: data.reason as AuthReason | undefined, message: data.message, fieldErrors: data.fieldErrors};
+      } catch {
+        return {ok: false, reason: 'unknown'};
+      }
+    },
+    [],
+  );
+
   const value = useMemo(
-    () => ({status, login, logout, refreshSession}),
-    [status, login, logout, refreshSession],
+    () => ({status, login, register, logout, refreshSession}),
+    [status, login, register, logout, refreshSession],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

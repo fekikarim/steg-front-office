@@ -1,6 +1,6 @@
 'use client';
 
-import {createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode} from 'react';
+import {createContext, useCallback, useContext, useMemo, useRef, useSyncExternalStore, useState, type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
 import {cx} from '@/lib/cx';
 
@@ -34,6 +34,11 @@ const TONE_BAR: Record<ToastTone, string> = {
  */
 export function ToastProvider({children}: {children: ReactNode}) {
   const [items, setItems] = useState<ToastItem[]>([]);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const counter = useRef(0);
 
   const dismiss = useCallback((id: number) => {
@@ -54,7 +59,7 @@ export function ToastProvider({children}: {children: ReactNode}) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      {typeof document !== 'undefined' &&
+      {mounted &&
         createPortal(
           <div
             aria-live="polite"

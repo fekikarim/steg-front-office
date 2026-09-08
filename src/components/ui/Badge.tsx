@@ -20,6 +20,8 @@ const STATUS_TONE: Record<string, {tone: Tone; glyph: string}> = {
   ACCEPTED: {tone: 'success', glyph: '✓'},
   APPROVED: {tone: 'success', glyph: '✓'},
   VALIDATED: {tone: 'success', glyph: '✓'},
+  VERIFIED: {tone: 'success', glyph: '✓'},
+  REQUIRES_CORRECTION: {tone: 'warning', glyph: '✎'},
   COMPLETED: {tone: 'success', glyph: '✓'},
   GENERATED: {tone: 'success', glyph: '✓'},
   ISSUED: {tone: 'success', glyph: '✓'},

@@ -1,10 +1,11 @@
 'use client';
 
 import {useState, type ReactNode} from 'react';
-import {Link} from '@/i18n/navigation';
+import {Link, usePathname} from '@/i18n/navigation';
 import {LangSwitcher} from './LangSwitcher';
 import {ThemeToggle} from './ThemeToggle';
 import {Button} from '@/components/ui/Button';
+import {useAuth} from '@/lib/auth';
 
 interface Labels {
   home: string;
@@ -13,6 +14,7 @@ interface Labels {
   apply: string;
   signIn: string;
   createAccount: string;
+  profile: string;
   skipToContent: string;
   openMenu: string;
   closeMenu: string;
@@ -21,9 +23,16 @@ interface Labels {
 /**
  * Institutional header: brand mark (never mirrored in RTL), primary nav,
  * language + theme selectors, auth entry points, mobile drawer (UI_UX §10.2).
+ * When a session exists the auth entry becomes the candidate profile (B3 task
+ * 10); sign-out lives on the profile page.
  */
 export function HeaderClient({labels, logo}: {labels: Labels; logo: ReactNode}) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const {status} = useAuth();
+  const signedIn = status === 'authenticated';
+
+  const loginHref = {pathname: '/login', query: pathname && pathname !== '/login' && pathname !== '/register' ? {returnTo: pathname} : undefined} as const;
 
   const links = [
     {href: '/', label: labels.home},
@@ -58,11 +67,19 @@ export function HeaderClient({labels, logo}: {labels: Labels; logo: ReactNode}) 
           <div className="hidden items-center gap-2 md:flex">
             <LangSwitcher />
             <ThemeToggle />
-            <Link href="/login">
-              <Button variant="tertiary" size="sm">
-                {labels.signIn}
-              </Button>
-            </Link>
+            {signedIn ? (
+              <Link href="/profile">
+                <Button variant="tertiary" size="sm">
+                  {labels.profile}
+                </Button>
+              </Link>
+            ) : (
+              <Link href={loginHref}>
+                <Button variant="tertiary" size="sm">
+                  {labels.signIn}
+                </Button>
+              </Link>
+            )}
             <Link href="/apply">
               <Button variant="primary" size="sm">
                 {labels.apply}
@@ -100,11 +117,19 @@ export function HeaderClient({labels, logo}: {labels: Labels; logo: ReactNode}) 
                 <ThemeToggle />
               </li>
               <li className="flex gap-2 pt-2">
-                <Link href="/login" onClick={() => setOpen(false)} className="flex-1">
-                  <Button variant="tertiary" size="sm" className="w-full">
-                    {labels.signIn}
-                  </Button>
-                </Link>
+                {signedIn ? (
+                  <Link href="/profile" onClick={() => setOpen(false)} className="flex-1">
+                    <Button variant="tertiary" size="sm" className="w-full">
+                      {labels.profile}
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href={loginHref} onClick={() => setOpen(false)} className="flex-1">
+                    <Button variant="tertiary" size="sm" className="w-full">
+                      {labels.signIn}
+                    </Button>
+                  </Link>
+                )}
                 <Link href="/apply" onClick={() => setOpen(false)} className="flex-1">
                   <Button variant="primary" size="sm" className="w-full">
                     {labels.apply}

@@ -18,8 +18,17 @@ interface FileDropzoneProps {
   accept?: string;
   multiple?: boolean;
   maxSizeMb?: number;
+  /** Lowercase extensions with leading dot (e.g. ['.pdf']). UX pre-check only. */
+  allowedExtensions?: string[];
   required?: boolean;
   disabled?: boolean;
+  /**
+   * When true, the dropzone acts as a pure picker: it emits files but does
+   * not render its own picked-file list (the parent owns all state display).
+   */
+  managed?: boolean;
+  /** Optional ref handle so parents can open the picker (e.g. a Replace button). */
+  pickerRef?: React.RefObject<HTMLInputElement | null>;
   onFiles: (files: File[]) => void;
 }
 
@@ -42,8 +51,11 @@ export function FileDropzone({
   accept,
   multiple = false,
   maxSizeMb,
+  allowedExtensions,
   required = false,
   disabled = false,
+  managed = false,
+  pickerRef,
   onFiles,
 }: FileDropzoneProps) {
   const t = useTranslations('dropzone');
@@ -55,20 +67,43 @@ export function FileDropzone({
 
   const describedBy = cx(hint && `${autoId}-hint`, (error || localError) && `${autoId}-error`) || undefined;
 
+  /** Human list of accepted extensions for messages, e.g. "PDF" or "JPG, JPEG, PNG". */
+  const acceptedLabel = (allowedExtensions ?? [])
+    .map((e) => e.replace(/^\./, '').toUpperCase())
+    .join(', ');
+
+  function extensionOf(name: string): string {
+    const dot = name.lastIndexOf('.');
+    return dot >= 0 ? name.slice(dot).toLowerCase() : '';
+  }
+
   function handleFiles(list: FileList | null) {
     if (!list || disabled) return;
     const incoming = Array.from(list);
+    // UX-only pre-checks: fast feedback before any network use. The backend
+    // (Tika content inspection + per-type caps) makes the final decision and
+    // its errors are always surfaced separately.
     const tooBig = maxSizeMb !== undefined ? incoming.filter((f) => f.size > maxSizeMb * 1024 * 1024) : [];
     if (tooBig.length > 0) {
       setLocalError(t('tooLarge', {max: maxSizeMb ?? 0}));
       return;
+    }
+    if (allowedExtensions && allowedExtensions.length > 0) {
+      const allowed = new Set(allowedExtensions.map((e) => e.toLowerCase()));
+      const badType = incoming.filter((f) => !allowed.has(extensionOf(f.name)));
+      if (badType.length > 0) {
+        setLocalError(t('invalidType', {accepted: acceptedLabel}));
+        return;
+      }
     }
     setLocalError(null);
     const wrapped = incoming.map((file) => ({
       file,
       id: `${file.name}-${file.size}-${file.lastModified}-${Math.random().toString(36).slice(2)}`,
     }));
-    setPicked((prev) => (multiple ? [...prev, ...wrapped] : wrapped));
+    if (!managed) {
+      setPicked((prev) => (multiple ? [...prev, ...wrapped] : wrapped));
+    }
     onFiles(incoming);
   }
 
@@ -133,7 +168,10 @@ export function FileDropzone({
         </span>
         <span className="text-xs text-zinc-500 dark:text-zinc-400">{t('orBrowse')}</span>
         <input
-          ref={inputRef}
+          ref={(node) => {
+            inputRef.current = node;
+            if (pickerRef) pickerRef.current = node;
+          }}
           type="file"
           className="sr-only"
           tabIndex={-1}
@@ -149,7 +187,7 @@ export function FileDropzone({
         </p>
       )}
       <FieldError id={`${autoId}-error`} message={error ?? localError ?? undefined} />
-      {picked.length > 0 && (
+      {!managed && picked.length > 0 && (
         <ul aria-label={t('selectedFiles')} className="flex flex-col gap-1.5">
           {picked.map((p) => (
             <li

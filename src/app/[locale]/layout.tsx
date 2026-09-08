@@ -2,6 +2,7 @@ import {IBM_Plex_Mono, IBM_Plex_Sans_Arabic} from 'next/font/google';
 import {NextIntlClientProvider, hasLocale} from 'next-intl';
 import {notFound} from 'next/navigation';
 import {setRequestLocale} from 'next-intl/server';
+import Script from 'next/script';
 import type {ReactNode} from 'react';
 import {routing, directionOf, type AppLocale} from '@/i18n/routing';
 import {ThemeProvider, THEME_INIT_SCRIPT} from '@/lib/theme';
@@ -49,7 +50,7 @@ export default async function LocaleLayout({
       className={`${sans.variable} ${mono.variable} h-full antialiased`}
     >
       <head>
-        <script dangerouslySetInnerHTML={{__html: THEME_INIT_SCRIPT}} />
+        <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{__html: THEME_INIT_SCRIPT}} />
       </head>
       <body className="flex min-h-full flex-col bg-white font-sans text-zinc-900 dark:bg-navy-950 dark:text-zinc-100">
         <ThemeProvider>
