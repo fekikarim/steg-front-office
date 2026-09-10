@@ -71,7 +71,7 @@ export function RegisterForm({labels}: {labels: RegisterLabels}) {
     if (!email) next.email = labels.required;
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) next.email = labels.emailInvalid;
     if (!values.password) next.password = labels.required;
-    else if (values.password.length < 8) next.password = labels.minLength.replace('{min}', '8');
+    else if (values.password.length < 8) next.password = labels.minLength;
     if (!values.confirm) next.confirm = labels.required;
     else if (values.confirm !== values.password) next.confirm = labels.passwordMismatch;
     if (!accept) next.accept = labels.acceptTermsRequired;
@@ -182,7 +182,7 @@ export function RegisterForm({labels}: {labels: RegisterLabels}) {
             showToggle
             strength={strength}
             strengthLabel={labels.strength}
-            hint={labels.passwordHint.replace('{min}', '8')}
+            hint={labels.passwordHint}
             showLabel={labels.showPassword}
             hideLabel={labels.hidePassword}
             className="mt-4"

@@ -74,11 +74,13 @@ Backend-confirmed rules (authority: `DocumentValidationService` —
   privacy, verification), `status` (+2), `dropzone` (+1); parity 584 keys
   each; removed superseded `uploadError`/`attachError`.
 
-### Backend (`steg-backend/`, source — REQUIRES RESTART to take effect)
+### Backend (`steg-backend/`)
 
-The running backend in this session is the user's IntelliJ process on
-`:8080`, so these source fixes were verified on a second instance (`:8081`,
-same DB) and need an IDE restart to go live:
+The updated backend is **live on `:8080`** (operational closure 2026-09-10):
+rebuilt jar from updated source, clean boot
+(`Started StegBackendApplication`, zero ERROR lines), verified in-jar
+(`application.yml` 25 MB ceiling + `MaxUploadSizeExceededException` mapping
+present in `GlobalExceptionHandler`).
 
 1. `application.yml` — `spring.servlet.multipart.max-file-size/max-request-size:
    25MB`. Root cause found by B5 QA: Spring's 1 MB default cap rejected
@@ -89,8 +91,7 @@ same DB) and need an IDE restart to go live:
 2. `GlobalExceptionHandler` — `MaxUploadSizeExceededException` → 413 with
    code `FILE_TOO_LARGE` (same code as domain validation) instead of 500.
 
-Live-verified on `:8081`: 2 MB → 201 (was 500), 11 MB → 422
-`FILE_TOO_LARGE` with detail (was 500), 30 MB → 413 `FILE_TOO_LARGE`.
+Live-verified against the actual `:8080` instance:
 
 ## Bugs found and fixed during B5 QA
 
@@ -107,7 +108,9 @@ Live-verified on `:8081`: 2 MB → 201 (was 500), 11 MB → 422
 
 - `npm run lint` — 0 errors, 0 warnings; `typecheck` — 0 errors;
   `npm run build` — success (51 pages).
-- `b5-qa.js` — **47 pass, 0 fail**: slot chrome (required/formats/size/
+- `qa/b5-qa.js` (durable copy at `steg-intern/qa/b5-qa.js`) — **47 pass,
+  0 fail on the live `:8080` stack** (browser → front `:3000` → backend
+  `:8080` jar → Postgres): slot chrome (required/formats/size/
   privacy), client pre-checks with zero network (wrong extension, oversize),
   valid PDF 201 + Pending pill, response-key allowlist (no storageKey/bucket/
   path patterns), EMPTY_FILE 422 localized, spoofed-MIME 422 + traceId +
@@ -118,7 +121,24 @@ Live-verified on `:8081`: 2 MB → 201 (was 500), 11 MB → 422
   through the backend-data gate with reference, EN smoke, AR mobile RTL +
   keyboard-Enter file-chooser upload + no overflow.
 - Backend full test suite not re-run (Testcontainers); the multipart +
-  handler changes were verified live against `:8081` as above.
+  handler changes were verified live (2 MB → 201 with correct mime/size,
+  11 MB → 422 `FILE_TOO_LARGE` + traceId + detail, 30 MB → 413
+  `FILE_TOO_LARGE` + traceId, spoofed PNG-as-PDF → 422
+  `MIME_TYPE_SPOOFING_DETECTED` + traceId) and end-to-end through the proxy
+  (47/47 above, including `server-oversize-code-forwarded`).
+
+## Operational closure (2026-09-10, `:8080`)
+
+- Previous IDE-run backend was already stopped; rebuilt the jar from updated
+  source and started it on `:8080` (local profile, Postgres `steg_db`,
+  backend cwd); front dev on `:3000` proxies to it (login 200 verified).
+- Live process: backend jar + front dev confirmed on their ports, both
+  health checks 200, backend log shows a clean boot with zero ERROR lines.
+- Post-run state: zero live DRAFTs, `/tmp` probe files/cookies/tokens
+  removed (`qa_email.txt` retained for future runs), no stray processes.
+- Note: the OS temp QA sandbox had been wiped between sessions, so
+  Playwright/Chromium and `b5-qa.js` were rebuilt; the durable copy now
+  lives at `steg-intern/qa/b5-qa.js`.
 
 ## Deliberate scope notes
 

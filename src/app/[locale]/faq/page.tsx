@@ -10,9 +10,9 @@ export default async function FaqPage({params}: {params: Promise<{locale: string
   return (
     <div className="mx-auto flex w-full max-w-2xl py-12 px-4 sm:px-6">
       <Card>
-        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
           {t('title')}
-        </h2>
+        </h1>
 
         <details>
           <div className="cursor-pointer select-none py-2">

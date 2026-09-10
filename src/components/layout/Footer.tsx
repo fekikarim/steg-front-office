@@ -29,9 +29,9 @@ export async function Footer() {
             <Image
               src="/logo/logo-steg-1200x327.png"
               alt="STEG"
-              width={140}
-              height={38}
-              className="h-9 w-auto"
+              width={1200}
+              height={327}
+              className="h-9 w-auto self-start"
             />
             <p className="max-w-sm text-sm leading-6 text-zinc-500 dark:text-zinc-400">
               {tf('tagline')}

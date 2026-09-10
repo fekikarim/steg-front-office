@@ -24,9 +24,8 @@ export async function Header() {
         <Image
           src="/logo/logo-steg-1200x327.png"
           alt="STEG"
-          width={140}
-          height={38}
-          priority
+          width={1200}
+          height={327}
           className="h-9 w-auto"
         />
       }

@@ -1,6 +1,6 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {ApiError, type ErrorEnvelope} from '@/lib/api-client';
-import {getMyCandidate, updateMyCandidate, type CandidateProfileUpdate} from '@/lib/api/candidate';
+import {createMyCandidate, getMyCandidate, updateMyCandidate, type CandidateProfileUpdate} from '@/lib/api/candidate';
 import {accessToken, isUnauthorized} from '@/lib/api/profile-session';
 
 /**
@@ -23,6 +23,7 @@ function mapError(err: unknown): NextResponse {
     const body: ErrorEnvelope = {
       message: err.message,
       status: err.status,
+      error: err.code ?? undefined,
       fieldErrors: err.fieldErrors,
       traceId: err.traceId ?? undefined,
     };
@@ -70,6 +71,39 @@ export async function PUT(req: NextRequest) {
       if (!token) return unauthorized();
       try {
         return NextResponse.json(await updateMyCandidate(token, body));
+      } catch (err2) {
+        return mapError(err2);
+      }
+    }
+    return mapError(err);
+  }
+}
+
+/**
+ * Browser-facing proxy for `POST /api/candidates` (self-registration of the
+ * candidate profile, exactly once per account). Same session/token contract
+ * as GET/PUT; backend 422 codes (CANDIDATE_PROFILE_EXISTS,
+ * CANDIDATE_NATIONAL_ID_DUPLICATE) and 400 field errors pass through.
+ */
+export async function POST(req: NextRequest) {
+  let body: CandidateProfileUpdate;
+  try {
+    body = (await req.json()) as CandidateProfileUpdate;
+  } catch {
+    return NextResponse.json({message: 'Invalid request.'}, {status: 400});
+  }
+
+  let token = await accessToken();
+  if (!token) return unauthorized();
+  try {
+    const created = await createMyCandidate(token, body);
+    return NextResponse.json(created, {status: 201});
+  } catch (err) {
+    if (isUnauthorized(err)) {
+      token = await accessToken(true);
+      if (!token) return unauthorized();
+      try {
+        return NextResponse.json(await createMyCandidate(token, body), {status: 201});
       } catch (err2) {
         return mapError(err2);
       }

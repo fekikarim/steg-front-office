@@ -124,6 +124,21 @@ export interface AttachDocumentRequest {
   mandatory?: boolean;
 }
 
+/** Backend workflow instance state (contract: WorkflowInstanceResponse). */
+export type WorkflowStatus = 'CREATED' | 'RUNNING' | 'COMPLETED' | 'CANCELLED' | 'ARCHIVED';
+
+export interface WorkflowInstanceResponse {
+  id: string;
+  definitionCode: string;
+  definitionName: string;
+  currentStepCode: string | null;
+  currentStepName: string | null;
+  status: WorkflowStatus;
+  startedAt: string;
+  completedAt: string | null;
+  cancelledAt: string | null;
+}
+
 export interface DocumentRule {
   /** MIME types accepted by the backend (Tika-verified, not just the extension). */
   mimes: readonly string[];
@@ -221,6 +236,29 @@ export function updateApplication(token: string, id: string, body: ApplicationUp
 export function submitApplication(token: string, id: string) {
   return backendFetch<ApplicationResponse>(`/api/applications/${id}/submit`, {
     method: 'POST',
+    token,
+  });
+}
+
+/**
+ * Withdraw an own application (→ WITHDRAWN). The backend refuses ACCEPTED
+ * and already-WITHDRAWN dossiers; those rejections surface as ApiError.
+ */
+export function withdrawApplication(token: string, id: string) {
+  return backendFetch<ApplicationResponse>(`/api/applications/${id}/withdraw`, {
+    method: 'POST',
+    token,
+  });
+}
+
+/**
+ * Current workflow state for an application. Only exists once the workflow
+ * instance is spawned (at submit); DRAFTs yield backend 404, which callers
+ * must treat as "no workflow yet", not as an error.
+ */
+export function getApplicationWorkflow(token: string, id: string) {
+  return backendFetch<WorkflowInstanceResponse>(`/api/applications/${id}/workflow`, {
+    method: 'GET',
     token,
   });
 }

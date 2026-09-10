@@ -100,7 +100,7 @@ export function CinField({value, baseValue, onChange, error, disabled}: CinField
     control = (
       <div className="flex w-full flex-col gap-1.5">
         <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{t('fieldCin')}</span>
-        <div className="flex items-center justify-between gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-navy-900">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-navy-900">
           <span
             className={cx('font-mono text-base tabular-nums text-zinc-900 dark:text-zinc-100', revealed && 'tracking-wider')}
             aria-live="polite"

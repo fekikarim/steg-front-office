@@ -19,6 +19,7 @@ import {AcademicSection} from './AcademicSection';
 import {SkillsSection} from './SkillsSection';
 import {AccountPanel} from './AccountPanel';
 import {SaveBar} from './SaveBar';
+import {ProfileCreateForm} from './ProfileCreateForm';
 import type {FieldErrors} from './section-types';
 
 type Phase = 'loading' | 'anonymous' | 'noProfile' | 'ready' | 'error';
@@ -243,15 +244,16 @@ export function ProfileWorkspace() {
 
   if (phase === 'noProfile') {
     return (
-      <Card className="mx-auto max-w-md items-center text-center">
-        <h2 className="text-lg font-bold text-navy-900 dark:text-zinc-50">{t('noProfileTitle')}</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-300">{t('noProfileBody')}</p>
-        <Link href="/apply" className="w-full sm:w-auto">
-          <Button variant="primary" size="md" className="w-full">
-            {t('noProfileApply')}
-          </Button>
-        </Link>
-      </Card>
+      <ProfileCreateForm
+        onCreated={(p) => {
+          applyServerProfile(p);
+          setPhase('ready');
+          toast.notify({title: t('createSuccess'), tone: 'success'});
+        }}
+        onProfileExists={() => {
+          void loadProfile('ready');
+        }}
+      />
     );
   }
 

@@ -54,10 +54,13 @@ export function LoginForm({labels, locale, returnTo: rawReturnTo}: {labels: Logi
 
   const returnTo: string = sanitizeReturnTo(rawReturnTo ?? undefined, `/${locale}`);
   // The next-intl router prefixes the current locale itself, so hand it the
-  // locale-less remainder of the (already locale-prefixed) return destination.
+  // locale-less remainder. Callers pass next-intl pathnames, which are
+  // locale-less already (/apply); the fallback and any prefixed value
+  // (/fr/apply) are normalized the same way — strip one leading locale
+  // segment when present, never touching real paths like /api/… .
   const returnToPath: string = (() => {
-    const slash = returnTo.indexOf('/', 1);
-    return slash === -1 ? '/' : returnTo.slice(slash);
+    const stripped = returnTo.replace(/^\/[a-z]{2}(?=\/|$)/, '');
+    return stripped === '' ? '/' : stripped;
   })();
 
   async function onSubmit(e: React.FormEvent) {

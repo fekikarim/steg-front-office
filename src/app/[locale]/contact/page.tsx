@@ -10,9 +10,9 @@ export default async function ContactPage({params}: {params: Promise<{locale: st
   return (
     <div className="mx-auto flex w-full max-w-2xl py-12 px-4 sm:px-6">
       <Card>
-        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
           {t('title')}
-        </h2>
+        </h1>
         <p className="text-zinc-600 dark:text-zinc-400 mb-8">
           {t('description')}
         </p>

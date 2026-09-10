@@ -1,5 +1,3 @@
-'use client';
-
 import {cx} from '@/lib/cx';
 
 /** Inline field error with an accessible alert role. */

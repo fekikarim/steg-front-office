@@ -46,6 +46,10 @@ export function updateProfile(body: CandidateProfileUpdate) {
   return profileRequest<CandidateProfile>('/api/profile', {method: 'PUT', body: JSON.stringify(body)});
 }
 
+export function createProfile(body: CandidateProfileUpdate) {
+  return profileRequest<CandidateProfile>('/api/profile', {method: 'POST', body: JSON.stringify(body)});
+}
+
 export function fetchUniversities() {
   return profileRequest<University[]>('/api/universities', {method: 'GET'});
 }

@@ -1,5 +1,3 @@
-'use client';
-
 import {cx} from '@/lib/cx';
 
 /** Skeleton block for content loading states (UI_UX §6.3). */

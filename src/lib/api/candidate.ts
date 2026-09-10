@@ -61,6 +61,15 @@ export function updateMyCandidate(token: string, body: CandidateProfileUpdate) {
   return backendFetch<CandidateProfile>('/api/candidates/me', {method: 'PUT', token, body});
 }
 
+/**
+ * Create the candidate profile exactly once (self-registration). The request
+ * DTO is field-identical to the update DTO; the backend enforces
+ * CANDIDATE_PROFILE_EXISTS / CANDIDATE_NATIONAL_ID_DUPLICATE as 422 codes.
+ */
+export function createMyCandidate(token: string, body: CandidateProfileUpdate) {
+  return backendFetch<CandidateProfile>('/api/candidates', {method: 'POST', token, body});
+}
+
 /** Public reference data: the list of active universities. */
 export function listUniversities() {
   return backendFetch<University[]>('/api/universities', {method: 'GET'});

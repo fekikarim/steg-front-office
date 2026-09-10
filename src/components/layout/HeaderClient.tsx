@@ -5,6 +5,7 @@ import {Link, usePathname} from '@/i18n/navigation';
 import {LangSwitcher} from './LangSwitcher';
 import {ThemeToggle} from './ThemeToggle';
 import {Button} from '@/components/ui/Button';
+import {NotificationBell} from '@/components/notifications/NotificationBell';
 import {useAuth} from '@/lib/auth';
 
 interface Labels {
@@ -67,21 +68,22 @@ export function HeaderClient({labels, logo}: {labels: Labels; logo: ReactNode}) 
           <div className="hidden items-center gap-2 md:flex">
             <LangSwitcher />
             <ThemeToggle />
+            {signedIn && <NotificationBell />}
             {signedIn ? (
               <Link href="/profile">
-                <Button variant="tertiary" size="sm">
+                <Button variant="tertiary" size="sm" className="whitespace-nowrap">
                   {labels.profile}
                 </Button>
               </Link>
             ) : (
               <Link href={loginHref}>
-                <Button variant="tertiary" size="sm">
+                <Button variant="tertiary" size="sm" className="whitespace-nowrap">
                   {labels.signIn}
                 </Button>
               </Link>
             )}
             <Link href="/apply">
-              <Button variant="primary" size="sm">
+              <Button variant="primary" size="sm" className="whitespace-nowrap">
                 {labels.apply}
               </Button>
             </Link>
@@ -115,6 +117,7 @@ export function HeaderClient({labels, logo}: {labels: Labels; logo: ReactNode}) 
               <li className="flex items-center gap-2 pt-2">
                 <LangSwitcher />
                 <ThemeToggle />
+                {signedIn && <NotificationBell />}
               </li>
               <li className="flex gap-2 pt-2">
                 {signedIn ? (

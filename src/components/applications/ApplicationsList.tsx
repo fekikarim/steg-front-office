@@ -1,26 +1,31 @@
 'use client';
 
-import {useCallback, useEffect, useState} from 'react';
-import {useTranslations} from 'next-intl';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useLocale, useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {ApiError} from '@/lib/api-client';
-import type {ApplicationDocumentResponse, ApplicationResponse} from '@/lib/api/application';
-import {getApplicationDocuments, listApplications} from '@/lib/api/application-client';
+import type {ApplicationResponse} from '@/lib/api/application';
+import {listApplications} from '@/lib/api/application-client';
 import {Button} from '@/components/ui/Button';
 import {CardSkeleton} from '@/components/feedback/Skeleton';
 import {ErrorState} from '@/components/feedback/ErrorState';
 import {EmptyState} from '@/components/feedback/EmptyState';
 import {Card} from '@/components/ui/Card';
-import {Badge, StatusPill} from '@/components/ui/Badge';
+import {StatusPill} from '@/components/ui/Badge';
+import {formatDateTime} from '@/lib/dates';
 
 type Phase = 'loading' | 'anonymous' | 'empty' | 'ready' | 'error';
 
 /**
- * Candidate's list of applications at `/[locale]/applications`. Reads from the
- * authenticated `/api/applications` proxy; shows reference, status and dates.
+ * Candidate's applications at `/[locale]/applications` (B6). Newest first;
+ * compact cards on phones, an accessible data table on larger screens —
+ * never a forced desktop table on mobile (UI_UX §5.3). Each row links to
+ * the dossier detail page; per-document verification lives there.
  */
 export function ApplicationsList() {
-  const t = useTranslations('apply');
+  const t = useTranslations('tracking');
+  const ta = useTranslations('apply');
+  const locale = useLocale();
   const [phase, setPhase] = useState<Phase>('loading');
   const [apps, setApps] = useState<ApplicationResponse[]>([]);
   const [traceId, setTraceId] = useState<string | null>(null);
@@ -46,6 +51,18 @@ export function ApplicationsList() {
     void load();
   }, [load]);
 
+  const sorted = useMemo(
+    () => [...apps].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)),
+    [apps],
+  );
+
+  /** Incremental reveal (same pattern as the notification center): the
+   *  backend list endpoint is unpaginated, so long histories render in
+   *  bounded chunks instead of one giant DOM (UI_UX §10.11, §12.12). */
+  const PAGE_SIZE = 10;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const visible = sorted.slice(0, visibleCount);
+
   if (phase === 'loading') {
     return <CardSkeleton />;
   }
@@ -53,8 +70,8 @@ export function ApplicationsList() {
   if (phase === 'error') {
     return (
       <ErrorState
-        title={t('loadErrorTitle')}
-        hint={t('loadErrorHint')}
+        title={ta('loadErrorTitle')}
+        hint={ta('loadErrorHint')}
         traceId={traceId}
         onRetry={() => {
           setPhase('loading');
@@ -67,12 +84,12 @@ export function ApplicationsList() {
   if (phase === 'anonymous') {
     return (
       <Card className="mx-auto max-w-md items-center text-center">
-        <h2 className="text-lg font-bold text-navy-900 dark:text-zinc-50">{t('authRequiredTitle')}</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-300">{t('authRequiredBody')}</p>
+        <h2 className="text-lg font-bold text-navy-900 dark:text-zinc-50">{ta('authRequiredTitle')}</h2>
+        <p className="text-sm text-zinc-600 dark:text-zinc-300">{ta('authRequiredBody')}</p>
         <div className="flex w-full justify-center">
           <Link href="/login">
             <Button variant="primary" size="md">
-              {t('authSignIn')}
+              {ta('authSignIn')}
             </Button>
           </Link>
         </div>
@@ -84,11 +101,11 @@ export function ApplicationsList() {
     return (
       <EmptyState
         title={t('emptyTitle')}
-        hint={t('openEmptyHint')}
+        hint={t('emptyHint')}
         action={
           <Link href="/apply">
             <Button variant="primary" size="md">
-              {t('startButton')}
+              {ta('startButton')}
             </Button>
           </Link>
         }
@@ -96,100 +113,135 @@ export function ApplicationsList() {
     );
   }
 
-  return (
-    <ul className="flex flex-col gap-3">
-      {apps.map((app) => (
-        <li key={app.id}>
-          <ApplicationCard app={app} />
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-/**
- * One application row with its dossier verification summary (B5). Documents
- * are fetched lazily per application — the list stays fast while each card
- * shows required-vs-optional verification states when the backend exposes
- * them. Only safe metadata is rendered (file name + verification); never
- * storage keys, paths, checksums or reviewer identities.
- */
-function ApplicationCard({app}: {app: ApplicationResponse}) {
-  const t = useTranslations('apply');
-  const td = useTranslations('apply.documents');
-  const [docs, setDocs] = useState<ApplicationDocumentResponse[] | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    void getApplicationDocuments(app.id)
-      .then((list) => {
-        if (!cancelled) setDocs(list);
-      })
-      .catch(() => {
-        if (!cancelled) setDocs([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [app.id]);
-
-  function formatDate(iso: string | null): string {
-    if (!iso) return '—';
-    return new Date(iso).toLocaleDateString();
-  }
-
-  const required = (docs ?? []).filter((d) => d.mandatory);
-  const flagged = (docs ?? []).filter(
-    (d) => d.verificationStatus === 'REJECTED' || d.verificationStatus === 'REQUIRES_CORRECTION',
-  );
+  const dateRange = (app: ApplicationResponse) =>
+    app.desiredStartDate && app.desiredEndDate
+      ? `${app.desiredStartDate} → ${app.desiredEndDate}`
+      : t('notProvided');
 
   return (
-    <Card>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="font-mono text-sm font-semibold text-navy-900 dark:text-zinc-50" dir="ltr">
-            {app.reference}
-          </p>
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            {t('createdLabel')} {formatDate(app.createdAt)}
-            {app.desiredStartDate && app.desiredEndDate && (
-              <span className="ms-2">
-                {app.desiredStartDate} → {app.desiredEndDate}
-              </span>
-            )}
-          </p>
-        </div>
-        <StatusPill code={app.status} />
-      </div>
-      {docs !== null && docs.length > 0 && (
-        <div className="mt-3 flex flex-col gap-1.5 border-t border-zinc-100 pt-3 dark:border-zinc-800">
-          <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-            {t('review.sectionDocuments')}
-          </p>
-          <ul className="flex flex-col gap-1.5">
-            {required.map((d) => (
-              <li key={d.id} className="flex items-center justify-between gap-2 text-xs">
-                <span className="truncate text-zinc-700 dark:text-zinc-200" dir="auto">
-                  {d.document.originalFileName}
-                </span>
-                <StatusPill code={d.verificationStatus} />
-              </li>
+    <>
+      {/* Mobile: stacked cards */}
+      <ul className="flex flex-col gap-3 md:hidden">
+        {visible.map((app) => (
+          <li key={app.id}>
+            <Card>
+              <div className="flex items-start justify-between gap-2">
+                <Link
+                  href={`/applications/${app.id}`}
+                  className="font-mono text-sm font-semibold whitespace-nowrap text-brand-700 underline-offset-2 hover:underline dark:text-brand-300"
+                  dir="ltr"
+                >
+                  {app.reference}
+                </Link>
+                <StatusPill code={app.status} />
+              </div>
+              <dl className="mt-3 flex flex-col gap-1.5 text-sm">
+                <div className="flex items-baseline justify-between gap-3">
+                  <dt className="text-zinc-500 dark:text-zinc-400">{t('colType')}</dt>
+                  <dd className="text-end font-medium text-zinc-800 dark:text-zinc-100">
+                    {app.calculatedType ? <StatusPill code={app.calculatedType} /> : t('typeUnclassified')}
+                  </dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-3">
+                  <dt className="text-zinc-500 dark:text-zinc-400">{t('colDates')}</dt>
+                  <dd className="text-end font-medium text-zinc-800 dark:text-zinc-100" dir="ltr">
+                    {dateRange(app)}
+                  </dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-3">
+                  <dt className="text-zinc-500 dark:text-zinc-400">{t('colUpdated')}</dt>
+                  <dd className="text-end font-medium text-zinc-800 dark:text-zinc-100">
+                    {formatDateTime(app.updatedAt, locale)}
+                  </dd>
+                </div>
+              </dl>
+              <div className="mt-3 flex justify-end">
+                <Link
+                  href={`/applications/${app.id}`}
+                  className="text-sm font-semibold text-brand-700 underline-offset-2 hover:underline dark:text-brand-300"
+                >
+                  {t('open')}
+                </Link>
+              </div>
+            </Card>
+          </li>
+        ))}
+      </ul>
+
+      {/* Larger screens: data table */}
+      <div className="hidden overflow-x-auto rounded-xl border border-zinc-200 md:block dark:border-zinc-800">
+        <table className="w-full border-collapse bg-white text-left text-sm rtl:text-right dark:bg-navy-900">
+          <caption className="sr-only">{t('title')}</caption>
+          <thead>
+            <tr className="border-b border-zinc-200 dark:border-zinc-800">
+              <th scope="col" className="px-4 py-3 text-xs font-bold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
+                {t('colReference')}
+              </th>
+              <th scope="col" className="px-4 py-3 text-xs font-bold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
+                {t('colType')}
+              </th>
+              <th scope="col" className="px-4 py-3 text-xs font-bold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
+                {t('colDates')}
+              </th>
+              <th scope="col" className="px-4 py-3 text-xs font-bold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
+                {t('colStatus')}
+              </th>
+              <th scope="col" className="px-4 py-3 text-xs font-bold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
+                {t('colUpdated')}
+              </th>
+              <th scope="col" className="px-4 py-3 text-end text-xs font-bold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
+                <span className="sr-only">{t('colActions')}</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {visible.map((app) => (
+              <tr
+                key={app.id}
+                className="border-b border-zinc-100 transition-colors last:border-0 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-white/5"
+              >
+                <td className="px-4 py-3">
+                  <Link
+                    href={`/applications/${app.id}`}
+                    className="font-mono text-[13px] font-semibold whitespace-nowrap text-brand-700 underline-offset-2 hover:underline dark:text-brand-300"
+                    dir="ltr"
+                  >
+                    {app.reference}
+                  </Link>
+                </td>
+                <td className="px-4 py-3">
+                  {app.calculatedType ? <StatusPill code={app.calculatedType} /> : t('typeUnclassified')}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-zinc-700 dark:text-zinc-200" dir="ltr">
+                  {dateRange(app)}
+                </td>
+                <td className="px-4 py-3">
+                  <StatusPill code={app.status} />
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-zinc-700 dark:text-zinc-200">
+                  {formatDateTime(app.updatedAt, locale)}
+                </td>
+                <td className="px-4 py-3 text-end">
+                  <Link
+                    href={`/applications/${app.id}`}
+                    className="text-[13px] font-semibold text-brand-700 underline-offset-2 hover:underline dark:text-brand-300"
+                  >
+                    {t('open')}
+                  </Link>
+                </td>
+              </tr>
             ))}
-          </ul>
-          {flagged.length > 0 && (
-            <p role="note" className="text-xs text-amber-700 dark:text-amber-300">
-              <span className="font-semibold">{td('verificationCommentLabel')}: </span>
-              <span dir="auto">
-                {flagged
-                  .map((d) => d.verificationComment)
-                  .filter(Boolean)
-                  .join(' · ')}
-              </span>
-            </p>
-          )}
-          {docs.length === 0 && <Badge tone="neutral">{td('missingRequired')}</Badge>}
+          </tbody>
+        </table>
+      </div>
+
+      {visible.length < sorted.length && (
+        <div className="mt-4 flex justify-center">
+          <Button variant="secondary" size="md" onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}>
+            {t('showMore', {remaining: sorted.length - visible.length})}
+          </Button>
         </div>
       )}
-    </Card>
+    </>
   );
 }

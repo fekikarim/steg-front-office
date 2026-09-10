@@ -10,9 +10,9 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
   return (
     <div className="mx-auto flex w-full max-w-2xl py-12 px-4 sm:px-6">
       <Card>
-        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
           {t('title')}
-        </h2>
+        </h1>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
@@ -42,19 +42,22 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
         </div>
 
         <div className="mt-6">
-          <Link href={t('applyPath')} className="text-primary underline">
+          <Link
+            href={t('applyPath')}
+            className="inline-flex items-center gap-2 whitespace-nowrap text-primary underline underline-offset-2"
+          >
             {t('ctaApply')}
-          </Link>
-          <span className="ml-2 rtl:rotate-180">
             <svg
+              aria-hidden="true"
               width={14}
               height={14}
               viewBox="0 0 24 24"
               fill="currentColor"
+              className="shrink-0 rtl:rotate-180"
             >
-              <path d="M5 12h14M12 5l7 7-7 7"/>
+              <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
-          </span>
+          </Link>
         </div>
       </Card>
     </div>

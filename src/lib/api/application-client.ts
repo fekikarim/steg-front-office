@@ -6,6 +6,7 @@ import type {
   ApplicationResponse,
   ApplicationDocumentResponse,
   DocumentResponse,
+  WorkflowInstanceResponse,
 } from './application';
 
 /**
@@ -69,6 +70,14 @@ export function updateDraft(id: string, body: {desiredStartDate?: string | null;
 
 export function submit(id: string) {
   return applicationRequest<ApplicationResponse>(`/api/applications/${id}/submit`, {method: 'POST'});
+}
+
+export function withdrawApplication(id: string) {
+  return applicationRequest<ApplicationResponse>(`/api/applications/${id}/withdraw`, {method: 'POST'});
+}
+
+export function getApplicationWorkflow(id: string) {
+  return applicationRequest<WorkflowInstanceResponse>(`/api/applications/${id}/workflow`, {method: 'GET'});
 }
 
 /* ----- Documents ----- */
