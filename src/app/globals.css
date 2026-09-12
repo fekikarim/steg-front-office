@@ -40,51 +40,103 @@
   --surface-card: #ffffff;
   --surface-subtle: #f8fafc;
   --border-subtle: #e2e8f0;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --border-strong: #cbd5e1;
+  --shadow-subtle: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-elevated: 0 12px 24px -4px rgb(0 0 0 / 0.08), 0 4px 8px -2px rgb(0 0 0 / 0.04);
 }
 
 .dark {
-  --surface-card: #042843;
-  --surface-subtle: #031e33;
-  --border-subtle: #1e3a53;
+  --surface-card: #072239;
+  --surface-subtle: #031726;
+  --border-subtle: #133959;
+  --border-strong: #1e527d;
+  --shadow-subtle: 0 1px 3px 0 rgb(0 0 0 / 0.4);
+  --shadow-card: 0 4px 12px -2px rgb(0 0 0 / 0.5);
+  --shadow-elevated: 0 16px 32px -4px rgb(0 0 0 / 0.6);
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-/* Modern Card & Glassmorphism Utilities */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+/* ==========================================================
+   1. SURFACE & CONTAINER SYSTEM (Institutional Elegance)
+   ========================================================== */
+
+/* Modern frosted header with precise border */
+.frosted-header {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.85);
 }
 
-.dark .glass-panel {
-  background: rgba(4, 40, 67, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(30, 58, 83, 0.8);
+.dark .frosted-header {
+  background: rgba(3, 30, 51, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* Clean institutional card */
+.surface-card {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-subtle);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.surface-card:hover {
+  border-color: var(--border-strong);
+}
+
+/* Interactive card with subtle lift */
 .hover-lift {
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.24s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.24s ease;
 }
 
 .hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px -6px rgba(11, 97, 160, 0.12), 0 4px 8px -2px rgba(0, 0, 0, 0.04);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-elevated);
 }
 
-.dark .hover-lift:hover {
-  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.4), 0 4px 8px -2px rgba(0, 0, 0, 0.2);
+/* Subtle architectural dot grid (light texture) */
+.bg-dot-pattern {
+  background-image: radial-gradient(circle at 1px 1px, rgba(11, 97, 160, 0.07) 1px, transparent 0);
+  background-size: 24px 24px;
 }
 
-/* Subtle Gradient Text */
+.dark .bg-dot-pattern {
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.07) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Restrained soft ambient accent glow */
+.ambient-glow-brand {
+  background: radial-gradient(circle, rgba(11, 97, 160, 0.08) 0%, rgba(11, 97, 160, 0) 70%);
+}
+
+.dark .ambient-glow-brand {
+  background: radial-gradient(circle, rgba(74, 148, 198, 0.1) 0%, rgba(74, 148, 198, 0) 70%);
+}
+
+/* ==========================================================
+   2. TYPOGRAPHY & EDITORIAL UTILITIES
+   ========================================================== */
+
+.editorial-lead {
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: #475569;
+}
+
+.dark .editorial-lead {
+  color: #94a3b8;
+}
+
+/* Institutional Heading with subtle high-contrast gradient */
 .gradient-heading {
   background: linear-gradient(135deg, #042843 0%, #0b61a0 100%);
   -webkit-background-clip: text;
@@ -92,85 +144,76 @@ html {
 }
 
 .dark .gradient-heading {
-  background: linear-gradient(135deg, #ffffff 0%, #7fb6da 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 60%, #7fb6da 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* Pulse glow for active status badges */
-@keyframes pulse-glow {
+/* High-contrast energy gradient for primary keywords */
+.gradient-energy {
+  background: linear-gradient(135deg, #0b61a0 0%, #0284c7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark .gradient-energy {
+  background: linear-gradient(135deg, #38bdf8 0%, #93c5fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ==========================================================
+   3. MOTION & ANIMATION PRIMITIVES
+   ========================================================== */
+
+@keyframes float-subtle {
   0%, 100% {
-    opacity: 1;
-    transform: scale(1);
+    transform: translateY(0px);
   }
   50% {
-    opacity: 0.75;
-    transform: scale(1.05);
+    transform: translateY(-5px);
   }
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.animate-float-subtle {
+  animation: float-subtle 5s ease-in-out infinite;
 }
 
-/* Visible focus for keyboard users (WCAG 2.2 AA, UI_UX §7). */
-:where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--color-brand-500);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-.dark :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline-color: var(--color-brand-300);
-}
-
-::selection {
-  background: var(--color-brand-200);
-  color: #042843;
-}
-
-/* Skeleton shimmer (loading convention). */
-@keyframes steg-shimmer {
-  0% {
-    background-position: -400px 0;
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
   }
-  100% {
-    background-position: 400px 0;
+  50% {
+    opacity: 0.6;
   }
 }
 
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    rgb(0 0 0 / 0.06) 25%,
-    rgb(0 0 0 / 0.12) 37%,
-    rgb(0 0 0 / 0.06) 63%
-  );
-  background-size: 400px 100%;
-  animation: steg-shimmer 1.4s ease infinite;
+.animate-pulse-subtle {
+  animation: pulse-subtle 2.5s ease-in-out infinite;
 }
 
-.dark .skeleton {
-  background: linear-gradient(
-    90deg,
-    rgb(255 255 255 / 0.06) 25%,
-    rgb(255 255 255 / 0.12) 37%,
-    rgb(255 255 255 / 0.06) 63%
-  );
-  background-size: 400px 100%;
+/* Standardized focus visible styling */
+.focus-ring {
+  outline: none;
 }
 
+.focus-ring:focus-visible {
+  ring-width: 2px;
+  ring-color: #0b61a0;
+  ring-offset-width: 2px;
+}
+
+/* Respect user's motion preferences */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
-  .skeleton {
-    animation: none;
-  }
   *,
   *::before,
   *::after {
-    transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

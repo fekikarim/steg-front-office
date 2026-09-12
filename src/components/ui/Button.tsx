@@ -3,25 +3,27 @@
 import type {ButtonHTMLAttributes, ReactNode} from 'react';
 import {cx} from '@/lib/cx';
 
-type Variant = 'primary' | 'secondary' | 'tertiary' | 'destructive' | 'success' | 'icon';
+type Variant = 'primary' | 'secondary' | 'tertiary' | 'destructive' | 'success' | 'icon' | 'cyber';
 type Size = 'sm' | 'md' | 'lg';
 
 const VARIANTS: Record<Variant, string> = {
   primary:
-    'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800 dark:bg-brand-500 dark:hover:bg-brand-400',
+    'bg-brand-600 text-white shadow-xs hover:bg-brand-700 active:bg-brand-800 hover:shadow-sm hover:-translate-y-0.5 active:translate-y-0 dark:bg-brand-500 dark:hover:bg-brand-400 transition-all duration-200',
+  cyber:
+    'bg-gradient-to-r from-brand-700 via-brand-600 to-sky-600 text-white shadow-sm hover:shadow-md hover:from-brand-600 hover:to-sky-500 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200',
   secondary:
-    'border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-navy-900 dark:text-zinc-100 dark:hover:bg-navy-800',
-  tertiary: 'text-brand-700 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-white/5',
-  destructive: 'bg-accent-600 text-white hover:bg-accent-700 active:bg-accent-800',
+    'border border-slate-300 bg-white text-slate-800 hover:border-brand-500 hover:bg-slate-50 active:bg-slate-100 dark:border-slate-700 dark:bg-navy-900 dark:text-slate-100 dark:hover:border-brand-400 dark:hover:bg-navy-800 transition-colors duration-150',
+  tertiary: 'text-brand-700 hover:bg-brand-50 active:bg-brand-100 dark:text-brand-300 dark:hover:bg-white/5 transition-colors',
+  destructive: 'bg-accent-600 text-white hover:bg-accent-700 active:bg-accent-800 shadow-xs transition-colors',
   success:
-    'bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500',
-  icon: 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/10',
+    'bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 shadow-xs dark:bg-emerald-600 dark:hover:bg-emerald-500 transition-colors',
+  icon: 'text-slate-600 hover:bg-slate-100 active:bg-slate-200 dark:text-slate-300 dark:hover:bg-white/10 transition-colors',
 };
 
 const SIZES: Record<Size, string> = {
-  sm: 'h-8 px-3 text-[13px]',
-  md: 'h-10 px-4 text-sm',
-  lg: 'h-12 px-6 text-[15px]',
+  sm: 'h-8.5 px-3.5 text-xs font-medium rounded-lg',
+  md: 'h-10 px-4.5 text-sm font-semibold rounded-xl',
+  lg: 'h-12 px-6 text-base font-semibold rounded-xl',
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

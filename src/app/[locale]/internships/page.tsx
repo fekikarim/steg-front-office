@@ -3,7 +3,6 @@ import {getTranslations, setRequestLocale} from 'next-intl/server';
 import {Link} from '@/i18n/navigation';
 import {Badge} from '@/components/ui/Badge';
 import {Button} from '@/components/ui/Button';
-import {Card} from '@/components/ui/Card';
 import {
   IconArrowRight,
   IconEye,
@@ -69,17 +68,26 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
   ];
 
   return (
-    <div className="flex w-full flex-col">
+    <div className="relative flex w-full flex-col overflow-hidden bg-zinc-50/40 dark:bg-navy-950">
+      {/* Ambient Institutional Lighting */}
+      <div className="pointer-events-none absolute -top-40 start-0 h-96 w-96 rounded-full bg-brand-500/5 blur-3xl dark:bg-brand-400/10" />
+      <div className="pointer-events-none absolute bottom-1/4 end-0 h-96 w-96 rounded-full bg-navy-600/5 blur-3xl dark:bg-navy-700/10" />
+
       {/* ------------------------------------------------------------------ */}
       {/*  HEADER BANNER                                                     */}
       {/* ------------------------------------------------------------------ */}
-      <section className="relative overflow-hidden border-b border-zinc-200/80 bg-gradient-to-b from-brand-50/70 via-white to-white py-14 sm:py-20 dark:border-zinc-800/80 dark:from-navy-900/60 dark:via-navy-950 dark:to-navy-950">
-        <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 px-4 text-center sm:px-6">
-          <Badge tone="brand" className="gap-1.5 px-3 py-1">
-            <IconSparkles className="h-3.5 w-3.5" />
-            {t('badge')}
-          </Badge>
-          <h1 className="text-3xl font-extrabold tracking-tight text-navy-950 sm:text-4xl lg:text-5xl dark:text-zinc-50">
+      <section className="relative overflow-hidden border-b border-zinc-200/80 bg-white py-16 sm:py-24 dark:border-navy-800 dark:bg-navy-900/60">
+        <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center gap-5 px-4 text-center sm:px-6">
+          <div className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50/80 px-3.5 py-1.5 shadow-xs backdrop-blur-xs dark:border-brand-800/60 dark:bg-brand-950/40">
+            <span className="relative flex h-2 w-2">
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-600 dark:bg-brand-400"></span>
+            </span>
+            <span className="text-xs font-semibold tracking-wide text-brand-800 dark:text-brand-300">
+              {t('badge')}
+            </span>
+          </div>
+
+          <h1 className="text-3xl font-black tracking-tight text-navy-950 sm:text-5xl lg:text-6xl dark:text-white">
             {t('title')}
           </h1>
           <p className="max-w-3xl text-base leading-relaxed text-zinc-600 sm:text-lg dark:text-zinc-300">
@@ -91,25 +99,29 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
       {/* ------------------------------------------------------------------ */}
       {/*  THE THREE INTERNSHIP TYPES (DETAILED CARDS)                       */}
       {/* ------------------------------------------------------------------ */}
-      <section className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-16 sm:px-6">
+      <section className="relative mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6">
         {types.map((type, idx) => (
           <div
             key={type.id}
-            className={`grid grid-cols-1 items-center gap-8 rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-md transition-all hover-lift lg:grid-cols-12 lg:p-8 dark:border-zinc-800 dark:bg-navy-900 ${
+            className={`surface-card hover-lift group grid grid-cols-1 items-center gap-8 rounded-3xl p-6 shadow-sm transition-all lg:grid-cols-12 lg:p-8 ${
               idx % 2 === 1 ? 'lg:flex-row-reverse' : ''
             }`}
           >
             {/* Visual */}
-            <div className={`relative h-64 w-full overflow-hidden rounded-2xl bg-zinc-50 lg:col-span-5 dark:bg-navy-950 ${
+            <div className={`relative h-72 w-full overflow-hidden rounded-2xl bg-zinc-100 lg:col-span-5 dark:bg-navy-900 ${
               idx % 2 === 1 ? 'lg:order-2' : 'lg:order-1'
             }`}>
               <Image
                 src={type.image}
                 alt={type.title}
                 fill
-                className="object-cover"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
                 sizes="(max-width: 768px) 100vw, 500px"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+              <div className="absolute bottom-3 start-3">
+                <Badge tone={type.tone} className="backdrop-blur-xs font-semibold">{type.durationBadge}</Badge>
+              </div>
             </div>
 
             {/* Content Details */}
@@ -117,20 +129,22 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
               idx % 2 === 1 ? 'lg:order-1' : 'lg:order-2'
             }`}>
               <div className="flex flex-wrap items-center gap-2.5">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 dark:bg-brand-900/40">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700 shadow-xs dark:bg-brand-950/60 dark:text-brand-300">
                   {type.icon}
                 </span>
-                <Badge tone={type.tone}>{type.durationBadge}</Badge>
+                <span className="text-xs font-bold uppercase tracking-wider text-brand-700 dark:text-brand-400">
+                  Filière Officielle STEG
+                </span>
               </div>
 
-              <h2 className="text-2xl font-extrabold text-navy-950 dark:text-zinc-50">{type.title}</h2>
+              <h2 className="text-2xl font-black text-navy-950 dark:text-white">{type.title}</h2>
 
-              <div className="flex flex-col gap-2 text-xs leading-relaxed text-zinc-700 sm:text-sm dark:text-zinc-300">
-                <p className="font-semibold text-brand-700 dark:text-brand-300">{type.rule}</p>
+              <div className="flex flex-col gap-2.5 text-xs leading-relaxed text-zinc-700 sm:text-sm dark:text-zinc-300">
+                <p className="font-semibold text-brand-800 dark:text-brand-300">{type.rule}</p>
                 <p>{type.purpose}</p>
                 <p className="text-zinc-600 dark:text-zinc-400">{type.theme}</p>
                 <p className="text-zinc-600 dark:text-zinc-400">{type.deliverables}</p>
-                <div className="mt-1 flex items-center gap-2 rounded-lg bg-zinc-50 p-2.5 dark:bg-navy-950">
+                <div className="mt-1 flex items-center gap-2.5 rounded-xl border border-zinc-200/80 bg-zinc-50/80 p-3 dark:border-navy-800 dark:bg-navy-900/60">
                   <IconSparkles className="h-4 w-4 shrink-0 text-brand-600 dark:text-brand-400" />
                   <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200">{type.companion}</span>
                 </div>
@@ -138,9 +152,9 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
 
               <div className="pt-2">
                 <Link href="/apply">
-                  <Button size="md" className="hover-lift shadow-sm">
-                    {t('applyCtaText')}
-                    <IconArrowRight className="h-4 w-4 rtl:rotate-180" />
+                  <Button size="md" variant="primary" className="rounded-xl">
+                    <span>{t('applyCtaText')}</span>
+                    <IconArrowRight className="ms-1.5 h-4 w-4 rtl:rotate-180" />
                   </Button>
                 </Link>
               </div>
@@ -149,17 +163,19 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
         ))}
 
         {/* Global Prominent Call to Action */}
-        <div className="flex flex-col items-center justify-between gap-6 rounded-3xl border border-brand-200 bg-brand-50/70 p-6 sm:flex-row sm:p-8 dark:border-brand-800 dark:bg-brand-950/20">
+        <div className="surface-card flex flex-col items-center justify-between gap-6 rounded-3xl p-8 shadow-sm sm:flex-row">
           <div className="flex items-center gap-4">
-            <Image
-              src="/components/intern-types/join_us_225x150.svg"
-              alt="Rejoignez-nous"
-              width={90}
-              height={60}
-              className="h-16 w-auto shrink-0"
-            />
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-brand-50 p-2 shadow-xs dark:bg-brand-950/60">
+              <Image
+                src="/components/intern-types/join_us_225x150.svg"
+                alt="Rejoignez-nous"
+                width={70}
+                height={50}
+                className="h-12 w-auto"
+              />
+            </div>
             <div className="flex flex-col">
-              <h3 className="text-lg font-bold text-navy-900 dark:text-zinc-50">
+              <h3 className="text-lg font-black text-navy-950 dark:text-white">
                 Vous avez identifié le stage qui correspond à vos études ?
               </h3>
               <p className="text-xs text-zinc-600 dark:text-zinc-400">
@@ -168,9 +184,9 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
             </div>
           </div>
           <Link href="/apply" className="shrink-0">
-            <Button size="lg" className="hover-lift shadow-md">
-              {t('applyButtonGlobal')}
-              <IconArrowRight className="h-4 w-4 rtl:rotate-180" />
+            <Button size="lg" variant="primary" className="rounded-xl">
+              <span>{t('applyButtonGlobal')}</span>
+              <IconArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
             </Button>
           </Link>
         </div>
@@ -179,50 +195,52 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
       {/* ------------------------------------------------------------------ */}
       {/*  COMPARISON MATRIX                                                 */}
       {/* ------------------------------------------------------------------ */}
-      <section className="border-y border-zinc-200/80 bg-zinc-50/70 py-16 sm:py-20 dark:border-zinc-800/80 dark:bg-navy-900/50">
+      <section className="relative border-y border-zinc-200/80 bg-white py-16 sm:py-20 dark:border-navy-800 dark:bg-navy-900/40">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 sm:px-6">
           <div className="flex flex-col items-start gap-2">
-            <Badge tone="brand" className="w-fit">Tableau Récapitulatif</Badge>
-            <h2 className="text-2xl font-extrabold tracking-tight text-navy-950 sm:text-3xl dark:text-zinc-50">
+            <Badge tone="brand" className="w-fit font-semibold">Tableau Récapitulatif</Badge>
+            <h2 className="text-2xl font-black tracking-tight text-navy-950 sm:text-4xl dark:text-white">
               {t('matrixTitle')}
             </h2>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-navy-900">
-            <table className="w-full border-collapse text-left text-xs rtl:text-right sm:text-sm">
-              <thead>
-                <tr className="border-b border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-navy-950">
-                  <th scope="col" className="px-4 py-3 font-bold text-zinc-700 dark:text-zinc-300">{t('matrixColType')}</th>
-                  <th scope="col" className="px-4 py-3 font-bold text-zinc-700 dark:text-zinc-300">{t('matrixColDuration')}</th>
-                  <th scope="col" className="px-4 py-3 font-bold text-zinc-700 dark:text-zinc-300">{t('matrixColRule')}</th>
-                  <th scope="col" className="px-4 py-3 font-bold text-zinc-700 dark:text-zinc-300">{t('matrixColTheme')}</th>
-                  <th scope="col" className="px-4 py-3 font-bold text-zinc-700 dark:text-zinc-300">{t('matrixColCompanion')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                <tr>
-                  <td className="px-4 py-3.5 font-bold text-navy-900 dark:text-zinc-100">{t('obsTitle')}</td>
-                  <td className="px-4 py-3.5 text-zinc-600 dark:text-zinc-300">~ 1 mois (&lt; 42 jours)</td>
-                  <td className="px-4 py-3.5 text-zinc-600 dark:text-zinc-300">Selon cursus (Optionnel ou Obligatoire)</td>
-                  <td className="px-4 py-3.5 text-zinc-600 dark:text-zinc-300">Non exigé à l&apos;inscription</td>
-                  <td className="px-4 py-3.5 text-zinc-600 dark:text-zinc-300">Accueil & Consignes de sécurité</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3.5 font-bold text-navy-900 dark:text-zinc-100">{t('perfTitle')}</td>
-                  <td className="px-4 py-3.5 text-zinc-600 dark:text-zinc-300">6 semaines à 3 mois (42 à 90 jours)</td>
-                  <td className="px-4 py-3.5 font-bold text-brand-600 dark:text-brand-400">Automatiquement obligatoire</td>
-                  <td className="px-4 py-3.5 text-zinc-600 dark:text-zinc-300">Discuté avec l&apos;encadrant</td>
-                  <td className="px-4 py-3.5 text-zinc-600 dark:text-zinc-300">Journal quotidien & Validation des tâches</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3.5 font-bold text-navy-900 dark:text-zinc-100">{t('pfeTitle')}</td>
-                  <td className="px-4 py-3.5 text-zinc-600 dark:text-zinc-300">&gt; 3 mois (&gt; 90 jours)</td>
-                  <td className="px-4 py-3.5 font-bold text-brand-600 dark:text-brand-400">Automatiquement obligatoire</td>
-                  <td className="px-4 py-3.5 text-zinc-600 dark:text-zinc-300">Projet de fin d&apos;études formel</td>
-                  <td className="px-4 py-3.5 text-zinc-600 dark:text-zinc-300">Jalons, Livrables & Évaluation finale</td>
-                </tr>
-              </tbody>
-            </table>
+          <div className="surface-card overflow-hidden rounded-2xl p-0 shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left text-xs rtl:text-right sm:text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-200 bg-zinc-50 dark:border-navy-800 dark:bg-navy-900">
+                    <th scope="col" className="px-5 py-4 font-bold text-zinc-700 dark:text-zinc-200">{t('matrixColType')}</th>
+                    <th scope="col" className="px-5 py-4 font-bold text-zinc-700 dark:text-zinc-200">{t('matrixColDuration')}</th>
+                    <th scope="col" className="px-5 py-4 font-bold text-zinc-700 dark:text-zinc-200">{t('matrixColRule')}</th>
+                    <th scope="col" className="px-5 py-4 font-bold text-zinc-700 dark:text-zinc-200">{t('matrixColTheme')}</th>
+                    <th scope="col" className="px-5 py-4 font-bold text-zinc-700 dark:text-zinc-200">{t('matrixColCompanion')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100 dark:divide-navy-800/80">
+                  <tr className="hover:bg-zinc-50/60 dark:hover:bg-navy-800/40 transition-colors">
+                    <td className="px-5 py-4 font-bold text-navy-950 dark:text-white">{t('obsTitle')}</td>
+                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300 font-mono">~ 1 mois (&lt; 42j)</td>
+                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">Selon cursus (Optionnel ou Obligatoire)</td>
+                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">Non exigé à l&apos;inscription</td>
+                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">Accueil & Consignes de sécurité</td>
+                  </tr>
+                  <tr className="hover:bg-zinc-50/60 dark:hover:bg-navy-800/40 transition-colors">
+                    <td className="px-5 py-4 font-bold text-navy-950 dark:text-white">{t('perfTitle')}</td>
+                    <td className="px-5 py-4 font-mono font-bold text-brand-700 dark:text-brand-300">42 à 90 jours</td>
+                    <td className="px-5 py-4 font-bold text-brand-700 dark:text-brand-300">Automatiquement obligatoire</td>
+                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">Discuté avec l&apos;encadrant</td>
+                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">Journal quotidien & Validation des tâches</td>
+                  </tr>
+                  <tr className="hover:bg-zinc-50/60 dark:hover:bg-navy-800/40 transition-colors">
+                    <td className="px-5 py-4 font-bold text-navy-950 dark:text-white">{t('pfeTitle')}</td>
+                    <td className="px-5 py-4 font-mono font-bold text-emerald-700 dark:text-emerald-400">&gt; 90 jours</td>
+                    <td className="px-5 py-4 font-bold text-emerald-700 dark:text-emerald-400">Automatiquement obligatoire</td>
+                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">Projet de fin d&apos;études formel</td>
+                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">Jalons, Livrables & Évaluation finale</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -232,8 +250,8 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
       {/* ------------------------------------------------------------------ */}
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 lg:py-24">
         <div className="flex flex-col items-start gap-2">
-          <Badge tone="info" className="w-fit">Environnements Modernes</Badge>
-          <h2 className="text-2xl font-extrabold tracking-tight text-navy-950 sm:text-3xl dark:text-zinc-50">
+          <Badge tone="info" className="w-fit font-semibold">Environnements Modernes</Badge>
+          <h2 className="text-2xl font-black tracking-tight text-navy-950 sm:text-4xl dark:text-white">
             {t('modesTitle')}
           </h2>
           <p className="text-sm leading-relaxed text-zinc-600 sm:text-base dark:text-zinc-300">
@@ -242,30 +260,36 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <Card className="hover-lift flex flex-col justify-between">
+          {/* Onsite */}
+          <div className="surface-card hover-lift flex flex-col justify-between rounded-2xl p-6 shadow-xs">
             <div className="flex flex-col gap-3">
-              <h3 className="text-base font-bold text-navy-900 dark:text-zinc-50">{t('modeOnsiteTitle')}</h3>
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700 shadow-xs dark:bg-brand-950/60 dark:text-brand-300">
+                🏢
+              </span>
+              <h3 className="text-lg font-bold text-navy-950 dark:text-white">{t('modeOnsiteTitle')}</h3>
               <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">{t('modeOnsiteDesc')}</p>
             </div>
-          </Card>
+          </div>
 
-          <Card className="hover-lift overflow-hidden p-0">
-            <div className="relative h-36 w-full bg-zinc-100 dark:bg-navy-950">
+          {/* Hybrid */}
+          <div className="surface-card hover-lift group overflow-hidden rounded-2xl p-0 shadow-xs">
+            <div className="relative h-44 w-full bg-zinc-100 dark:bg-navy-900">
               <Image
                 src="/components/intern-types/hybrid_internship_illustration_2000x2000.jpg"
                 alt="Stage hybride"
                 fill
-                className="object-cover"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
             </div>
-            <div className="flex flex-col gap-2 p-4">
-              <h3 className="text-base font-bold text-navy-900 dark:text-zinc-50">{t('modeHybridTitle')}</h3>
+            <div className="flex flex-col gap-2 p-5">
+              <h3 className="text-lg font-bold text-navy-950 dark:text-white">{t('modeHybridTitle')}</h3>
               <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">{t('modeHybridDesc')}</p>
             </div>
-          </Card>
+          </div>
 
-          <Card className="hover-lift overflow-hidden p-0">
-            <div className="relative h-36 w-full bg-black">
+          {/* Remote Motion Video Showcase */}
+          <div className="surface-card hover-lift group overflow-hidden rounded-2xl p-0 shadow-xs">
+            <div className="relative h-44 w-full bg-black">
               <video
                 autoPlay
                 loop
@@ -275,12 +299,15 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
               >
                 <source src="/components/intern-types/remote_internship_motion_graphic.mp4" type="video/mp4" />
               </video>
+              <div className="absolute top-2.5 end-2.5 rounded-full border border-white/20 bg-black/60 px-2.5 py-0.5 text-[10px] font-mono font-medium text-white backdrop-blur-xs">
+                Motion Graphic
+              </div>
             </div>
-            <div className="flex flex-col gap-2 p-4">
-              <h3 className="text-base font-bold text-navy-900 dark:text-zinc-50">{t('modeRemoteTitle')}</h3>
+            <div className="flex flex-col gap-2 p-5">
+              <h3 className="text-lg font-bold text-navy-950 dark:text-white">{t('modeRemoteTitle')}</h3>
               <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">{t('modeRemoteDesc')}</p>
             </div>
-          </Card>
+          </div>
         </div>
       </section>
     </div>

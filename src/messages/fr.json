@@ -6,8 +6,8 @@
   "nav": {
     "home": "Accueil",
     "internships": "Stages",
-    "companion": "Espace stagiaire",
-    "apply": "Candidater",
+    "companion": "Companion",
+    "apply": "Postuler",
     "signIn": "Se connecter",
     "createAccount": "Créer un compte",
     "profile": "Mon profil",
@@ -15,7 +15,7 @@
     "notifications": "Notifications",
     "signOut": "Se déconnecter",
     "about": "À propos",
-    "history": "Histoire de la STEG"
+    "history": "Histoire"
   },
   "header": {
     "skipToContent": "Aller au contenu",
@@ -332,6 +332,10 @@
     "impactStegTitle": "Pour la STEG & les Tuteurs",
     "impactStegDesc": "Suppression du papier, traçabilité exemplaire, archivage sécurisé et encadrement pédagogique de haute qualité.",
     "ctaApply": "Déposer une candidature",
+    "ctaBannerAlt": "Illustration idée de stage",
+    "ctaBannerTitle": "Vous avez un projet ou une convention de stage ?",
+    "ctaBannerDesc": "Déposez votre dossier dès maintenant et recevez un suivi personnalisé à chaque étape.",
+    "ctaBannerNote": "100% en ligne — aucun déplacement requis",
     "backToHome": "Retour à l'accueil"
   },
   "history": {

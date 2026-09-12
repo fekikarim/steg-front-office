@@ -390,12 +390,12 @@ export function ApplicationDetail({id}: {id: string}) {
                   <span
                     aria-hidden="true"
                     className={cx(
-                      'absolute top-7 bottom-0 start-[13px] w-0.5',
+                      'absolute top-8 bottom-0 start-[15px] w-0.5',
                       stage.state === 'reached'
-                        ? 'bg-brand-500 dark:bg-brand-400'
+                        ? 'bg-brand-600 dark:bg-brand-500'
                         : stage.state === 'active'
-                          ? 'bg-gradient-to-b from-brand-500 to-zinc-200 dark:from-brand-400 dark:to-zinc-700'
-                          : 'bg-zinc-200 dark:bg-zinc-700',
+                          ? 'bg-brand-300 dark:bg-brand-800'
+                          : 'bg-zinc-200 dark:bg-zinc-800',
                     )}
                   />
                 )}
@@ -404,20 +404,20 @@ export function ApplicationDetail({id}: {id: string}) {
                 <span
                   aria-hidden="true"
                   className={cx(
-                    'z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all',
+                    'z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all',
                     stage.state === 'reached'
-                      ? 'bg-brand-600 text-white shadow-sm dark:bg-brand-500'
+                      ? 'bg-brand-600 text-white shadow-xs'
                       : stage.state === 'active'
-                        ? 'border-[2.5px] border-brand-600 bg-white text-brand-700 shadow-md ring-4 ring-brand-100 dark:border-brand-400 dark:bg-navy-900 dark:text-brand-300 dark:ring-brand-950/50'
-                        : 'border-2 border-zinc-300 bg-zinc-100 text-zinc-400 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-500',
+                        ? 'border-2 border-brand-600 bg-white font-mono text-brand-700 shadow-xs ring-4 ring-brand-500/15 dark:bg-navy-950 dark:border-brand-400 dark:text-brand-300 dark:ring-brand-500/20'
+                        : 'border border-zinc-300 bg-zinc-100 font-mono text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-600',
                   )}
                 >
                   {stage.state === 'reached' ? (
-                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} className="h-3.5 w-3.5">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} className="h-4 w-4">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   ) : (
-                    <span>{i + 1}</span>
+                    <span>0{i + 1}</span>
                   )}
                 </span>
 

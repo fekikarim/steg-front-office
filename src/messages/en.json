@@ -6,7 +6,7 @@
   "nav": {
     "home": "Home",
     "internships": "Internships",
-    "companion": "Intern space",
+    "companion": "InternApp",
     "apply": "Apply",
     "signIn": "Sign in",
     "createAccount": "Create account",
@@ -15,7 +15,7 @@
     "notifications": "Notifications",
     "signOut": "Sign out",
     "about": "About",
-    "history": "STEG History"
+    "history": "History"
   },
   "header": {
     "skipToContent": "Skip to content",
@@ -332,6 +332,10 @@
     "impactStegTitle": "For STEG & Mentors",
     "impactStegDesc": "Paper elimination, bulletproof audit logs, secure archiving, and premier pedagogical mentoring.",
     "ctaApply": "Submit an Application",
+    "ctaBannerAlt": "Internship idea illustration",
+    "ctaBannerTitle": "Have a project or an internship agreement?",
+    "ctaBannerDesc": "Submit your application right now and receive personalised follow-up at every step.",
+    "ctaBannerNote": "100% online — no travel required",
     "backToHome": "Back to Home"
   },
   "history": {

@@ -3,11 +3,9 @@ import {getTranslations, setRequestLocale} from 'next-intl/server';
 import {Link} from '@/i18n/navigation';
 import {Badge} from '@/components/ui/Badge';
 import {Button} from '@/components/ui/Button';
-import {Card} from '@/components/ui/Card';
 import {
   IconArrowRight,
   IconBuilding,
-  IconSparkles,
   IconTrendingUp,
   IconCheckSquare,
 } from '@/components/ui/icons';
@@ -62,17 +60,26 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
         : '/components/history/organizational-chart/org_fr_1024x1536.png';
 
   return (
-    <div className="flex w-full flex-col">
+    <div className="relative flex w-full flex-col overflow-hidden bg-zinc-50/40 dark:bg-navy-950">
+      {/* Ambient Institutional Lighting */}
+      <div className="pointer-events-none absolute -top-40 end-0 h-96 w-96 rounded-full bg-brand-500/5 blur-3xl dark:bg-brand-400/10" />
+      <div className="pointer-events-none absolute bottom-1/3 start-0 h-96 w-96 rounded-full bg-navy-600/5 blur-3xl dark:bg-navy-700/10" />
+
       {/* ------------------------------------------------------------------ */}
       {/*  HEADER BANNER                                                     */}
       {/* ------------------------------------------------------------------ */}
-      <section className="relative overflow-hidden border-b border-zinc-200/80 bg-gradient-to-b from-brand-50/70 via-white to-white py-14 sm:py-20 dark:border-zinc-800/80 dark:from-navy-900/60 dark:via-navy-950 dark:to-navy-950">
-        <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 px-4 text-center sm:px-6">
-          <Badge tone="brand" className="gap-1.5 px-3 py-1">
-            <IconSparkles className="h-3.5 w-3.5" />
-            {t('badge')}
-          </Badge>
-          <h1 className="text-3xl font-extrabold tracking-tight text-navy-950 sm:text-4xl lg:text-5xl dark:text-zinc-50">
+      <section className="relative overflow-hidden border-b border-zinc-200/80 bg-white py-16 sm:py-24 dark:border-navy-800 dark:bg-navy-900/60">
+        <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center gap-5 px-4 text-center sm:px-6">
+          <div className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50/80 px-3.5 py-1.5 shadow-xs backdrop-blur-xs dark:border-brand-800/60 dark:bg-brand-950/40">
+            <span className="relative flex h-2 w-2">
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-600 dark:bg-brand-400"></span>
+            </span>
+            <span className="text-xs font-semibold tracking-wide text-brand-800 dark:text-brand-300">
+              {t('badge')}
+            </span>
+          </div>
+
+          <h1 className="text-3xl font-black tracking-tight text-navy-950 sm:text-5xl lg:text-6xl dark:text-white">
             {t('title')}
           </h1>
           <p className="max-w-3xl text-base leading-relaxed text-zinc-600 sm:text-lg dark:text-zinc-300">
@@ -84,11 +91,11 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
       {/* ------------------------------------------------------------------ */}
       {/*  SECTION 1: THE FOUNDATION OF STEG (1962)                          */}
       {/* ------------------------------------------------------------------ */}
-      <section className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6">
+      <section className="relative mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12">
           <div className="flex flex-col gap-4 lg:col-span-7">
-            <Badge tone="info" className="w-fit">Loi N°62-8 du 3 Avril 1962</Badge>
-            <h2 className="text-2xl font-extrabold tracking-tight text-navy-950 sm:text-3xl dark:text-zinc-50">
+            <Badge tone="brand" className="w-fit font-semibold">Loi N°62-8 du 3 Avril 1962</Badge>
+            <h2 className="text-2xl font-black tracking-tight text-navy-950 sm:text-4xl dark:text-white">
               {t('foundationTitle')}
             </h2>
             <div className="flex flex-col gap-3 text-sm leading-relaxed text-zinc-700 sm:text-base dark:text-zinc-300">
@@ -98,7 +105,7 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-lg lg:col-span-5 dark:border-zinc-800 dark:bg-navy-900">
+          <div className="surface-card relative flex flex-col gap-4 rounded-3xl p-6 shadow-sm lg:col-span-5">
             <div className="flex items-center gap-4">
               <Image
                 src="/components/history/Engineer_working_with_wind_turbines_producing_green_energy_225x150.svg"
@@ -108,7 +115,7 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
                 className="h-20 w-auto shrink-0"
               />
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-navy-900 dark:text-zinc-100">
+                <span className="text-sm font-bold text-brand-800 dark:text-brand-300">
                   Énergies Renouvelables
                 </span>
                 <span className="text-xs text-zinc-600 dark:text-zinc-400">
@@ -116,7 +123,7 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+            <div className="flex items-center gap-4 border-t border-zinc-100 pt-4 dark:border-navy-800">
               <Image
                 src="/components/history/Geothermal_energy_renewable_sources_illustration_225x150.svg"
                 alt="Sources géothermiques"
@@ -125,7 +132,7 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
                 className="h-20 w-auto shrink-0"
               />
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-navy-900 dark:text-zinc-100">
+                <span className="text-sm font-bold text-navy-950 dark:text-zinc-100">
                   Géothermie & Innovation
                 </span>
                 <span className="text-xs text-zinc-600 dark:text-zinc-400">
@@ -138,13 +145,15 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
       </section>
 
       {/* ------------------------------------------------------------------ */}
-      {/*  SECTION 2: 61 YEARS OF EVOLUTION (1962 -> 2023)                   */}
+      {/*  SECTION 2: 61 YEARS OF EVOLUTION (TELEMETRY HUD METRICS)          */}
       {/* ------------------------------------------------------------------ */}
-      <section className="border-y border-zinc-200/80 bg-zinc-50/70 py-16 sm:py-20 dark:border-zinc-800/80 dark:bg-navy-900/50">
+      <section className="relative border-y border-zinc-200/80 bg-white py-16 sm:py-20 dark:border-navy-800 dark:bg-navy-900/40">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 sm:px-6">
           <div className="flex flex-col items-start gap-2">
-            <Badge tone="brand" className="w-fit">Indicateurs Historiques Clés</Badge>
-            <h2 className="text-2xl font-extrabold tracking-tight text-navy-950 sm:text-3xl dark:text-zinc-50">
+            <span className="text-xs font-bold uppercase tracking-wider text-brand-700 dark:text-brand-400">
+              Indicateurs Historiques Clés
+            </span>
+            <h2 className="text-2xl font-black tracking-tight text-navy-950 sm:text-4xl dark:text-white">
               {t('statsTitle')}
             </h2>
             <p className="max-w-2xl text-sm leading-relaxed text-zinc-600 sm:text-base dark:text-zinc-300">
@@ -154,15 +163,16 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {stats.map((s) => (
-              <Card key={s.label} className="hover-lift border-zinc-200 bg-white dark:border-zinc-800 dark:bg-navy-900">
-                <div className="flex flex-col gap-2">
-                  <span className="text-3xl font-extrabold text-brand-600 dark:text-brand-400">
-                    {s.value}
-                  </span>
-                  <h3 className="text-sm font-bold text-navy-900 dark:text-zinc-100">{s.label}</h3>
-                  <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{s.detail}</p>
-                </div>
-              </Card>
+              <div
+                key={s.label}
+                className="surface-card hover-lift flex flex-col gap-2 rounded-2xl p-6 shadow-xs transition-all"
+              >
+                <span className="font-mono text-3xl font-black text-brand-700 sm:text-4xl dark:text-brand-300">
+                  {s.value}
+                </span>
+                <h3 className="text-sm font-bold text-navy-950 dark:text-zinc-100">{s.label}</h3>
+                <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{s.detail}</p>
+              </div>
             ))}
           </div>
         </div>
@@ -173,23 +183,24 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
       {/* ------------------------------------------------------------------ */}
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 lg:py-24">
         <div className="flex flex-col items-start gap-2">
-          <Badge tone="info" className="w-fit">Missions d&apos;Intérêt Général</Badge>
-          <h2 className="text-2xl font-extrabold tracking-tight text-navy-950 sm:text-3xl dark:text-zinc-50">
+          <Badge tone="brand" className="w-fit font-semibold">Missions d&apos;Intérêt Général</Badge>
+          <h2 className="text-2xl font-black tracking-tight text-navy-950 sm:text-4xl dark:text-white">
             {t('missionsTitle')}
           </h2>
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {missions.map((m) => (
-            <Card key={m.title} className="hover-lift">
-              <div className="flex flex-col gap-3">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 dark:bg-navy-800">
-                  {m.icon}
-                </span>
-                <h3 className="text-base font-bold text-navy-900 dark:text-zinc-50">{m.title}</h3>
-                <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">{m.desc}</p>
-              </div>
-            </Card>
+            <div
+              key={m.title}
+              className="surface-card hover-lift flex flex-col gap-3 rounded-2xl p-6 shadow-xs"
+            >
+              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-700 shadow-xs dark:bg-brand-950/60 dark:text-brand-300">
+                {m.icon}
+              </span>
+              <h3 className="text-base font-bold text-navy-950 dark:text-white">{m.title}</h3>
+              <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">{m.desc}</p>
+            </div>
           ))}
         </div>
       </section>
@@ -197,11 +208,13 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
       {/* ------------------------------------------------------------------ */}
       {/*  SECTION 4: ORGANIZATIONAL CHART (ORGANIGRAMME)                    */}
       {/* ------------------------------------------------------------------ */}
-      <section className="border-t border-zinc-200/80 bg-zinc-50/60 py-16 sm:py-20 dark:border-zinc-800/80 dark:bg-navy-900/50">
+      <section className="relative border-t border-zinc-200/80 bg-zinc-50/50 py-16 sm:py-20 dark:border-navy-800 dark:bg-navy-900/30">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 sm:px-6">
           <div className="flex flex-col items-start gap-2">
-            <Badge tone="brand" className="w-fit">Gouvernance</Badge>
-            <h2 className="text-2xl font-extrabold tracking-tight text-navy-950 sm:text-3xl dark:text-zinc-50">
+            <span className="text-xs font-bold uppercase tracking-wider text-brand-700 dark:text-brand-400">
+              Gouvernance & Structure
+            </span>
+            <h2 className="text-2xl font-black tracking-tight text-navy-950 sm:text-4xl dark:text-white">
               {t('organigrammeTitle')}
             </h2>
             <p className="text-sm leading-relaxed text-zinc-600 sm:text-base dark:text-zinc-300">
@@ -209,8 +222,8 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
             </p>
           </div>
 
-          <div className="overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-4 shadow-xl dark:border-zinc-800 dark:bg-navy-900">
-            <div className="relative aspect-[3/4] w-full max-w-2xl mx-auto overflow-hidden rounded-2xl bg-zinc-50 dark:bg-navy-950">
+          <div className="surface-card overflow-hidden rounded-3xl p-6 shadow-md">
+            <div className="relative aspect-[3/4] w-full max-w-2xl mx-auto overflow-hidden rounded-2xl bg-zinc-50 dark:bg-navy-900/50">
               <Image
                 src={organigrammeSrc}
                 alt={t('organigrammeCaption')}
@@ -219,16 +232,16 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
                 sizes="(max-width: 768px) 100vw, 800px"
               />
             </div>
-            <p className="mt-3 text-center text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="mt-4 text-center text-xs font-medium text-zinc-500 dark:text-zinc-400">
               {t('organigrammeCaption')}
             </p>
           </div>
 
           <div className="flex justify-center pt-4">
             <Link href="/apply">
-              <Button size="lg" className="hover-lift shadow-md">
-                Rejoindre la STEG pour un stage
-                <IconArrowRight className="h-4 w-4 rtl:rotate-180" />
+              <Button size="lg" variant="primary" className="rounded-xl px-6 py-3.5 shadow-sm">
+                <span>Rejoindre la STEG pour un stage</span>
+                <IconArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
               </Button>
             </Link>
           </div>

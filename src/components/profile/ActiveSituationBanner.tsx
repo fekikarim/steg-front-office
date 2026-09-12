@@ -3,8 +3,7 @@
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {Button} from '@/components/ui/Button';
-import {StatusPill, Badge} from '@/components/ui/Badge';
-import {Card} from '@/components/ui/Card';
+import {StatusPill} from '@/components/ui/Badge';
 import type {ApplicationResponse} from '@/lib/api/application';
 import {IconArrowRight, IconCheckSquare} from '@/components/ui/icons';
 
@@ -17,29 +16,36 @@ export function ActiveSituationBanner({application}: ActiveSituationBannerProps)
 
   if (!application) {
     return (
-      <Card className="border-dashed border-zinc-300 bg-zinc-50/60 p-6 dark:border-zinc-700 dark:bg-navy-900/40">
-        <div className="flex flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-2xl text-brand-600 dark:bg-brand-950/60 dark:text-brand-300">
+      <div className="relative overflow-hidden rounded-3xl border border-navy-800 bg-gradient-to-br from-navy-950 via-navy-900 to-navy-950 p-6 sm:p-8 shadow-xl text-white">
+        <div className="absolute -top-24 -end-24 h-48 w-48 rounded-full bg-brand-500/10 blur-3xl pointer-events-none" />
+        <div className="flex flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left relative z-10">
+          <div className="flex items-center gap-5">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-brand-500/30 bg-brand-500/15 text-2xl text-brand-300 shadow-sm">
               ⚡
             </div>
             <div>
-              <h2 className="text-base font-bold text-navy-900 dark:text-zinc-50">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-brand-400" />
+                <span className="font-mono text-xs uppercase tracking-widest text-brand-300">
+                  STATUT CANDIDAT STEG
+                </span>
+              </div>
+              <h2 className="text-lg font-bold text-white mt-1">
                 {t('noActiveAppTitle')}
               </h2>
-              <p className="mt-0.5 text-xs text-zinc-600 dark:text-zinc-400">
+              <p className="mt-1 text-xs text-zinc-300 max-w-md">
                 {t('noActiveAppDesc')}
               </p>
             </div>
           </div>
           <Link href="/apply">
-            <Button variant="primary" size="sm" className="whitespace-nowrap">
+            <Button variant="primary" size="md" className="whitespace-nowrap rounded-xl shadow-sm">
               {t('noActiveAppCta')}
-              <IconArrowRight className="ms-1.5 h-3.5 w-3.5 rtl:rotate-180" />
+              <IconArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
             </Button>
           </Link>
         </div>
-      </Card>
+      </div>
     );
   }
 
@@ -47,68 +53,73 @@ export function ActiveSituationBanner({application}: ActiveSituationBannerProps)
   const hasSupervisor = Boolean(application.reviewerId);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50/90 via-white to-sky-50/50 p-6 shadow-sm dark:border-brand-800 dark:bg-gradient-to-br dark:from-brand-950/40 dark:via-navy-900 dark:to-sky-950/20">
-      <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
+    <div className="relative overflow-hidden rounded-3xl border border-navy-800 bg-gradient-to-br from-navy-950 via-navy-900 to-navy-950 p-6 sm:p-8 shadow-xl text-white">
+      {/* Background ambient lighting */}
+      <div className="pointer-events-none absolute -top-32 -end-32 h-64 w-64 rounded-full bg-brand-500/15 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -start-32 h-64 w-64 rounded-full bg-navy-600/15 blur-3xl" />
+
+      <div className="relative z-10 flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
         {/* Left info column */}
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="brand" className="font-semibold uppercase tracking-wider text-[11px]">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-400/30 bg-brand-500/15 px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-brand-300 shadow-xs">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               {t('activeSituationTitle')}
-            </Badge>
+            </span>
             <StatusPill code={application.status} />
             {isAccepted && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-medium text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-                <IconCheckSquare className="h-3 w-3" />
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/20 px-3 py-0.5 text-[11px] font-semibold text-emerald-300 shadow-xs">
+                <IconCheckSquare className="h-3.5 w-3.5" />
                 Affectation Validée
               </span>
             )}
           </div>
 
           <div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            <div className="flex items-baseline gap-3">
+              <span className="text-xs font-mono uppercase text-zinc-400">
                 {t('activeAppRef')}:
               </span>
-              <span className="font-mono text-base font-bold text-navy-900 dark:text-zinc-100">
+              <span className="font-mono text-xl font-extrabold text-brand-300 tracking-wider">
                 #{application.reference}
               </span>
             </div>
 
-            <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-300">
+            <p className="mt-1 text-xs text-zinc-300 max-w-xl">
               {t('activeSituationLead')}
             </p>
           </div>
 
           {/* Key metadata grid */}
-          <div className="mt-1 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-3">
             {/* Internship Type */}
-            <div className="rounded-xl border border-white/80 bg-white/70 p-3 shadow-xs dark:border-zinc-800 dark:bg-navy-900/60">
-              <span className="block text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-3.5 backdrop-blur-xs">
+              <span className="block font-mono text-[10px] uppercase text-zinc-400">
                 {t('activeAppType')}
               </span>
-              <span className="mt-0.5 block text-xs font-bold text-navy-900 dark:text-zinc-100">
+              <span className="mt-1 block text-sm font-bold text-white">
                 {application.calculatedType ?? 'Stage STEG'}
               </span>
             </div>
 
             {/* Dates */}
-            <div className="rounded-xl border border-white/80 bg-white/70 p-3 shadow-xs dark:border-zinc-800 dark:bg-navy-900/60">
-              <span className="block text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-3.5 backdrop-blur-xs">
+              <span className="block font-mono text-[10px] uppercase text-zinc-400">
                 {t('activeAppDates')}
               </span>
-              <span className="mt-0.5 block text-xs font-bold text-navy-900 dark:text-zinc-100">
+              <span className="mt-1 block font-mono text-xs font-bold text-brand-300">
                 {application.desiredStartDate && application.desiredEndDate
                   ? `${application.desiredStartDate} → ${application.desiredEndDate}`
-                  : 'Dates en cours de confirmation'}
+                  : 'En attente de confirmation'}
               </span>
             </div>
 
             {/* Supervisor */}
-            <div className="rounded-xl border border-white/80 bg-white/70 p-3 shadow-xs dark:border-zinc-800 dark:bg-navy-900/60">
-              <span className="block text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-3.5 backdrop-blur-xs">
+              <span className="block font-mono text-[10px] uppercase text-zinc-400">
                 {t('activeAppSupervisor')}
               </span>
-              <span className="mt-0.5 block text-xs font-bold text-navy-900 dark:text-zinc-100">
+              <span className="mt-1 block text-xs font-bold text-zinc-200">
                 {hasSupervisor ? 'Ingénieur Tuteur STEG' : t('activeAppSupervisorNone')}
               </span>
             </div>
@@ -116,15 +127,15 @@ export function ActiveSituationBanner({application}: ActiveSituationBannerProps)
         </div>
 
         {/* Right CTA */}
-        <div className="flex shrink-0 flex-col items-start gap-2 lg:items-end">
+        <div className="flex shrink-0 flex-col items-start gap-3 lg:items-end">
           <Link href={`/applications/${application.id}`}>
-            <Button variant="primary" size="md" className="shadow-sm">
+            <Button variant="primary" size="md" className="rounded-xl shadow-sm">
               <span>{t('activeAppTrackBtn')}</span>
               <IconArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
             </Button>
           </Link>
-          <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
-            Dernière mise à jour : {new Date(application.updatedAt).toLocaleDateString()}
+          <span className="font-mono text-[11px] text-zinc-400">
+            Mise à jour : {new Date(application.updatedAt).toLocaleDateString()}
           </span>
         </div>
       </div>

@@ -6,16 +6,16 @@
   "nav": {
     "home": "الرئيسية",
     "internships": "التربصات",
-    "companion": "فضاء المتربص",
-    "apply": "قدّم مطلبك",
-    "signIn": "تسجيل الدخول",
+    "companion": "المرافق",
+    "apply": "قدّم",
+    "signIn": "الدخول",
     "createAccount": "إنشاء حساب",
     "profile": "حسابي",
     "applications": "مطالبي",
     "notifications": "الإشعارات",
-    "signOut": "تسجيل الخروج",
-    "about": "حول المنصة",
-    "history": "تاريخ الستاغ"
+    "signOut": "الخروج",
+    "about": "عن المنصة",
+    "history": "التاريخ"
   },
   "header": {
     "skipToContent": "تخطَّ إلى المحتوى",
@@ -332,6 +332,10 @@
     "impactStegTitle": "للشركة ومؤطري الستاغ",
     "impactStegDesc": "القضاء على الأوراق، شفافية تامة، أرشفة رقمية آمنة وتأطير بيداغوجي عالي الجودة.",
     "ctaApply": "قدّم مطلب تربص",
+    "ctaBannerAlt": "رسم توضيحي لفكرة التربص",
+    "ctaBannerTitle": "لديك مشروع أو اتفاقية تربص؟",
+    "ctaBannerDesc": "قدّم ملفك الآن واستفد من متابعة شخصية في كل مرحلة.",
+    "ctaBannerNote": "100% رقمي — دون أي تنقل",
     "backToHome": "العودة إلى الرئيسية"
   },
   "history": {
