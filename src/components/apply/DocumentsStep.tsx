@@ -12,6 +12,7 @@ import type {UploadKind} from '@/lib/apply-wizard';
 interface DocumentsStepProps {
   application: SlotState;
   assignment: SlotState;
+  demo?: SlotState;
   disabled?: boolean;
   onSelectFiles: (kind: UploadKind, files: File[]) => void;
   onCancel: (kind: UploadKind) => void;
@@ -22,14 +23,14 @@ interface DocumentsStepProps {
 }
 
 /**
- * Step 5 — Required documents (B5). Each mandatory PDF gets a full upload
- * slot: backend-confirmed constraints, real progress with cancel, localized
- * backend-error surfacing with retry, and a metadata + verification success
- * state with replace/remove actions.
+ * Step 5 — Required Documents.
+ * Collects mandatory Internship Application PDF and Assignment Letter PDF,
+ * with optional demo/project attachment, format validations, and secure handling notice.
  */
 export function DocumentsStep({
   application,
   assignment,
+  demo,
   disabled = false,
   onSelectFiles,
   onCancel,
@@ -39,6 +40,7 @@ export function DocumentsStep({
   onContinue,
 }: DocumentsStepProps) {
   const t = useTranslations('apply.documents');
+  const tm = useTranslations('apply.demo');
   const tn = useTranslations('apply.nav');
 
   const ready = Boolean(application.attachment) && Boolean(assignment.attachment);
@@ -59,6 +61,7 @@ export function DocumentsStep({
             onRetry={onRetry}
             onRemove={onRemove}
           />
+
           <DocumentSlot
             kind="ASSIGNMENT_LETTER"
             title={t('assignmentLetter')}
@@ -71,6 +74,26 @@ export function DocumentsStep({
             onRetry={onRetry}
             onRemove={onRemove}
           />
+
+          {demo && (
+            <DocumentSlot
+              kind="PROJECT_DEMO_IMAGE"
+              title={tm('title')}
+              description={tm('intro')}
+              rule={DOCUMENT_RULES.PROJECT_DEMO_IMAGE}
+              state={demo}
+              disabled={disabled}
+              onSelect={onSelectFiles}
+              onCancel={onCancel}
+              onRetry={onRetry}
+              onRemove={onRemove}
+            />
+          )}
+
+          {/* Secure handling & privacy note */}
+          <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/80 p-3.5 text-xs leading-relaxed text-zinc-600 dark:border-zinc-800 dark:bg-navy-950/60 dark:text-zinc-400">
+            🔒 <strong>Confidentialité & Sécurité :</strong> Les pièces justificatives téléversées sont transmises via un canal sécurisé et exclusivement consultées par les coordinateurs de stage et encadrants habilités de la STEG.
+          </div>
         </div>
       </Card>
 

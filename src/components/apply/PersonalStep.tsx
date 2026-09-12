@@ -2,98 +2,131 @@
 
 import {useTranslations} from 'next-intl';
 import {Card} from '@/components/ui/Card';
+import {Input} from '@/components/ui/Input';
 import {Button} from '@/components/ui/Button';
-import {Link} from '@/i18n/navigation';
-import {StepShell} from './StepShell';
 import {FieldError} from '@/components/ui/FieldError';
-import {cx} from '@/lib/cx';
-import type {CandidateProfile, University} from '@/lib/api/candidate';
+import {StepShell} from './StepShell';
+import type {PersonalInfoDraft} from '@/lib/apply-wizard';
 
 interface PersonalStepProps {
-  profile: CandidateProfile | null;
-  universities: University[];
-  confirmed: boolean;
-  onChange: (value: boolean) => void;
+  data: PersonalInfoDraft;
+  onChange: (patch: Partial<PersonalInfoDraft>) => void;
+  isPrefilled: boolean;
   errorKey: string | null;
   onContinue: () => void;
 }
 
-function Row({label, value}: {label: string; value?: string | null}) {
-  const t = useTranslations('apply.personal');
-  return (
-    <div className="flex items-baseline justify-between gap-4 border-b border-zinc-100 py-2 text-sm last:border-0 dark:border-zinc-800">
-      <dt className="text-zinc-500 dark:text-zinc-400">{label}</dt>
-      <dd className="text-end font-medium text-zinc-800 dark:text-zinc-100">
-        {value?.trim() ? value : <span className="text-zinc-400 dark:text-zinc-500">{t('emptyValue')}</span>}
-      </dd>
-    </div>
-  );
-}
-
 /**
- * Step 2 — Personal & academic confirmation. Loads the candidate's profile
- * from the backend and asks them to confirm the data before continuing.
+ * Step 1 — Personal Information.
+ * Collects candidate's full name, CIN / national ID, contact information,
+ * and date of birth. Shows profile prefill note when authenticated.
  */
 export function PersonalStep({
-  profile,
-  universities,
-  confirmed,
+  data,
   onChange,
+  isPrefilled,
   errorKey,
   onContinue,
 }: PersonalStepProps) {
   const t = useTranslations('apply.personal');
+  const ta = useTranslations('apply');
   const tn = useTranslations('apply.nav');
-
-  const universityName =
-    profile && universities.length > 0
-      ? universities.find((u) => u.id === profile.universityId)?.name ?? null
-      : null;
 
   return (
     <StepShell eyebrow={t('eyebrow')} title={t('title')} intro={t('intro')}>
+      {isPrefilled && (
+        <div
+          role="status"
+          className="mb-4 flex items-start gap-3 rounded-xl border border-brand-200 bg-brand-50/70 p-4 text-xs leading-relaxed text-brand-900 dark:border-brand-800 dark:bg-brand-950/40 dark:text-brand-200"
+        >
+          <span className="text-base">ℹ️</span>
+          <span>{ta('prefillNote')}</span>
+        </div>
+      )}
+
       <Card>
-        <dl>
-          <Row label={t('firstName')} value={profile?.firstName} />
-          <Row label={t('lastName')} value={profile?.lastName} />
-          <Row label={t('email')} value={profile?.email} />
-          <Row label={t('phone')} value={profile?.phone} />
-          <Row label={t('birthDate')} value={profile?.birthDate} />
-          <Row label={t('university')} value={universityName} />
-          <Row label={t('speciality')} value={profile?.speciality} />
-          <Row label={t('diploma')} value={profile?.diploma} />
-        </dl>
-        <div className="flex justify-end pt-4">
-          <Link href="/profile">
-            <Button variant="tertiary" size="sm">
-              {t('editProfile')}
-            </Button>
-          </Link>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {/* First Name */}
+          <Input
+            id="first-name"
+            label={t('firstName')}
+            type="text"
+            value={data.firstName}
+            onChange={(e) => onChange({firstName: e.target.value})}
+            placeholder="Mohamed"
+            autoComplete="given-name"
+            required
+          />
+
+          {/* Last Name */}
+          <Input
+            id="last-name"
+            label={t('lastName')}
+            type="text"
+            value={data.lastName}
+            onChange={(e) => onChange({lastName: e.target.value})}
+            placeholder="Ben Ali"
+            autoComplete="family-name"
+            required
+          />
+
+          {/* CIN / National ID */}
+          <Input
+            id="national-id"
+            label={t('cin')}
+            type="text"
+            value={data.nationalId}
+            onChange={(e) => onChange({nationalId: e.target.value})}
+            placeholder="09876543"
+            required
+          />
+
+          {/* Phone Number */}
+          <Input
+            id="phone"
+            label={t('phone')}
+            type="tel"
+            value={data.phone}
+            onChange={(e) => onChange({phone: e.target.value})}
+            placeholder="+216 98 123 456"
+            autoComplete="tel"
+            required
+          />
+
+          {/* Email Address */}
+          <div className="sm:col-span-2">
+            <Input
+              id="email"
+              label={t('email')}
+              type="email"
+              value={data.email}
+              onChange={(e) => onChange({email: e.target.value})}
+              placeholder="mohamed.benali@esprit.tn"
+              autoComplete="email"
+              required
+            />
+          </div>
+
+          {/* Birth Date */}
+          <Input
+            id="birth-date"
+            label={t('birthDate')}
+            type="date"
+            value={data.birthDate}
+            onChange={(e) => onChange({birthDate: e.target.value})}
+            autoComplete="bday"
+            required
+          />
+        </div>
+
+        {errorKey && <FieldError message={errorKey} />}
+
+        <div className="mt-4 flex justify-end">
+          <Button size="md" onClick={onContinue}>
+            {tn('continue')}
+          </Button>
         </div>
       </Card>
-
-      <div className="flex flex-col gap-2">
-        <label className="flex items-start gap-3 text-sm font-medium text-zinc-800 dark:text-zinc-100">
-          <input
-            type="checkbox"
-            checked={confirmed}
-            onChange={(e) => onChange(e.target.checked)}
-            aria-invalid={errorKey ? true : undefined}
-            className={cx(
-              'mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-zinc-300 accent-brand-600 dark:accent-brand-500',
-              errorKey && 'border-accent-600',
-            )}
-          />
-          <span>{t('confirmLabel')}</span>
-        </label>
-        <FieldError message={errorKey ?? undefined} />
-      </div>
-
-      <div className="flex justify-end">
-        <Button variant="primary" size="md" onClick={onContinue} disabled={!confirmed}>
-          {tn('continue')}
-        </Button>
-      </div>
     </StepShell>
   );
 }

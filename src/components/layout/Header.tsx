@@ -10,12 +10,17 @@ export async function Header() {
     <HeaderClient
       labels={{
         home: t('home'),
+        about: t('about'),
+        history: t('history'),
         internships: t('internships'),
         companion: t('companion'),
         apply: t('apply'),
         signIn: t('signIn'),
         createAccount: t('createAccount'),
         profile: t('profile'),
+        applications: t('applications'),
+        notifications: t('notifications'),
+        signOut: t('signOut'),
         skipToContent: th('skipToContent'),
         openMenu: th('openMenu'),
         closeMenu: th('closeMenu'),

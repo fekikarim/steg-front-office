@@ -14,6 +14,8 @@ import {Card} from '@/components/ui/Card';
 import {CardSkeleton} from '@/components/feedback/Skeleton';
 import {ErrorState} from '@/components/feedback/ErrorState';
 import {ProfileSummary} from './ProfileSummary';
+import {ActiveSituationBanner} from './ActiveSituationBanner';
+import {AdministrativeDocsSection} from './AdministrativeDocsSection';
 import {PersonalSection} from './PersonalSection';
 import {AcademicSection} from './AcademicSection';
 import {SkillsSection} from './SkillsSection';
@@ -21,6 +23,7 @@ import {AccountPanel} from './AccountPanel';
 import {SaveBar} from './SaveBar';
 import {ProfileCreateForm} from './ProfileCreateForm';
 import type {FieldErrors} from './section-types';
+import type {ApplicationDocumentResponse, ApplicationResponse} from '@/lib/api/application';
 
 type Phase = 'loading' | 'anonymous' | 'noProfile' | 'ready' | 'error';
 
@@ -50,6 +53,8 @@ export function ProfileWorkspace() {
   const [formTrace, setFormTrace] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const [activeApp, setActiveApp] = useState<ApplicationResponse | null>(null);
+  const [adminDocs, setAdminDocs] = useState<ApplicationDocumentResponse[]>([]);
 
   const [universities, setUniversities] = useState<University[]>([]);
   const [universitiesState, setUniversitiesState] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -67,6 +72,36 @@ export function ProfileWorkspace() {
     setUniversitiesState('loading');
     void loadUniversities();
   }, [loadUniversities]);
+
+  const loadApplications = useCallback(async () => {
+    try {
+      const {listApplications, getApplicationDocuments} = await import(
+        '@/lib/api/application-client'
+      );
+      const apps = await listApplications();
+      if (apps.length > 0) {
+        const sorted = [...apps].sort(
+          (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+        );
+        const active =
+          sorted.find(
+            (a) =>
+              a.status === 'ACCEPTED' ||
+              a.status === 'UNDER_REVIEW' ||
+              a.status === 'SUBMITTED',
+          ) ?? sorted[0];
+        setActiveApp(active);
+        try {
+          const docs = await getApplicationDocuments(active.id);
+          setAdminDocs(docs);
+        } catch {
+          /* ignore */
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const applyServerProfile = useCallback((p: CandidateProfile) => {
     setProfile(p);
@@ -99,8 +134,8 @@ export function ProfileWorkspace() {
   );
 
   const loadAll = useCallback(async () => {
-    await Promise.all([loadUniversities(), loadProfile('ready')]);
-  }, [loadUniversities, loadProfile]);
+    await Promise.all([loadUniversities(), loadProfile('ready'), loadApplications()]);
+  }, [loadUniversities, loadProfile, loadApplications]);
 
   useEffect(() => {
     // Async data bootstrap on mount. Each loader awaits its fetch before any
@@ -300,6 +335,8 @@ export function ProfileWorkspace() {
         </Card>
       )}
 
+      <ActiveSituationBanner application={activeApp} />
+
       <ProfileSummary profile={profile} />
 
       <PersonalSection
@@ -319,6 +356,8 @@ export function ProfileWorkspace() {
         onRetryUniversities={retryUniversities}
         disabled={saving}
       />
+
+      <AdministrativeDocsSection documents={adminDocs} />
 
       <SkillsSection draft={draft} errors={fieldErrors} update={update} disabled={saving} />
 

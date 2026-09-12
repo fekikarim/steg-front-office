@@ -1,100 +1,132 @@
 import type {
-  ApplicationStatus,
   ApplicationDocumentResponse,
-  DocumentType,
+  InternshipType,
 } from '@/lib/api/application';
 
 /**
- * Wizard step identifiers (B4). The order mirrors the product spec: welcome →
- * personal → dates → info → documents → demo → review → submit.
+ * 7-step guided Apply wizard identifiers conforming to Phase B7 specification:
+ * 1. personal (Full name, CIN, Phone, Email, Birth date)
+ * 2. education (Level, University)
+ * 3. dates (Start date, End date, automatic live classification preview)
+ * 4. details (Internship-specific details, project theme for Perf/PFE)
+ * 5. documents (Required PDF uploads + optional demo)
+ * 6. review (Full scannable summary + confirmation checkbox)
+ * 7. result (Submission success reference and tracking)
  */
 export const STEPS = [
-  'welcome',
   'personal',
+  'education',
   'dates',
-  'info',
+  'details',
   'documents',
-  'demo',
   'review',
-  'submit',
+  'result',
 ] as const;
 
 export type StepId = (typeof STEPS)[number];
 
-/** Local form state for the whole wizard, synced to the backend DRAFT. */
-export interface WizardDraft {
+export interface PersonalInfoDraft {
+  firstName: string;
+  lastName: string;
+  nationalId: string;
+  email: string;
+  phone: string;
+  birthDate: string;
+}
+
+export interface EducationDraft {
+  educationLevel: string;
+  speciality: string;
+  universityId: string;
+}
+
+export interface InternshipDatesDraft {
   desiredStartDate: string;
   desiredEndDate: string;
+}
+
+export interface InternshipDetailsDraft {
   proposedTheme: string;
-  submittedOnline: boolean;
+  preferredDepartment?: string;
 }
 
-/** candidateConfirmed: confirmed personal info / eligibility flags. */
-export interface WizardConfirmation {
-  eligibility: boolean;
-  personal: boolean;
-  dates: boolean;
-  info: boolean;
-}
-
-/** Document upload tracking by DocumentType for the documents step. */
-export interface UploadState {
-  kind: DocumentType;
-  labelKey: string;
-  hintKey: string;
-  accept: string;
-  maxSizeMb: number;
-  required: boolean;
-  document: ApplicationDocumentResponse | null;
-  uploading: boolean;
-  errorKey: string | null;
+export interface WizardDraft {
+  personal: PersonalInfoDraft;
+  education: EducationDraft;
+  dates: InternshipDatesDraft;
+  details: InternshipDetailsDraft;
+  confirmedTerms: boolean;
 }
 
 export type UploadKind = 'INTERNSHIP_APPLICATION' | 'ASSIGNMENT_LETTER' | 'PROJECT_DEMO_IMAGE';
 
-export interface ApplicationRuntime {
-  id: string;
-  reference: string;
-  status: ApplicationStatus;
-  version: number;
-  createdAt: string;
-  updatedAt: string;
-  submissionDate: string | null;
-}
+export const INITIAL_WIZARD_DRAFT: WizardDraft = {
+  personal: {
+    firstName: '',
+    lastName: '',
+    nationalId: '',
+    email: '',
+    phone: '',
+    birthDate: '',
+  },
+  education: {
+    educationLevel: 'LICENCE',
+    speciality: '',
+    universityId: '',
+  },
+  dates: {
+    desiredStartDate: '',
+    desiredEndDate: '',
+  },
+  details: {
+    proposedTheme: '',
+    preferredDepartment: '',
+  },
+  confirmedTerms: false,
+};
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * Validate a step before advancing. Returns null when valid, otherwise a
- * translated-agnostic error key that the UI localizes.
+ * Validate each step in the wizard.
+ * Returns null if valid, or a localized message key for UI display.
  */
 export function validateStep(
   step: StepId,
   draft: WizardDraft,
-  confirm: WizardConfirmation,
+  classificationType: InternshipType | null,
   uploads: Record<UploadKind, ApplicationDocumentResponse | null>,
   uploadingStates: Record<UploadKind, boolean>,
 ): string | null {
   switch (step) {
-    case 'welcome':
-      return confirm.eligibility ? null : 'apply.welcome.confirmRequired';
-    case 'personal':
-      return confirm.personal ? null : 'apply.personal.confirmRequired';
-    case 'dates': {
-      if (!draft.desiredStartDate || !draft.desiredEndDate) {
-        return 'apply.dates.errorBothRequired';
-      }
-      if (draft.desiredEndDate < draft.desiredStartDate) {
-        return 'apply.dates.errorEndBeforeStart';
-      }
-      return confirm.dates ? null : 'apply.dates.confirmRequired';
+    case 'personal': {
+      const p = draft.personal;
+      if (!p.firstName.trim() || !p.lastName.trim()) return 'apply.personal.nameRequired';
+      if (!p.nationalId.trim() || p.nationalId.trim().length < 5) return 'apply.personal.cinRequired';
+      if (!p.email.trim() || !EMAIL_RE.test(p.email.trim())) return 'apply.personal.emailInvalid';
+      if (!p.phone.trim()) return 'apply.personal.phoneRequired';
+      if (!p.birthDate) return 'apply.personal.birthDateRequired';
+      return null;
     }
-    case 'info': {
-      if (!draft.proposedTheme.trim()) {
-        return 'apply.info.projectThemeRequired';
+    case 'education': {
+      const e = draft.education;
+      if (!e.universityId) return 'apply.education.universityRequired';
+      return null;
+    }
+    case 'dates': {
+      const d = draft.dates;
+      if (!d.desiredStartDate || !d.desiredEndDate) return 'apply.dates.errorBothRequired';
+      if (d.desiredEndDate < d.desiredStartDate) return 'apply.dates.errorEndBeforeStart';
+      return null;
+    }
+    case 'details': {
+      // Perfectionnement and PFE require a project theme
+      if (classificationType === 'PERFECTIONNEMENT' || classificationType === 'PFE') {
+        if (!draft.details.proposedTheme.trim()) return 'apply.info.projectThemeRequired';
       }
-      return confirm.info ? null : 'apply.info.confirmRequired';
+      return null;
     }
     case 'documents': {
-      // required uploads must be attached
       const requiredKinds: UploadKind[] = ['INTERNSHIP_APPLICATION', 'ASSIGNMENT_LETTER'];
       for (const k of requiredKinds) {
         if (!uploads[k]) return 'apply.documents.allRequired';
@@ -102,9 +134,11 @@ export function validateStep(
       }
       return null;
     }
-    case 'demo':
-    case 'review':
-    case 'submit':
+    case 'review': {
+      if (!draft.confirmedTerms) return 'apply.reviewAgreeTerms';
+      return null;
+    }
+    case 'result':
       return null;
   }
 }

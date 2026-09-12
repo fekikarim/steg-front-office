@@ -8,40 +8,41 @@ import {DatePicker} from '@/components/ui/DatePicker';
 import {Badge} from '@/components/ui/Badge';
 import {StepShell} from './StepShell';
 import {FieldError} from '@/components/ui/FieldError';
-import {cx} from '@/lib/cx';
 import type {ClassificationResult} from '@/lib/api/application';
 
 interface DatesStepProps {
   startDate: string;
   endDate: string;
   classification: ClassificationResult | null;
-  confirmed: boolean;
   onChange: (start: string, end: string) => void;
-  onConfirm: (value: boolean) => void;
   errorKey: string | null;
   onContinue: () => void;
 }
 
 /**
- * Step 3 — Internship dates + automatic classification. The type is computed
- * client-side from the chosen duration (mirroring the backend rule) and shown
- * to the candidate as an informative preview. The backend remains the
- * authority and will re-classify authoritatively at approval time.
+ * Step 3 — Internship Dates & Automatic Classification.
+ * Computes duration, derived type, mandatory status, and plain-language reasoning
+ * as an interactive live preview. Clarifies that the backend is authoritative.
  */
 export function DatesStep({
   startDate,
   endDate,
   classification,
-  confirmed,
   onChange,
-  onConfirm,
   errorKey,
   onContinue,
 }: DatesStepProps) {
   const t = useTranslations('apply.dates');
+  const ta = useTranslations('apply');
   const tn = useTranslations('apply.nav');
 
   const startInvalid = Boolean(startDate && endDate && endDate < startDate);
+
+  const isBoundaryWarning = useMemo(() => {
+    if (!classification) return false;
+    // < 15 days or > 180 days is unusual
+    return classification.durationInDays < 15 || classification.durationInDays > 180;
+  }, [classification]);
 
   const typeLabel = useMemo(() => {
     if (!classification) return null;
@@ -55,26 +56,21 @@ export function DatesStep({
     }
   }, [classification, t]);
 
-  const typeDesc = useMemo(() => {
+  const durationText = useMemo(() => {
     if (!classification) return null;
-    switch (classification.type) {
-      case 'OBSERVATION':
-        return t('obsDesc');
-      case 'PERFECTIONNEMENT':
-        return t('perfDesc');
-      case 'PFE':
-        return t('pfeDesc');
-    }
-  }, [classification, t]);
+    const days = classification.durationInDays;
+    const months = Math.floor(days / 30);
+    const remDays = days % 30;
+    if (months === 0) return `${days} jours`;
+    if (remDays === 0) return `${months} mois (${days} jours)`;
+    return `${months} mois et ${remDays} jours (${days} jours)`;
+  }, [classification]);
 
-  const durLabel = useMemo(() => {
+  const statusLabel = useMemo(() => {
     if (!classification) return null;
-    if (classification.type === 'OBSERVATION') {
-      return t('durationDays', {count: classification.durationInDays});
-    }
-    const months = Math.floor(classification.durationInDays / 30);
-    const days = classification.durationInDays % 30;
-    return t('durationMonths', {months: Math.max(months, 1), days});
+    return classification.requirement === 'OBLIGATOIRE'
+      ? t('requirementObligatoire')
+      : t('requirementOptional');
   }, [classification, t]);
 
   return (
@@ -100,63 +96,61 @@ export function DatesStep({
         </div>
       </Card>
 
+      {/* Live Classification Preview Card */}
       {classification && !startInvalid && (
-        <Card
-          title={
-            <span className="flex items-center gap-2">
-              {t('classificationTitle')}
+        <Card className="border-brand-200 bg-brand-50/40 dark:border-brand-800 dark:bg-brand-950/20">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between border-b border-brand-100 pb-3 dark:border-brand-900">
+              <span className="text-xs font-bold uppercase tracking-wider text-brand-700 dark:text-brand-300">
+                {ta('calcPreviewBadge')}
+              </span>
               <Badge tone={classification.type === 'PFE' ? 'brand' : classification.type === 'PERFECTIONNEMENT' ? 'info' : 'neutral'}>
                 {typeLabel}
               </Badge>
-            </span>
-          }
-          subtitle={t('classificationHint')}
-        >
-          <div className="flex flex-col gap-3">
-            <p className="text-sm text-zinc-700 dark:text-zinc-200">{typeDesc}</p>
-            <dl className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
-              <div className="rounded-lg bg-zinc-50 p-3 dark:bg-white/5">
-                <dt className="text-xs text-zinc-500 dark:text-zinc-400">{t('durationDays', {count: classification.durationInDays})}</dt>
-                <dd className="mt-1 font-semibold text-navy-900 dark:text-zinc-50">{durLabel}</dd>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="flex flex-col rounded-xl bg-white p-3 shadow-xs dark:bg-navy-900">
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">{ta('calcDuration')}</span>
+                <span className="mt-1 text-sm font-bold text-navy-900 dark:text-zinc-100">{durationText}</span>
               </div>
-              <div className="rounded-lg bg-zinc-50 p-3 dark:bg-white/5">
-                <dt className="text-xs text-zinc-500 dark:text-zinc-400">{t('requirementLabel')}</dt>
-                <dd className="mt-1 font-semibold text-navy-900 dark:text-zinc-50">
-                  {classification.requirement === 'OBLIGATOIRE'
-                    ? t('requirementObligatoire')
-                    : t('requirementOptional')}
-                </dd>
+              <div className="flex flex-col rounded-xl bg-white p-3 shadow-xs dark:bg-navy-900">
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">{ta('calcType')}</span>
+                <span className="mt-1 text-sm font-bold text-brand-700 dark:text-brand-300">{typeLabel}</span>
               </div>
-              <div className="rounded-lg bg-zinc-50 p-3 dark:bg-white/5">
-                <dt className="text-xs text-zinc-500 dark:text-zinc-400">
-                  {classification.paymentEligible ? t('paymentEligible') : t('paymentNotEligible')}
-                </dt>
-                <dd className="mt-1 font-semibold text-navy-900 dark:text-zinc-50">
-                  {classification.paymentEligible ? '✓' : '—'}
-                </dd>
+              <div className="flex flex-col rounded-xl bg-white p-3 shadow-xs dark:bg-navy-900">
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">{ta('calcStatus')}</span>
+                <span className="mt-1 text-sm font-bold text-navy-900 dark:text-zinc-100">{statusLabel}</span>
               </div>
-            </dl>
+            </div>
+
+            <div className="rounded-xl bg-white p-3 text-xs leading-relaxed text-zinc-700 dark:bg-navy-900 dark:text-zinc-300">
+              <span className="font-bold text-zinc-900 dark:text-zinc-100">{ta('calcReason')} </span>
+              <span>{classification.appliedRuleDescription}</span>
+            </div>
+
+            {isBoundaryWarning && (
+              <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                ⚠️ {ta('calcWarningBoundary')}
+              </div>
+            )}
+
+            <p className="text-[11px] text-zinc-500 italic dark:text-zinc-400">
+              {ta('calcAuthorityNotice')}
+            </p>
           </div>
         </Card>
       )}
 
-      <div className="flex flex-col gap-2">
-        <label className={cx('flex items-start gap-3 text-sm font-medium text-zinc-800 dark:text-zinc-100', startInvalid && 'opacity-50')}>
-          <input
-            type="checkbox"
-            checked={confirmed}
-            disabled={startInvalid}
-            onChange={(e) => onConfirm(e.target.checked)}
-            aria-invalid={errorKey ? true : undefined}
-            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-zinc-300 accent-brand-600 dark:accent-brand-500"
-          />
-          <span>{t('confirmLabel')}</span>
-        </label>
-        <FieldError message={errorKey ?? undefined} />
-      </div>
+      {errorKey && <FieldError message={errorKey} />}
 
       <div className="flex justify-end">
-        <Button variant="primary" size="md" onClick={onContinue} disabled={!confirmed || startInvalid}>
+        <Button
+          variant="primary"
+          size="md"
+          onClick={onContinue}
+          disabled={!startDate || !endDate || startInvalid}
+        >
           {tn('continue')}
         </Button>
       </div>

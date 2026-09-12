@@ -1,45 +1,88 @@
 'use client';
 
-import {useState, type ReactNode} from 'react';
-import {Link, usePathname} from '@/i18n/navigation';
+import {useState, useRef, useEffect, type ReactNode} from 'react';
+import {Link, usePathname, useRouter} from '@/i18n/navigation';
 import {LangSwitcher} from './LangSwitcher';
 import {ThemeToggle} from './ThemeToggle';
 import {Button} from '@/components/ui/Button';
 import {NotificationBell} from '@/components/notifications/NotificationBell';
 import {useAuth} from '@/lib/auth';
+import {
+  IconUser,
+  IconFolder,
+  IconBell,
+  IconArrowRight,
+} from '@/components/ui/icons';
 
 interface Labels {
   home: string;
+  about: string;
+  history: string;
   internships: string;
   companion: string;
   apply: string;
   signIn: string;
   createAccount: string;
   profile: string;
+  applications: string;
+  notifications: string;
+  signOut: string;
   skipToContent: string;
   openMenu: string;
   closeMenu: string;
 }
 
 /**
- * Institutional header: brand mark (never mirrored in RTL), primary nav,
- * language + theme selectors, auth entry points, mobile drawer (UI_UX §10.2).
- * When a session exists the auth entry becomes the candidate profile (B3 task
- * 10); sign-out lives on the profile page.
+ * Institutional header:
+ * - Public discovery navigation: Home, About, History, Internship Types, Internship Companion.
+ * - Prominent "Apply" action button.
+ * - Authenticated Profile dropdown menu (Profile, Applications tracking, Notifications, Sign out).
+ * - Multi-language and dark mode controls.
+ * - Responsive mobile menu drawer.
  */
 export function HeaderClient({labels, logo}: {labels: Labels; logo: ReactNode}) {
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
-  const {status} = useAuth();
+  const router = useRouter();
+  const {status, logout} = useAuth();
   const signedIn = status === 'authenticated';
 
-  const loginHref = {pathname: '/login', query: pathname && pathname !== '/login' && pathname !== '/register' ? {returnTo: pathname} : undefined} as const;
+  const loginHref = {
+    pathname: '/login',
+    query: pathname && pathname !== '/login' && pathname !== '/register' ? {returnTo: pathname} : undefined,
+  } as const;
 
-  const links = [
+  const discoveryLinks = [
     {href: '/', label: labels.home},
+    {href: '/about', label: labels.about},
+    {href: '/history', label: labels.history},
     {href: '/internships', label: labels.internships},
     {href: '/companion', label: labels.companion},
   ];
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    }
+    if (profileOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [profileOpen]);
+
+  async function handleSignOut() {
+    setProfileOpen(false);
+    setMobileOpen(false);
+    await logout();
+    router.replace('/');
+  }
 
   return (
     <>
@@ -49,96 +92,208 @@ export function HeaderClient({labels, logo}: {labels: Labels; logo: ReactNode}) 
       >
         {labels.skipToContent}
       </a>
-      <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white/95 backdrop-blur dark:border-zinc-800 dark:bg-navy-950/95">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
-          <Link href="/" aria-label="STEG" className="shrink-0">
+      <header className="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/95 backdrop-blur-md dark:border-zinc-800/80 dark:bg-navy-950/95">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4 sm:px-6">
+          {/* Logo */}
+          <Link href="/" aria-label="STEG" className="shrink-0 transition-opacity hover:opacity-90">
             {logo}
           </Link>
-          <nav aria-label="primary" className="hidden items-center gap-1 md:flex">
-            {links.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className="rounded-lg px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-navy-900 dark:text-zinc-200 dark:hover:bg-white/10 dark:hover:text-white"
-              >
-                {l.label}
-              </Link>
-            ))}
+
+          {/* Desktop Discovery Links */}
+          <nav aria-label="primary" className="hidden items-center gap-0.5 lg:flex">
+            {discoveryLinks.map((l) => {
+              const active = pathname === l.href;
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
+                    active
+                      ? 'bg-brand-50 text-brand-700 dark:bg-white/10 dark:text-brand-300'
+                      : 'text-zinc-700 hover:bg-zinc-100 hover:text-navy-900 dark:text-zinc-200 dark:hover:bg-white/10 dark:hover:text-white'
+                  }`}
+                >
+                  {l.label}
+                </Link>
+              );
+            })}
           </nav>
-          <div className="hidden items-center gap-2 md:flex">
+
+          {/* Right Action Tools */}
+          <div className="hidden items-center gap-2 lg:flex">
             <LangSwitcher />
             <ThemeToggle />
             {signedIn && <NotificationBell />}
+
+            {/* Profile Dropdown or Sign In */}
             {signedIn ? (
-              <Link href="/profile">
-                <Button variant="tertiary" size="sm" className="whitespace-nowrap">
-                  {labels.profile}
-                </Button>
-              </Link>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setProfileOpen((v) => !v)}
+                  className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm font-semibold text-navy-900 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-navy-900 dark:text-zinc-100 dark:hover:bg-navy-800"
+                  aria-expanded={profileOpen}
+                  aria-haspopup="true"
+                >
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-200">
+                    <IconUser className="h-3.5 w-3.5" />
+                  </span>
+                  <span>{labels.profile}</span>
+                  <span className="text-xs text-zinc-400">▼</span>
+                </button>
+
+                {profileOpen && (
+                  <div className="absolute end-0 mt-2 w-56 rounded-xl border border-zinc-200 bg-white p-2 shadow-xl animate-in fade-in-50 zoom-in-95 dark:border-zinc-700 dark:bg-navy-900">
+                    <Link
+                      href="/profile"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-navy-900 dark:text-zinc-200 dark:hover:bg-white/10 dark:hover:text-white"
+                    >
+                      <IconUser className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                      <span>{labels.profile}</span>
+                    </Link>
+                    <Link
+                      href="/applications"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-navy-900 dark:text-zinc-200 dark:hover:bg-white/10 dark:hover:text-white"
+                    >
+                      <IconFolder className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                      <span>{labels.applications}</span>
+                    </Link>
+                    <Link
+                      href="/notifications"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-navy-900 dark:text-zinc-200 dark:hover:bg-white/10 dark:hover:text-white"
+                    >
+                      <IconBell className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                      <span>{labels.notifications}</span>
+                    </Link>
+                    <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
+                    <button
+                      type="button"
+                      onClick={() => void handleSignOut()}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-start text-sm font-medium text-accent-600 transition-colors hover:bg-accent-50 dark:text-accent-100 dark:hover:bg-accent-600/20"
+                    >
+                      <span>{labels.signOut}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
               <Link href={loginHref}>
-                <Button variant="tertiary" size="sm" className="whitespace-nowrap">
+                <Button variant="secondary" size="sm" className="whitespace-nowrap">
                   {labels.signIn}
                 </Button>
               </Link>
             )}
+
+            {/* Apply Action Button */}
             <Link href="/apply">
-              <Button variant="primary" size="sm" className="whitespace-nowrap">
+              <Button size="sm" className="whitespace-nowrap shadow-sm hover-lift">
                 {labels.apply}
+                <IconArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
               </Button>
             </Link>
           </div>
-          <button
-            type="button"
-            className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-zinc-700 hover:bg-zinc-100 md:hidden dark:text-zinc-200 dark:hover:bg-white/10"
-            aria-expanded={open}
-            aria-label={open ? labels.closeMenu : labels.openMenu}
-            onClick={() => setOpen((v) => !v)}
-          >
-            <span aria-hidden="true" className="text-xl">
-              {open ? '✕' : '☰'}
-            </span>
-          </button>
+
+          {/* Mobile hamburger button */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <LangSwitcher />
+            <ThemeToggle />
+            {signedIn && <NotificationBell />}
+            <button
+              type="button"
+              className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-white/10"
+              aria-expanded={mobileOpen}
+              aria-label={mobileOpen ? labels.closeMenu : labels.openMenu}
+              onClick={() => setMobileOpen((v) => !v)}
+            >
+              <span aria-hidden="true" className="text-xl">
+                {mobileOpen ? '✕' : '☰'}
+              </span>
+            </button>
+          </div>
         </div>
-        {open && (
-          <nav aria-label="mobile" className="border-t border-zinc-200 px-4 py-3 md:hidden dark:border-zinc-800">
-            <ul className="flex flex-col gap-1">
-              {links.map((l) => (
+
+        {/* Mobile Navigation Drawer */}
+        {mobileOpen && (
+          <nav aria-label="mobile" className="border-t border-zinc-200 bg-white px-4 py-4 lg:hidden dark:border-zinc-800 dark:bg-navy-950">
+            <ul className="flex flex-col gap-1.5">
+              {discoveryLinks.map((l) => (
                 <li key={l.href}>
                   <Link
                     href={l.href}
-                    onClick={() => setOpen(false)}
+                    onClick={() => setMobileOpen(false)}
                     className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-zinc-800 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-white/10"
                   >
                     {l.label}
                   </Link>
                 </li>
               ))}
-              <li className="flex items-center gap-2 pt-2">
-                <LangSwitcher />
-                <ThemeToggle />
-                {signedIn && <NotificationBell />}
-              </li>
-              <li className="flex gap-2 pt-2">
-                {signedIn ? (
-                  <Link href="/profile" onClick={() => setOpen(false)} className="flex-1">
-                    <Button variant="tertiary" size="sm" className="w-full">
-                      {labels.profile}
-                    </Button>
-                  </Link>
-                ) : (
-                  <Link href={loginHref} onClick={() => setOpen(false)} className="flex-1">
-                    <Button variant="tertiary" size="sm" className="w-full">
-                      {labels.signIn}
-                    </Button>
-                  </Link>
-                )}
-                <Link href="/apply" onClick={() => setOpen(false)} className="flex-1">
-                  <Button variant="primary" size="sm" className="w-full">
+
+              {signedIn && (
+                <>
+                  <li className="my-1 border-t border-zinc-200 dark:border-zinc-800" />
+                  <li>
+                    <Link
+                      href="/profile"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-white/10"
+                    >
+                      <IconUser className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                      <span>{labels.profile}</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/applications"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-white/10"
+                    >
+                      <IconFolder className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                      <span>{labels.applications}</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/notifications"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-white/10"
+                    >
+                      <IconBell className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                      <span>{labels.notifications}</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => void handleSignOut()}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-start text-sm font-medium text-accent-600 hover:bg-accent-50 dark:text-accent-100 dark:hover:bg-accent-600/20"
+                    >
+                      <span>{labels.signOut}</span>
+                    </button>
+                  </li>
+                </>
+              )}
+
+              <li className="pt-2">
+                <Link href="/apply" onClick={() => setMobileOpen(false)} className="block w-full">
+                  <Button variant="primary" size="md" className="w-full justify-center">
                     {labels.apply}
+                    <IconArrowRight className="h-4 w-4 rtl:rotate-180" />
                   </Button>
                 </Link>
               </li>
+
+              {!signedIn && (
+                <li className="pt-1">
+                  <Link href={loginHref} onClick={() => setMobileOpen(false)} className="block w-full">
+                    <Button variant="secondary" size="md" className="w-full justify-center">
+                      {labels.signIn}
+                    </Button>
+                  </Link>
+                </li>
+              )}
             </ul>
           </nav>
         )}

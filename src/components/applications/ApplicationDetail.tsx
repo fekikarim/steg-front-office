@@ -32,35 +32,89 @@ type Phase = 'loading' | 'anonymous' | 'missing' | 'ready' | 'error';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-interface Milestone {
+interface TimelineStage {
   key: string;
-  label: string;
+  labelKey: string;
+  descKey: string;
+  /** Reached = past stage; active = current stage; future = not yet reached. */
+  state: 'reached' | 'active' | 'future';
   date: string | null;
-  current: boolean;
 }
 
 /**
- * Truthful status timeline derived ONLY from backend timestamps. A milestone
- * renders only when its date exists; unknown future states are never shown.
+ * Full 7-stage lifecycle:
+ *   Draft → Submitted → Under review → Accepted/Rejected →
+ *   Internship preparation → In progress → Completed
+ *
+ * Each stage is always shown; reached milestones carry timestamps,
+ * future milestones appear inactive. The backend status determines
+ * which stage is currently "active".
  */
-function buildTimeline(
-  app: ApplicationResponse,
-  t: (k: string) => string,
-): Milestone[] {
-  const items: Array<{key: string; label: string; date: string | null}> = [
-    {key: 'created', label: t('timelineCreated'), date: app.createdAt},
-  ];
-  if (app.submissionDate) {
-    items.push({key: 'submitted', label: t('timelineSubmitted'), date: app.submissionDate});
-  }
-  if (app.status === 'WITHDRAWN') {
-    items.push({key: 'withdrawn', label: t('timelineWithdrawn'), date: app.updatedAt});
-  } else if (app.status !== 'DRAFT' && app.status !== 'SUBMITTED') {
-    items.push({key: 'current', label: t('timelineCurrent'), date: app.updatedAt});
-  }
-  return items
-    .filter((m) => m.date)
-    .map((m, i, arr) => ({...m, current: i === arr.length - 1}));
+const STAGE_PIPELINE: Array<{key: string; statuses: string[]; labelKey: string; descKey: string}> = [
+  {key: 'draft',       statuses: ['DRAFT'],                     labelKey: 'timelineStateDraft',       descKey: 'timelineStateDraftDesc'},
+  {key: 'submitted',   statuses: ['SUBMITTED'],                 labelKey: 'timelineStateSubmitted',   descKey: 'timelineStateSubmittedDesc'},
+  {key: 'underReview', statuses: ['UNDER_REVIEW', 'NEEDS_CORRECTION'], labelKey: 'timelineStateUnderReview', descKey: 'timelineStateUnderReviewDesc'},
+  {key: 'decision',    statuses: ['ACCEPTED', 'REJECTED'],      labelKey: 'timelineStateAccepted',    descKey: 'timelineStateAcceptedDesc'},
+  {key: 'preparation', statuses: [],                            labelKey: 'timelineStatePrep',        descKey: 'timelineStatePrepDesc'},
+  {key: 'inProgress',  statuses: [],                            labelKey: 'timelineStateInProgress',  descKey: 'timelineStateInProgressDesc'},
+  {key: 'completed',   statuses: [],                            labelKey: 'timelineStateCompleted',   descKey: 'timelineStateCompletedDesc'},
+];
+
+function buildFullTimeline(app: ApplicationResponse): TimelineStage[] {
+  // Determine the active stage index from the current backend status.
+  const statusToStageIndex: Record<string, number> = {
+    DRAFT: 0,
+    SUBMITTED: 1,
+    UNDER_REVIEW: 2,
+    NEEDS_CORRECTION: 2,
+    ACCEPTED: 3,
+    REJECTED: 3,
+    WITHDRAWN: -1,
+  };
+  const activeIdx = statusToStageIndex[app.status] ?? -1;
+
+  // For "decision" stage, show the right label based on actual status.
+  const isRejected = app.status === 'REJECTED';
+
+  return STAGE_PIPELINE.map((stage, i) => {
+    let state: 'reached' | 'active' | 'future';
+    if (activeIdx < 0) {
+      // Withdrawn: show all as future except draft
+      state = i === 0 ? 'reached' : 'future';
+    } else if (i < activeIdx) {
+      state = 'reached';
+    } else if (i === activeIdx) {
+      state = 'active';
+    } else {
+      state = 'future';
+    }
+
+    // Determine the date for reached/active stages.
+    let date: string | null = null;
+    if (state === 'reached' || state === 'active') {
+      if (i === 0) date = app.createdAt;
+      else if (i === 1) date = app.submissionDate;
+      else date = app.updatedAt;
+    }
+
+    // Override label for rejection
+    const labelKey =
+      stage.key === 'decision' && isRejected
+        ? 'timelineStateRejected'
+        : stage.labelKey;
+    const descKey =
+      stage.key === 'decision' && isRejected
+        ? 'timelineStateRejectedDesc'
+        : stage.descKey;
+
+    return {
+      key: stage.key,
+      labelKey,
+      descKey,
+      state,
+      date,
+    };
+  });
 }
 
 function docTypeLabel(
@@ -202,7 +256,7 @@ export function ApplicationDetail({id}: {id: string}) {
   }
 
   const canWithdraw = app.status !== 'ACCEPTED' && app.status !== 'WITHDRAWN';
-  const milestones = buildTimeline(app, t as (k: string) => string);
+  const stages = buildFullTimeline(app);
   const statusHelp = (t as (k: string) => string)(`statusHelp.${app.status}`);
 
   return (
@@ -321,49 +375,90 @@ export function ApplicationDetail({id}: {id: string}) {
         </dl>
       </Card>
 
-      {/* Timeline */}
+      {/* 7-Stage Lifecycle Timeline */}
       <Card title={t('sectionTimeline')}>
         <ol className="flex flex-col gap-0">
-          {milestones.map((m, i) => (
-            <li key={m.key} className="relative flex gap-3 pb-5 last:pb-0">
-              {i < milestones.length - 1 && (
+          {stages.map((stage, i) => {
+            const isLast = i === stages.length - 1;
+            const label = (t as (k: string) => string)(stage.labelKey);
+            const desc = (t as (k: string) => string)(stage.descKey);
+
+            return (
+              <li key={stage.key} className="relative flex gap-4 pb-6 last:pb-0">
+                {/* Connector line */}
+                {!isLast && (
+                  <span
+                    aria-hidden="true"
+                    className={cx(
+                      'absolute top-7 bottom-0 start-[13px] w-0.5',
+                      stage.state === 'reached'
+                        ? 'bg-brand-500 dark:bg-brand-400'
+                        : stage.state === 'active'
+                          ? 'bg-gradient-to-b from-brand-500 to-zinc-200 dark:from-brand-400 dark:to-zinc-700'
+                          : 'bg-zinc-200 dark:bg-zinc-700',
+                    )}
+                  />
+                )}
+
+                {/* Stage circle */}
                 <span
                   aria-hidden="true"
-                  className="absolute top-6 bottom-0 start-[11px] w-0.5 bg-zinc-200 dark:bg-zinc-700"
-                />
-              )}
-              <span
-                aria-hidden="true"
-                className={cx(
-                  'z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold',
-                  m.current
-                    ? 'border-2 border-brand-600 text-brand-700 dark:border-brand-400 dark:text-brand-300'
-                    : 'bg-brand-600 text-white dark:bg-brand-500',
-                )}
-              >
-                {!m.current && (
-                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} className="h-3 w-3">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </span>
-              <div className="flex flex-col pt-0.5">
-                <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-                  {m.label}
-                  {m.current && (
-                    <span className="ms-2">
-                      <StatusPill code={app.status} />
-                    </span>
+                  className={cx(
+                    'z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all',
+                    stage.state === 'reached'
+                      ? 'bg-brand-600 text-white shadow-sm dark:bg-brand-500'
+                      : stage.state === 'active'
+                        ? 'border-[2.5px] border-brand-600 bg-white text-brand-700 shadow-md ring-4 ring-brand-100 dark:border-brand-400 dark:bg-navy-900 dark:text-brand-300 dark:ring-brand-950/50'
+                        : 'border-2 border-zinc-300 bg-zinc-100 text-zinc-400 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-500',
                   )}
-                </p>
-                {m.date && (
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    <time dateTime={m.date}>{formatDateTime(m.date, locale)}</time>
+                >
+                  {stage.state === 'reached' ? (
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} className="h-3.5 w-3.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <span>{i + 1}</span>
+                  )}
+                </span>
+
+                {/* Stage content */}
+                <div className="flex flex-col gap-0.5 pt-0.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p
+                      className={cx(
+                        'text-sm font-semibold',
+                        stage.state === 'reached'
+                          ? 'text-brand-800 dark:text-brand-300'
+                          : stage.state === 'active'
+                            ? 'text-navy-900 dark:text-zinc-50'
+                            : 'text-zinc-400 dark:text-zinc-500',
+                      )}
+                    >
+                      {label}
+                    </p>
+                    {stage.state === 'active' && (
+                      <StatusPill code={app.status} />
+                    )}
+                  </div>
+                  <p
+                    className={cx(
+                      'text-xs leading-relaxed',
+                      stage.state === 'future'
+                        ? 'text-zinc-300 dark:text-zinc-600'
+                        : 'text-zinc-500 dark:text-zinc-400',
+                    )}
+                  >
+                    {desc}
                   </p>
-                )}
-              </div>
-            </li>
-          ))}
+                  {stage.date && (
+                    <p className="mt-0.5 text-[11px] text-zinc-400 dark:text-zinc-500">
+                      <time dateTime={stage.date}>{formatDateTime(stage.date, locale)}</time>
+                    </p>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ol>
       </Card>
 

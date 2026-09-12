@@ -2,7 +2,6 @@
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
-import {usePathname, Link} from '@/i18n/navigation';
 import {ApiError} from '@/lib/api-client';
 import type {CandidateProfile, University} from '@/lib/api/candidate';
 import {
@@ -21,34 +20,34 @@ import {
   submit,
   uploadFileWithProgress,
 } from '@/lib/api/application-client';
-import {fetchUniversities, getProfile} from '@/lib/api/profile-client';
+import {createProfile, fetchUniversities, getProfile, updateProfile} from '@/lib/api/profile-client';
 import {extensionsLabel, formatBytes} from '@/lib/files';
 import {useToast} from '@/components/ui/Toast';
 import {Button} from '@/components/ui/Button';
 import {CardSkeleton} from '@/components/feedback/Skeleton';
 import {ErrorState} from '@/components/feedback/ErrorState';
-import {Card} from '@/components/ui/Card';
 import {Stepper, type StepDef} from './Stepper';
-import {WelcomeStep} from './WelcomeStep';
 import {PersonalStep} from './PersonalStep';
+import {EducationStep} from './EducationStep';
 import {DatesStep} from './DatesStep';
-import {InfoStep} from './InfoStep';
+import {DetailsStep} from './DetailsStep';
 import {DocumentsStep} from './DocumentsStep';
-import {DemoStep} from './DemoStep';
 import {ReviewStep} from './ReviewStep';
 import {SubmitStep} from './SubmitStep';
 import {
+  INITIAL_WIZARD_DRAFT,
   STEPS,
   validateStep,
   type StepId,
   type UploadKind,
-  type WizardConfirmation,
+  type WizardDraft,
 } from '@/lib/apply-wizard';
 import {idleSlot, type SlotError, type SlotState} from './DocumentSlot';
 
-type Phase = 'loading' | 'anonymous' | 'start' | 'ready' | 'error';
+type Phase = 'loading' | 'ready' | 'error';
 
 const STEP_DEFS: StepDef[] = STEPS.map((id) => ({id, key: id}));
+const STORAGE_KEY = 'steg_apply_wizard_draft_v2';
 
 function docsToUploads(docs: ApplicationDocumentResponse[]) {
   const next = {
@@ -65,16 +64,14 @@ function docsToUploads(docs: ApplicationDocumentResponse[]) {
 }
 
 /**
- * B4 — Internship application wizard. Owns all wizard state, syncs the DRAFT
- * to the backend at checkpoints, uploads/attaches documents, and drives the
- * final submission. The backend is the source of truth; client classification
- * is a preview only.
+ * 7-step guided Apply wizard.
  *
- * Entry flow:
- *   - anonymous → auth prompt
- *   - no DRAFT yet → "start" screen (creates the DRAFT on first step)
- *   - existing DRAFT → "resume" screen (step selected from DRAFT completeness)
- *   - DRAFT already SUBMITTED → confirmation screen
+ * Core Principles:
+ * 1. Anonymous candidates are never blocked from completing steps 1 to 6.
+ * 2. Authenticated candidates receive intelligent profile prefilling with a notice.
+ * 3. Step 3 (Dates) provides live interactive classification preview (backend remains authoritative).
+ * 4. Step 5 (Documents) supports client-side queuing for anonymous candidates and live upload for authenticated candidates.
+ * 5. Step 7 provides submission tracking or an inline authentication bridge for anonymous candidates.
  */
 export function ApplyWizard() {
   const t = useTranslations('apply');
@@ -82,49 +79,40 @@ export function ApplyWizard() {
   const tError = useTranslations('apply.submit');
   const td = useTranslations('apply.documents');
   const toast = useToast();
-  const pathname = usePathname();
 
   const [phase, setPhase] = useState<Phase>('loading');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isPrefilled, setIsPrefilled] = useState(false);
   const [app, setApp] = useState<ApplicationResponse | null>(null);
-  const [profile, setProfile] = useState<CandidateProfile | null>(null);
+  const [, setProfile] = useState<CandidateProfile | null>(null);
   const [universities, setUniversities] = useState<University[]>([]);
-  const [loadingError, setLoadingError] = useState(null as null | {title: string; hint: string; traceId?: string | null});
+  const [loadingError, setLoadingError] = useState(
+    null as null | {title: string; hint: string; traceId?: string | null},
+  );
 
   const [stepIndex, setStepIndex] = useState(0);
-  const [confirm, setConfirm] = useState<WizardConfirmation>({
-    eligibility: false,
-    personal: false,
-    dates: false,
-    info: false,
-  });
+  const [draft, setDraft] = useState<WizardDraft>(INITIAL_WIZARD_DRAFT);
 
-  /* wizard form fields */
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [theme, setTheme] = useState('');
-
-  /* documents — one B5 upload slot per kind; attachments double as the
-     submit gate (initialized from backend data, updated by user actions). */
+  /* documents state */
   const [slots, setSlots] = useState<Record<UploadKind, SlotState>>({
     INTERNSHIP_APPLICATION: idleSlot(),
     ASSIGNMENT_LETTER: idleSlot(),
     PROJECT_DEMO_IMAGE: idleSlot(),
   });
-  /** Files awaiting (re-)upload; kept outside React state (never rendered). */
+
   const pendingFiles = useRef<Record<UploadKind, File | null>>({
     INTERNSHIP_APPLICATION: null,
     ASSIGNMENT_LETTER: null,
     PROJECT_DEMO_IMAGE: null,
   });
-  /** In-flight cancellation handles, one per slot. */
+
   const aborters = useRef<Record<UploadKind, AbortController | null>>({
     INTERNSHIP_APPLICATION: null,
     ASSIGNMENT_LETTER: null,
     PROJECT_DEMO_IMAGE: null,
   });
-  /** Single-flight DRAFT creation shared by concurrent slot uploads. */
+
   const draftPromise = useRef<Promise<ApplicationResponse> | null>(null);
-  /** Latest application mirror for async upload tasks (avoids stale closures). */
   const appRef = useRef<ApplicationResponse | null>(null);
 
   const uploads: Record<UploadKind, ApplicationDocumentResponse | null> = useMemo(
@@ -135,11 +123,18 @@ export function ApplyWizard() {
     }),
     [slots],
   );
+
   const uploadingStates: Record<UploadKind, boolean> = useMemo(
     () => ({
-      INTERNSHIP_APPLICATION: slots.INTERNSHIP_APPLICATION.phase === 'uploading' || slots.INTERNSHIP_APPLICATION.phase === 'attaching',
-      ASSIGNMENT_LETTER: slots.ASSIGNMENT_LETTER.phase === 'uploading' || slots.ASSIGNMENT_LETTER.phase === 'attaching',
-      PROJECT_DEMO_IMAGE: slots.PROJECT_DEMO_IMAGE.phase === 'uploading' || slots.PROJECT_DEMO_IMAGE.phase === 'attaching',
+      INTERNSHIP_APPLICATION:
+        slots.INTERNSHIP_APPLICATION.phase === 'uploading' ||
+        slots.INTERNSHIP_APPLICATION.phase === 'attaching',
+      ASSIGNMENT_LETTER:
+        slots.ASSIGNMENT_LETTER.phase === 'uploading' ||
+        slots.ASSIGNMENT_LETTER.phase === 'attaching',
+      PROJECT_DEMO_IMAGE:
+        slots.PROJECT_DEMO_IMAGE.phase === 'uploading' ||
+        slots.PROJECT_DEMO_IMAGE.phase === 'attaching',
     }),
     [slots],
   );
@@ -153,25 +148,59 @@ export function ApplyWizard() {
 
   const bootstrapDone = useRef(false);
 
+  // Live classification preview
   const classification: ClassificationResult | null = useMemo(() => {
-    if (!startDate || !endDate) return null;
-    if (endDate < startDate) return null;
-    return classifyInternship(startDate, endDate);
-  }, [startDate, endDate]);
+    const s = draft.dates.desiredStartDate;
+    const e = draft.dates.desiredEndDate;
+    if (!s || !e || e < s) return null;
+    return classifyInternship(s, e);
+  }, [draft.dates.desiredStartDate, draft.dates.desiredEndDate]);
 
   const classificationType = classification?.type ?? null;
-  const themeRequired = classificationType === 'PERFECTIONNEMENT' || classificationType === 'PFE';
 
-  /* ----- bootstrap: load profile + universities + existing DRAFT ----- */
-
-  const loadAll = useCallback(async () => {
+  /* ----- Draft Local Storage Persistence ----- */
+  useEffect(() => {
     try {
-      const [prof, unis] = await Promise.all([getProfile(), fetchUniversities()]);
-      setProfile(prof);
+      const stored = sessionStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as WizardDraft;
+        setTimeout(() => {
+          setDraft(parsed);
+        }, 0);
+      }
+    } catch {
+      /* ignore storage errors */
+    }
+  }, []);
+
+  const saveDraftToStorage = useCallback((updated: WizardDraft) => {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    } catch {
+      /* ignore storage errors */
+    }
+  }, []);
+
+  /* ----- Bootstrap: check auth, profile, universities, drafts ----- */
+  const loadAll = useCallback(async () => {
+    let unis: University[] = [];
+    try {
+      unis = await fetchUniversities();
       setUniversities(unis);
+    } catch {
+      // Universities request fallback
+    }
+
+    let prof: CandidateProfile | null = null;
+    try {
+      prof = await getProfile();
+      setProfile(prof);
+      setIsAuthenticated(true);
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
-        setPhase('anonymous');
+        // Anonymous user — not an error! They can continue steps 1-6 seamlessly
+        setIsAuthenticated(false);
+        setPhase('ready');
         return;
       }
       setLoadingError({
@@ -183,60 +212,106 @@ export function ApplyWizard() {
       return;
     }
 
-    // check for an existing DRAFT
-    try {
-      const {listApplications} = await import('@/lib/api/application-client');
-      const list = await listApplications();
-      const drafts = list
-        .filter((a) => a.status === 'DRAFT')
-        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-      if (drafts.length > 0) {
-        const a = drafts[0];
-        appRef.current = a;
-        setApp(a);
-        if (a.desiredStartDate) setStartDate(a.desiredStartDate);
-        if (a.desiredEndDate) setEndDate(a.desiredEndDate);
-        if (a.proposedTheme) setTheme(a.proposedTheme);
-        let docs: ApplicationDocumentResponse[] = [];
-        try {
-          docs = await getApplicationDocuments(a.id);
-          const byKind = docsToUploads(docs);
-          setSlots({
-            INTERNSHIP_APPLICATION: idleSlot(byKind.INTERNSHIP_APPLICATION),
-            ASSIGNMENT_LETTER: idleSlot(byKind.ASSIGNMENT_LETTER),
-            PROJECT_DEMO_IMAGE: idleSlot(byKind.PROJECT_DEMO_IMAGE),
+    // If authenticated, check for an existing DRAFT or prefill from profile
+    if (prof) {
+      try {
+        const {listApplications} = await import('@/lib/api/application-client');
+        const list = await listApplications();
+        const drafts = list
+          .filter((a) => a.status === 'DRAFT')
+          .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
+        if (drafts.length > 0) {
+          const a = drafts[0];
+          appRef.current = a;
+          setApp(a);
+
+          // Update draft from backend data
+          setDraft((prev) => {
+            const next = {
+              ...prev,
+              personal: {
+                firstName: prof?.firstName || prev.personal.firstName,
+                lastName: prof?.lastName || prev.personal.lastName,
+                nationalId: prof?.nationalId || prev.personal.nationalId,
+                email: prof?.email || prev.personal.email,
+                phone: prof?.phone || prev.personal.phone,
+                birthDate: prof?.birthDate || prev.personal.birthDate,
+              },
+              education: {
+                educationLevel: prof?.diploma || prev.education.educationLevel || 'LICENCE',
+                speciality: prof?.speciality || prev.education.speciality,
+                universityId: prof?.universityId || prev.education.universityId,
+              },
+              dates: {
+                desiredStartDate: a.desiredStartDate || prev.dates.desiredStartDate,
+                desiredEndDate: a.desiredEndDate || prev.dates.desiredEndDate,
+              },
+              details: {
+                proposedTheme: a.proposedTheme || prev.details.proposedTheme,
+                preferredDepartment: prev.details.preferredDepartment,
+              },
+            };
+            saveDraftToStorage(next);
+            return next;
           });
-        } catch {
-          /* documents unavailable — still resume */
+          setIsPrefilled(true);
+
+          try {
+            const docs = await getApplicationDocuments(a.id);
+            const byKind = docsToUploads(docs);
+            setSlots({
+              INTERNSHIP_APPLICATION: idleSlot(byKind.INTERNSHIP_APPLICATION),
+              ASSIGNMENT_LETTER: idleSlot(byKind.ASSIGNMENT_LETTER),
+              PROJECT_DEMO_IMAGE: idleSlot(byKind.PROJECT_DEMO_IMAGE),
+            });
+          } catch {
+            /* ignore document loading failures */
+          }
+
+          setPhase('ready');
+          return;
         }
-        // Resume at the earliest incomplete step.
-        const uploadedKinds = new Set(docs.map((d) => d.document.type));
-        const hasDocs =
-          uploadedKinds.has('INTERNSHIP_APPLICATION') && uploadedKinds.has('ASSIGNMENT_LETTER');
-        let resumeStep = 0;
-        if (a.desiredStartDate && a.desiredEndDate) resumeStep = Math.max(resumeStep, 2);
-        if (a.proposedTheme) resumeStep = Math.max(resumeStep, 3);
-        if (hasDocs) resumeStep = Math.max(resumeStep, 4);
-        setStepIndex(Math.min(resumeStep, 6));
-        setPhase('ready');
-        return;
+      } catch {
+        /* proceed to profile prefill */
       }
-    } catch {
-      /* no drafts reachable — proceed to start */
+
+      // No backend draft: intelligently prefill from candidate profile
+      setDraft((prev) => {
+        const next = {
+          ...prev,
+          personal: {
+            firstName: prev.personal.firstName || prof?.firstName || '',
+            lastName: prev.personal.lastName || prof?.lastName || '',
+            nationalId: prev.personal.nationalId || prof?.nationalId || '',
+            email: prev.personal.email || prof?.email || '',
+            phone: prev.personal.phone || prof?.phone || '',
+            birthDate: prev.personal.birthDate || prof?.birthDate || '',
+          },
+          education: {
+            educationLevel: prev.education.speciality
+              ? prev.education.educationLevel
+              : prof?.diploma || 'LICENCE',
+            speciality: prev.education.speciality || prof?.speciality || '',
+            universityId: prev.education.universityId || prof?.universityId || '',
+          },
+        };
+        saveDraftToStorage(next);
+        return next;
+      });
+      setIsPrefilled(true);
     }
 
-    setPhase('start');
-  }, [t]);
+    setPhase('ready');
+  }, [saveDraftToStorage, t]);
 
   useEffect(() => {
     if (bootstrapDone.current) return;
     bootstrapDone.current = true;
-    // async bootstrap; the effect body only calls an async fn, never sets sync
     void loadAll();
   }, [loadAll]);
 
-  /* ----- dirty tracking + beforeunload guard ----- */
-
+  /* ----- Dirty tracking guard ----- */
   useEffect(() => {
     if (!dirty) return;
     const warn = (e: BeforeUnloadEvent) => {
@@ -247,17 +322,18 @@ export function ApplyWizard() {
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
 
-  /* ----- draft sync to backend ----- */
-
+  /* ----- Draft Sync to Backend (if Authenticated) ----- */
   const persistDraft = useCallback(
-    async (fields?: {start?: string; end?: string; theme?: string}) => {
+    async (overrideDraft?: WizardDraft) => {
+      if (!isAuthenticated) return;
+      const target = overrideDraft ?? draft;
       setSaving(true);
       setStepError(null);
       try {
         const body = {
-          desiredStartDate: (fields?.start ?? startDate) || null,
-          desiredEndDate: (fields?.end ?? endDate) || null,
-          proposedTheme: (fields?.theme ?? theme) || null,
+          desiredStartDate: target.dates.desiredStartDate || null,
+          desiredEndDate: target.dates.desiredEndDate || null,
+          proposedTheme: target.details.proposedTheme || null,
         };
         if (app) {
           const updated = await updateDraft(app.id, body);
@@ -269,7 +345,6 @@ export function ApplyWizard() {
           setApp(created);
         }
         setDirty(false);
-        toast.notify({title: t('nav.savedAt'), tone: 'success'});
       } catch (err) {
         setStepError(err instanceof ApiError ? err.message : t('loadErrorHint'));
         throw err;
@@ -277,24 +352,26 @@ export function ApplyWizard() {
         setSaving(false);
       }
     },
-    [app, startDate, endDate, theme, t, toast],
+    [app, draft, isAuthenticated, t],
   );
 
-  /* ----- document upload + attach (B5) ----- */
-
+  /* ----- Document Slot Helpers ----- */
   const setSlot = useCallback((kind: UploadKind, patch: Partial<SlotState>) => {
     setSlots((prev) => ({...prev, [kind]: {...prev[kind], ...patch}}));
   }, []);
 
-  /** Map a transport/backend failure to a localized, retry-aware slot error. */
   const slotErrorFor = useCallback(
     (kind: UploadKind, err: unknown, stage: 'upload' | 'attach'): SlotError => {
       const units = {b: td('unitB'), kb: td('unitKB'), mb: td('unitMB')};
       const rule = DOCUMENT_RULES[kind];
       const maxLabel = formatBytes(rule.maxBytes, units);
       const accepted = extensionsLabel(rule.extensions);
-      const traceId = err instanceof ApiError ? (err.traceId ?? null) : null;
-      const fail = (message: string, retryable: boolean): SlotError => ({message, traceId, retryable});
+      const traceId = err instanceof ApiError ? err.traceId ?? null : null;
+      const fail = (message: string, retryable: boolean): SlotError => ({
+        message,
+        traceId,
+        retryable,
+      });
       if (err instanceof ApiError) {
         switch (err.code) {
           case 'UPLOAD_CANCELLED':
@@ -304,7 +381,6 @@ export function ApplyWizard() {
           case 'UPLOAD_NETWORK':
             return fail(td('errorNetwork'), true);
           case 'FILE_TOO_LARGE':
-            // Same file will always fail: not retryable, pick another file.
             return fail(td('errorTooLarge', {size: maxLabel}), false);
           case 'EMPTY_FILE':
             return fail(td('errorEmpty'), false);
@@ -326,17 +402,13 @@ export function ApplyWizard() {
     [td],
   );
 
-  /**
-   * Ensure a DRAFT exists before attaching documents. Single-flight across
-   * concurrent slot uploads so rapid multi-slot picks create exactly one DRAFT.
-   */
   const ensureDraft = useCallback(async (): Promise<ApplicationResponse> => {
     if (appRef.current) return appRef.current;
     if (!draftPromise.current) {
       draftPromise.current = createDraft({
-        desiredStartDate: startDate || null,
-        desiredEndDate: endDate || null,
-        proposedTheme: theme || null,
+        desiredStartDate: draft.dates.desiredStartDate || null,
+        desiredEndDate: draft.dates.desiredEndDate || null,
+        proposedTheme: draft.details.proposedTheme || null,
       })
         .then((created) => {
           appRef.current = created;
@@ -348,15 +420,41 @@ export function ApplyWizard() {
         });
     }
     return draftPromise.current;
-  }, [startDate, endDate, theme]);
+  }, [draft.dates.desiredEndDate, draft.dates.desiredStartDate, draft.details.proposedTheme]);
 
   const startUpload = useCallback(
     async (kind: UploadKind, file: File) => {
-      // A new pick supersedes any in-flight transfer for this slot.
       aborters.current[kind]?.abort();
       const controller = new AbortController();
       aborters.current[kind] = controller;
       pendingFiles.current[kind] = file;
+
+      // If user is anonymous, queue the file locally with an optimistic attachment
+      if (!isAuthenticated) {
+        setSlot(kind, {
+          phase: 'idle',
+          progress: null,
+          pendingName: file.name,
+          pendingSize: file.size,
+          error: null,
+          attachment: {
+            id: `temp-${kind}`,
+            document: {
+              id: `temp-${kind}`,
+              type: kind as DocumentType,
+              fileName: file.name,
+              fileSize: file.size,
+              contentType: file.type || 'application/pdf',
+              createdAt: new Date().toISOString(),
+            },
+            mandatory: DOCUMENT_RULES[kind].required,
+            attachedAt: new Date().toISOString(),
+          } as unknown as ApplicationDocumentResponse,
+        });
+        setDirty(true);
+        return;
+      }
+
       setSlot(kind, {
         phase: 'uploading',
         progress: 0,
@@ -377,7 +475,7 @@ export function ApplyWizard() {
 
       let stage: 'upload' | 'attach' = 'upload';
       try {
-        const draft = await ensureDraft();
+        const d = await ensureDraft();
         if (controller.signal.aborted) {
           setSlots((prev) => ({...prev, [kind]: cancelledState()}));
           return;
@@ -397,7 +495,7 @@ export function ApplyWizard() {
         stage = 'attach';
         setSlot(kind, {phase: 'attaching'});
         try {
-          const attached = await attachDocument(draft.id, {
+          const attached = await attachDocument(d.id, {
             documentId: doc.id,
             mandatory: DOCUMENT_RULES[kind].required,
           });
@@ -412,9 +510,7 @@ export function ApplyWizard() {
           pendingFiles.current[kind] = null;
         } catch (attachErr) {
           if (attachErr instanceof ApiError && attachErr.status === 409) {
-            // Already attached (e.g. a retry racing a dropped response):
-            // re-read backend state and adopt the latest attachment of kind.
-            const docs = await getApplicationDocuments(draft.id);
+            const docs = await getApplicationDocuments(d.id);
             const latest = docsToUploads(docs)[kind];
             if (latest) {
               setSlot(kind, {
@@ -442,12 +538,11 @@ export function ApplyWizard() {
         if (aborters.current[kind] === controller) aborters.current[kind] = null;
       }
     },
-    [ensureDraft, setSlot, slotErrorFor, slots, td],
+    [ensureDraft, isAuthenticated, setSlot, slotErrorFor, slots, td],
   );
 
   const cancelUpload = useCallback((kind: UploadKind) => {
     aborters.current[kind]?.abort();
-    // The in-flight task observes the abort and flips the slot to cancelled.
   }, []);
 
   const retryUpload = useCallback(
@@ -458,55 +553,55 @@ export function ApplyWizard() {
     [startUpload],
   );
 
-  /**
-   * Detach a document from the wizard slot. The backend exposes no detach
-   * endpoint, so a superseded attachment stays stored server-side — the slot
-   * (and therefore the submit gate) no longer counts it. Replacing uploads
-   * a new file whose attachment supersedes the old one the same way.
-   */
   const removeUpload = useCallback(
     (kind: UploadKind) => {
       aborters.current[kind]?.abort();
       pendingFiles.current[kind] = null;
-      setSlots((prev) => ({...prev, [kind]: idleSlot()}));
+      setSlot(kind, idleSlot());
       setDirty(true);
     },
-    [],
+    [setSlot],
   );
 
-  /* ----- step navigation ----- */
-
+  /* ----- Step Navigation ----- */
   const goNext = useCallback(async () => {
-    const currentStep = STEPS[stepIndex] as StepId;
-    const err = validateStep(currentStep, {
-      desiredStartDate: startDate,
-      desiredEndDate: endDate,
-      proposedTheme: theme,
-      submittedOnline: true,
-    }, confirm, {
-      INTERNSHIP_APPLICATION: uploads.INTERNSHIP_APPLICATION,
-      ASSIGNMENT_LETTER: uploads.ASSIGNMENT_LETTER,
-      PROJECT_DEMO_IMAGE: uploads.PROJECT_DEMO_IMAGE,
-    }, uploadingStates);
+    const currentStepId = STEPS[stepIndex] as StepId;
+    const validationKey = validateStep(
+      currentStepId,
+      draft,
+      classificationType,
+      uploads,
+      uploadingStates,
+    );
 
-    if (err) {
-      const key = err.replace('apply.', '');
-      // key is a known apply.* message key; cast past next-intl's static keys
-      // (validateStep returns only keys that exist under the `apply` namespace).
-      setStepError((t as (k: string) => string)(key));
+    if (validationKey) {
+      setStepError(t(validationKey as never));
       return;
     }
+
     setStepError(null);
 
-    // Persist the draft before advancing.
-    try {
-      await persistDraft();
-    } catch {
-      return;
+    // If authenticated, persist draft checkpoint to backend when leaving dates or details
+    if (isAuthenticated && (currentStepId === 'dates' || currentStepId === 'details')) {
+      try {
+        await persistDraft();
+      } catch {
+        return;
+      }
     }
+
     setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
     window.scrollTo({top: 0, behavior: 'smooth'});
-  }, [stepIndex, startDate, endDate, theme, confirm, uploads, uploadingStates, persistDraft, t]);
+  }, [
+    stepIndex,
+    draft,
+    classificationType,
+    uploads,
+    uploadingStates,
+    isAuthenticated,
+    persistDraft,
+    t,
+  ]);
 
   const goBack = useCallback(() => {
     setStepError(null);
@@ -514,15 +609,18 @@ export function ApplyWizard() {
     window.scrollTo({top: 0, behavior: 'smooth'});
   }, []);
 
+  const handleJumpToStep = useCallback((targetIndex: number) => {
+    setStepError(null);
+    setStepIndex(targetIndex);
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }, []);
+
+  /* ----- Final Submissions ----- */
   const handleSubmit = useCallback(async () => {
     if (!app) return;
     setSubmitting(true);
     setSubmitError(null);
     try {
-      // Backend-data gate (B5 task 11): the backend submit transition does
-      // not itself enforce mandatory documents, so re-read the authoritative
-      // attachment list. Every mandatory kind must be attached in the wizard
-      // AND present server-side; otherwise submission is blocked here.
       const docs = await getApplicationDocuments(app.id);
       const serverKinds = new Set(docs.map((d) => d.document.type));
       const requiredKinds: UploadKind[] = ['INTERNSHIP_APPLICATION', 'ASSIGNMENT_LETTER'];
@@ -538,6 +636,11 @@ export function ApplyWizard() {
       setApp(updated);
       setSubmittedReference(updated.reference);
       setDirty(false);
+      try {
+        sessionStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : t('loadErrorHint');
       setSubmitError(tError('submitError', {message: msg}));
@@ -546,13 +649,116 @@ export function ApplyWizard() {
     }
   }, [app, t, tError, td, toast, uploads]);
 
-  const startNew = useCallback(() => {
-    setPhase('ready');
-    setStepIndex(0);
-  }, []);
+  /**
+   * Anonymous candidate bridge: creates candidate account or signs in,
+   * creates the draft, uploads queued files, and submits the dossier.
+   *
+   * // TODO — BACKEND SUPPORT REQUIRED: Anonymous application submission endpoint without prior authentication.
+   */
+  const handleAnonymousSubmit = useCallback(
+    async (password: string, isNewAccount: boolean) => {
+      // 1. Authenticate (register or login)
+      const authEndpoint = isNewAccount ? '/api/auth/register' : '/api/auth/login';
+      const authBody = isNewAccount
+        ? {
+            email: draft.personal.email,
+            password,
+            firstName: draft.personal.firstName,
+            lastName: draft.personal.lastName,
+            phone: draft.personal.phone,
+          }
+        : {
+            email: draft.personal.email,
+            password,
+          };
 
-  /* ----- render phases ----- */
+      const res = await fetch(authEndpoint, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(authBody),
+      });
 
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({message: 'Authentication failed'}));
+        throw new Error(errJson.message || 'Authentication failed');
+      }
+
+      setIsAuthenticated(true);
+
+      // 2. Update candidate profile with academic details
+      try {
+        await updateProfile({
+          firstName: draft.personal.firstName,
+          lastName: draft.personal.lastName,
+          email: draft.personal.email,
+          nationalId: draft.personal.nationalId,
+          universityId: draft.education.universityId,
+          phone: draft.personal.phone,
+          birthDate: draft.personal.birthDate,
+          diploma: draft.education.educationLevel,
+          speciality: draft.education.speciality,
+        });
+      } catch {
+        // Fallback to createProfile if profile doesn't exist yet
+        try {
+          await createProfile({
+            firstName: draft.personal.firstName,
+            lastName: draft.personal.lastName,
+            email: draft.personal.email,
+            nationalId: draft.personal.nationalId,
+            universityId: draft.education.universityId,
+            phone: draft.personal.phone,
+            birthDate: draft.personal.birthDate,
+            diploma: draft.education.educationLevel,
+            speciality: draft.education.speciality,
+          });
+        } catch {
+          /* ignore profile update fallback errors */
+        }
+      }
+
+      // 3. Create Draft
+      const createdDraft = await createDraft({
+        desiredStartDate: draft.dates.desiredStartDate || null,
+        desiredEndDate: draft.dates.desiredEndDate || null,
+        proposedTheme: draft.details.proposedTheme || null,
+      });
+      appRef.current = createdDraft;
+      setApp(createdDraft);
+
+      // 4. Upload pending files & attach them
+      const kinds: UploadKind[] = [
+        'INTERNSHIP_APPLICATION',
+        'ASSIGNMENT_LETTER',
+        'PROJECT_DEMO_IMAGE',
+      ];
+      for (const kind of kinds) {
+        const file = pendingFiles.current[kind];
+        if (file) {
+          const doc = await uploadFileWithProgress(file, kind as DocumentType, {});
+          await attachDocument(createdDraft.id, {
+            documentId: doc.id,
+            mandatory: DOCUMENT_RULES[kind].required,
+          });
+        }
+      }
+
+      // 5. Submit application
+      const finalApp = await submit(createdDraft.id);
+      appRef.current = finalApp;
+      setApp(finalApp);
+      setSubmittedReference(finalApp.reference);
+      setDirty(false);
+      try {
+        sessionStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+    },
+    [draft],
+  );
+
+  /* ----- Render Loading / Error ----- */
   if (phase === 'loading') {
     return (
       <div className="flex flex-col gap-4">
@@ -579,70 +785,32 @@ export function ApplyWizard() {
     );
   }
 
-  if (phase === 'anonymous') {
-    return (
-      <Card className="mx-auto max-w-md items-center text-center">
-        <h2 className="text-lg font-bold text-navy-900 dark:text-zinc-50">{t('authRequiredTitle')}</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-300">{t('authRequiredBody')}</p>
-        <div className="flex w-full flex-col gap-2 sm:flex-row">
-          <Link href={{pathname: '/login', query: pathname ? {returnTo: pathname} : undefined}} className="flex-1">
-            <Button variant="primary" size="md" className="w-full">
-              {t('authSignIn')}
-            </Button>
-          </Link>
-          <Link href="/register" className="flex-1">
-            <Button variant="secondary" size="md" className="w-full">
-              {t('authCreate')}
-            </Button>
-          </Link>
-        </div>
-      </Card>
-    );
-  }
-
-  if (phase === 'start') {
-    return (
-      <Card className="mx-auto max-w-lg items-center text-center">
-        <h2 className="text-lg font-bold text-navy-900 dark:text-zinc-50">{t('startTitle')}</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-300">{t('startBody')}</p>
-        <div className="flex justify-center">
-          <Button variant="primary" size="lg" onClick={startNew}>
-            {t('startButton')}
-          </Button>
-        </div>
-      </Card>
-    );
-  }
-
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
+      {/* Progress Stepper */}
       <Stepper steps={STEP_DEFS} current={stepIndex} />
 
+      {/* Global Step Error */}
       {stepError && (
-        <div role="alert" className="rounded-lg border border-accent-100 bg-accent-50/50 px-4 py-3 text-sm text-accent-700 dark:border-accent-800 dark:bg-accent-600/10 dark:text-accent-100">
+        <div
+          role="alert"
+          className="rounded-xl border border-accent-200 bg-accent-50/80 px-4 py-3 text-sm text-accent-800 dark:border-accent-800 dark:bg-accent-950/40 dark:text-accent-200"
+        >
           {stepError}
         </div>
       )}
 
+      {/* Step 1: Personal Information */}
       {stepIndex === 0 && (
-        <WelcomeStep
-          confirmed={confirm.eligibility}
-          onChange={(v) => {
-            setConfirm((p) => ({...p, eligibility: v}));
-            setDirty(true);
-          }}
-          errorKey={stepError}
-          onContinue={() => void goNext()}
-        />
-      )}
-
-      {stepIndex === 1 && (
         <PersonalStep
-          profile={profile}
-          universities={universities}
-          confirmed={confirm.personal}
-          onChange={(v) => {
-            setConfirm((p) => ({...p, personal: v}));
+          data={draft.personal}
+          isPrefilled={isPrefilled}
+          onChange={(patch) => {
+            setDraft((prev) => {
+              const next = {...prev, personal: {...prev.personal, ...patch}};
+              saveDraftToStorage(next);
+              return next;
+            });
             setDirty(true);
           }}
           errorKey={stepError}
@@ -650,20 +818,36 @@ export function ApplyWizard() {
         />
       )}
 
+      {/* Step 2: Education & University */}
+      {stepIndex === 1 && (
+        <EducationStep
+          data={draft.education}
+          universities={universities}
+          onChange={(patch) => {
+            setDraft((prev) => {
+              const next = {...prev, education: {...prev.education, ...patch}};
+              saveDraftToStorage(next);
+              return next;
+            });
+            setDirty(true);
+          }}
+          errorKey={stepError}
+          onContinue={() => void goNext()}
+        />
+      )}
+
+      {/* Step 3: Dates & Interactive Classification */}
       {stepIndex === 2 && (
         <DatesStep
-          startDate={startDate}
-          endDate={endDate}
+          startDate={draft.dates.desiredStartDate}
+          endDate={draft.dates.desiredEndDate}
           classification={classification}
-          confirmed={confirm.dates}
           onChange={(s, e) => {
-            setStartDate(s);
-            setEndDate(e);
-            setConfirm((p) => ({...p, dates: false}));
-            setDirty(true);
-          }}
-          onConfirm={(v) => {
-            setConfirm((p) => ({...p, dates: v}));
+            setDraft((prev) => {
+              const next = {...prev, dates: {desiredStartDate: s, desiredEndDate: e}};
+              saveDraftToStorage(next);
+              return next;
+            });
             setDirty(true);
           }}
           errorKey={stepError}
@@ -671,19 +855,17 @@ export function ApplyWizard() {
         />
       )}
 
+      {/* Step 4: Internship Details & Project Theme */}
       {stepIndex === 3 && (
-        <InfoStep
-          theme={theme}
+        <DetailsStep
+          data={draft.details}
           classificationType={classificationType}
-          themeRequired={themeRequired}
-          confirmed={confirm.info}
-          onChange={(v) => {
-            setTheme(v);
-            setConfirm((p) => ({...p, info: false}));
-            setDirty(true);
-          }}
-          onConfirm={(v) => {
-            setConfirm((p) => ({...p, info: v}));
+          onChange={(patch) => {
+            setDraft((prev) => {
+              const next = {...prev, details: {...prev.details, ...patch}};
+              saveDraftToStorage(next);
+              return next;
+            });
             setDirty(true);
           }}
           errorKey={stepError}
@@ -691,24 +873,11 @@ export function ApplyWizard() {
         />
       )}
 
+      {/* Step 5: Required Documents */}
       {stepIndex === 4 && (
         <DocumentsStep
           application={slots.INTERNSHIP_APPLICATION}
           assignment={slots.ASSIGNMENT_LETTER}
-          disabled={saving}
-          onSelectFiles={(kind, files) => {
-            if (files.length > 0) void startUpload(kind, files[0]);
-          }}
-          onCancel={(kind) => cancelUpload(kind)}
-          onRetry={(kind) => retryUpload(kind)}
-          onRemove={(kind) => removeUpload(kind)}
-          errorKey={stepError}
-          onContinue={() => void goNext()}
-        />
-      )}
-
-      {stepIndex === 5 && (
-        <DemoStep
           demo={slots.PROJECT_DEMO_IMAGE}
           disabled={saving}
           onSelectFiles={(kind, files) => {
@@ -717,36 +886,49 @@ export function ApplyWizard() {
           onCancel={(kind) => cancelUpload(kind)}
           onRetry={(kind) => retryUpload(kind)}
           onRemove={(kind) => removeUpload(kind)}
+          errorKey={stepError}
           onContinue={() => void goNext()}
         />
       )}
 
-      {stepIndex === 6 && (
+      {/* Step 6: Scannable Review */}
+      {stepIndex === 5 && (
         <ReviewStep
-          profile={profile}
+          draft={draft}
           universities={universities}
-          startDate={startDate}
-          endDate={endDate}
           classification={classification}
-          theme={theme}
           applicationLetter={uploads.INTERNSHIP_APPLICATION}
           assignmentLetter={uploads.ASSIGNMENT_LETTER}
           demo={uploads.PROJECT_DEMO_IMAGE}
+          onJumpToStep={handleJumpToStep}
+          onToggleTerms={(val) => {
+            setDraft((prev) => {
+              const next = {...prev, confirmedTerms: val};
+              saveDraftToStorage(next);
+              return next;
+            });
+            setDirty(true);
+          }}
           onContinue={() => void goNext()}
         />
       )}
 
-      {stepIndex === 7 && (
+      {/* Step 7: Confirmation & Tracking / Anonymous Bridge */}
+      {stepIndex === 6 && (
         <SubmitStep
+          isAuthenticated={isAuthenticated}
           submitting={submitting}
           submittedReference={submittedReference}
+          candidateEmail={draft.personal.email}
           errorKey={submitError}
           onSubmit={() => void handleSubmit()}
+          onAnonymousSubmit={handleAnonymousSubmit}
         />
       )}
 
-      <div className="flex items-center justify-between">
-        {stepIndex > 0 && stepIndex < 7 && (
+      {/* Navigation Footer */}
+      <div className="flex items-center justify-between pt-2">
+        {stepIndex > 0 && stepIndex < 6 && (
           <Button variant="secondary" size="md" onClick={goBack} disabled={saving}>
             {tnav('back')}
           </Button>
