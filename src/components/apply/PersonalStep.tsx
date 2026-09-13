@@ -53,7 +53,7 @@ export function PersonalStep({
             type="text"
             value={data.firstName}
             onChange={(e) => onChange({firstName: e.target.value})}
-            placeholder="Mohamed"
+            placeholder={t('firstNamePlaceholder')}
             autoComplete="given-name"
             required
           />
@@ -65,7 +65,7 @@ export function PersonalStep({
             type="text"
             value={data.lastName}
             onChange={(e) => onChange({lastName: e.target.value})}
-            placeholder="Ben Ali"
+            placeholder={t('lastNamePlaceholder')}
             autoComplete="family-name"
             required
           />
@@ -77,7 +77,7 @@ export function PersonalStep({
             type="text"
             value={data.nationalId}
             onChange={(e) => onChange({nationalId: e.target.value})}
-            placeholder="09876543"
+            placeholder={t('cinPlaceholder')}
             required
           />
 
@@ -88,7 +88,7 @@ export function PersonalStep({
             type="tel"
             value={data.phone}
             onChange={(e) => onChange({phone: e.target.value})}
-            placeholder="+216 98 123 456"
+            placeholder={t('phonePlaceholder')}
             autoComplete="tel"
             required
           />
@@ -101,7 +101,7 @@ export function PersonalStep({
               type="email"
               value={data.email}
               onChange={(e) => onChange({email: e.target.value})}
-              placeholder="mohamed.benali@esprit.tn"
+              placeholder={t('emailPlaceholder')}
               autoComplete="email"
               required
             />

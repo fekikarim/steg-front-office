@@ -32,12 +32,12 @@ export async function Footer() {
           <div className="flex items-center gap-3">
             <span className="flex h-2 w-2 rounded-full bg-emerald-400" />
             <span className="font-mono text-xs text-zinc-300 uppercase tracking-wider">
-              STEG — Direction des Ressources Humaines & Formation
+              {tf('deptLine')}
             </span>
           </div>
           <div className="flex items-center gap-2 font-mono text-[11px] text-zinc-400">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-brand-400" />
-            Portail National de Gestion Dématérialisée des Stages
+            {tf('portalLine')}
           </div>
         </div>
 
@@ -49,8 +49,8 @@ export async function Footer() {
                 <Image
                   src="/logo/logo-steg-1200x327.png"
                   alt="STEG"
-                  width={140}
-                  height={38}
+                  width={1200}
+                  height={327}
                   className="h-8 w-auto"
                 />
               </div>
@@ -60,16 +60,16 @@ export async function Footer() {
             </p>
             <div className="mt-2 flex items-center gap-2">
               <span className="inline-flex items-center rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 font-mono text-[11px] text-brand-300">
-                Fondée le 3 Avril 1962
+                {tf('foundedBadge')}
               </span>
               <span className="inline-flex items-center rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 font-mono text-[11px] text-emerald-300">
-                🌱 Démarche Zéro Papier
+                {tf('zeroPaperBadge')}
               </span>
             </div>
           </div>
 
           {/* Quick Nav */}
-          <nav aria-label="footer" className="md:col-span-3 flex flex-col gap-3">
+          <nav aria-label={tf('footerNav')} className="md:col-span-3 flex flex-col gap-3">
             <h2 className="text-xs font-bold uppercase tracking-wider text-white">
               {tf('navHeading')}
             </h2>
@@ -78,7 +78,7 @@ export async function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="group inline-flex items-center gap-2 text-sm text-zinc-400 transition-colors hover:text-white"
+                    className="group inline-flex min-h-6 items-center gap-2 text-sm text-zinc-400 transition-colors hover:text-white"
                   >
                     <span className="h-1 w-1 rounded-full bg-zinc-600 transition-colors group-hover:bg-brand-400" />
                     <span>{link.label}</span>
@@ -97,7 +97,7 @@ export async function Footer() {
               <li>
                 <a
                   href={`mailto:${tf('contactEmail')}`}
-                  className="group inline-flex items-center gap-2.5 transition-colors hover:text-white"
+                  className="group inline-flex min-h-6 items-center gap-2.5 transition-colors hover:text-white"
                   dir="ltr"
                 >
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 group-hover:border-brand-400/50 group-hover:bg-brand-500/10">
@@ -109,7 +109,7 @@ export async function Footer() {
               <li>
                 <a
                   href={`tel:${tf('contactPhone').replace(/\s+/g, '')}`}
-                  className="group inline-flex items-center gap-2.5 transition-colors hover:text-white"
+                  className="group inline-flex min-h-6 items-center gap-2.5 transition-colors hover:text-white"
                   dir="ltr"
                 >
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 group-hover:border-brand-400/50 group-hover:bg-brand-500/10">

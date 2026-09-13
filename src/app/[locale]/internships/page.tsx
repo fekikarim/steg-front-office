@@ -133,7 +133,7 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
                   {type.icon}
                 </span>
                 <span className="text-xs font-bold uppercase tracking-wider text-brand-700 dark:text-brand-400">
-                  Filière Officielle STEG
+                  {t('trackLabel')}
                 </span>
               </div>
 
@@ -166,9 +166,9 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
         <div className="surface-card flex flex-col items-center justify-between gap-6 rounded-3xl p-8 shadow-sm sm:flex-row">
           <div className="flex items-center gap-4">
             <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-brand-50 p-2 shadow-xs dark:bg-brand-950/60">
-              <Image
-                src="/components/intern-types/join_us_225x150.svg"
-                alt="Rejoignez-nous"
+                <Image
+                  src="/components/intern-types/join_us_225x150.svg"
+                  alt={t('joinImageAlt')}
                 width={70}
                 height={50}
                 className="h-12 w-auto"
@@ -176,10 +176,10 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
             </div>
             <div className="flex flex-col">
               <h3 className="text-lg font-black text-navy-950 dark:text-white">
-                Vous avez identifié le stage qui correspond à vos études ?
+                {t('joinTitle')}
               </h3>
               <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                Déposez votre candidature dès maintenant. La classification est confirmée automatiquement.
+                {t('joinDesc')}
               </p>
             </div>
           </div>
@@ -198,7 +198,7 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
       <section className="relative border-y border-zinc-200/80 bg-white py-16 sm:py-20 dark:border-navy-800 dark:bg-navy-900/40">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 sm:px-6">
           <div className="flex flex-col items-start gap-2">
-            <Badge tone="brand" className="w-fit font-semibold">Tableau Récapitulatif</Badge>
+            <Badge tone="brand" className="w-fit font-semibold">{t('matrixBadge')}</Badge>
             <h2 className="text-2xl font-black tracking-tight text-navy-950 sm:text-4xl dark:text-white">
               {t('matrixTitle')}
             </h2>
@@ -219,24 +219,24 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
                 <tbody className="divide-y divide-zinc-100 dark:divide-navy-800/80">
                   <tr className="hover:bg-zinc-50/60 dark:hover:bg-navy-800/40 transition-colors">
                     <td className="px-5 py-4 font-bold text-navy-950 dark:text-white">{t('obsTitle')}</td>
-                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300 font-mono">~ 1 mois (&lt; 42j)</td>
-                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">Selon cursus (Optionnel ou Obligatoire)</td>
-                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">Non exigé à l&apos;inscription</td>
-                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">Accueil & Consignes de sécurité</td>
+                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300 font-mono whitespace-nowrap">{t('obsDuration')}</td>
+                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">{t('obsRule')}</td>
+                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">{t('obsTheme')}</td>
+                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">{t('obsCompanion')}</td>
                   </tr>
                   <tr className="hover:bg-zinc-50/60 dark:hover:bg-navy-800/40 transition-colors">
                     <td className="px-5 py-4 font-bold text-navy-950 dark:text-white">{t('perfTitle')}</td>
-                    <td className="px-5 py-4 font-mono font-bold text-brand-700 dark:text-brand-300">42 à 90 jours</td>
-                    <td className="px-5 py-4 font-bold text-brand-700 dark:text-brand-300">Automatiquement obligatoire</td>
-                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">Discuté avec l&apos;encadrant</td>
-                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">Journal quotidien & Validation des tâches</td>
+                    <td className="px-5 py-4 font-mono font-bold whitespace-nowrap text-brand-700 dark:text-brand-300">{t('perfDuration')}</td>
+                    <td className="px-5 py-4 font-bold text-brand-700 dark:text-brand-300">{t('perfRule')}</td>
+                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">{t('perfTheme')}</td>
+                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">{t('perfCompanion')}</td>
                   </tr>
                   <tr className="hover:bg-zinc-50/60 dark:hover:bg-navy-800/40 transition-colors">
                     <td className="px-5 py-4 font-bold text-navy-950 dark:text-white">{t('pfeTitle')}</td>
-                    <td className="px-5 py-4 font-mono font-bold text-emerald-700 dark:text-emerald-400">&gt; 90 jours</td>
-                    <td className="px-5 py-4 font-bold text-emerald-700 dark:text-emerald-400">Automatiquement obligatoire</td>
-                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">Projet de fin d&apos;études formel</td>
-                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">Jalons, Livrables & Évaluation finale</td>
+                    <td className="px-5 py-4 font-mono font-bold whitespace-nowrap text-emerald-700 dark:text-emerald-400">{t('pfeDuration')}</td>
+                    <td className="px-5 py-4 font-bold text-emerald-700 dark:text-emerald-400">{t('pfeRule')}</td>
+                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">{t('pfeTheme')}</td>
+                    <td className="px-5 py-4 text-zinc-600 dark:text-zinc-300">{t('pfeCompanion')}</td>
                   </tr>
                 </tbody>
               </table>
@@ -250,7 +250,7 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
       {/* ------------------------------------------------------------------ */}
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 lg:py-24">
         <div className="flex flex-col items-start gap-2">
-          <Badge tone="info" className="w-fit font-semibold">Environnements Modernes</Badge>
+            <Badge tone="info" className="w-fit font-semibold">{t('modesBadge')}</Badge>
           <h2 className="text-2xl font-black tracking-tight text-navy-950 sm:text-4xl dark:text-white">
             {t('modesTitle')}
           </h2>
@@ -276,7 +276,7 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
             <div className="relative h-44 w-full bg-zinc-100 dark:bg-navy-900">
               <Image
                 src="/components/intern-types/hybrid_internship_illustration_2000x2000.jpg"
-                alt="Stage hybride"
+                alt={t('hybridAlt')}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -300,7 +300,7 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
                 <source src="/components/intern-types/remote_internship_motion_graphic.mp4" type="video/mp4" />
               </video>
               <div className="absolute top-2.5 end-2.5 rounded-full border border-white/20 bg-black/60 px-2.5 py-0.5 text-[10px] font-mono font-medium text-white backdrop-blur-xs">
-                Motion Graphic
+                {t('motionLabel')}
               </div>
             </div>
             <div className="flex flex-col gap-2 p-5">

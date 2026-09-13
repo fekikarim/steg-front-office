@@ -1,7 +1,8 @@
 import {IBM_Plex_Mono, IBM_Plex_Sans_Arabic} from 'next/font/google';
 import {NextIntlClientProvider, hasLocale} from 'next-intl';
 import {notFound} from 'next/navigation';
-import {setRequestLocale} from 'next-intl/server';
+import {getTranslations, setRequestLocale} from 'next-intl/server';
+import type {Metadata} from 'next';
 import type {ReactNode} from 'react';
 import {routing, directionOf, type AppLocale} from '@/i18n/routing';
 import {ThemeProvider, THEME_INIT_SCRIPT} from '@/lib/theme';
@@ -28,6 +29,14 @@ const mono = IBM_Plex_Mono({
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({locale}));
+}
+
+/** Localized document metadata (title/description follow the active locale). */
+export async function generateMetadata({params}: {params: Promise<{locale: string}>}): Promise<Metadata> {
+  const {locale} = await params;
+  if (!hasLocale(routing.locales, locale)) return {};
+  const t = await getTranslations({locale, namespace: 'app'});
+  return {title: {default: t('name'), template: '%s · STEG'}, description: t('tagline')};
 }
 
 export default async function LocaleLayout({

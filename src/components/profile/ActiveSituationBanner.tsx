@@ -1,6 +1,6 @@
 'use client';
 
-import {useTranslations} from 'next-intl';
+import {useLocale, useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {Button} from '@/components/ui/Button';
 import {StatusPill} from '@/components/ui/Badge';
@@ -13,6 +13,15 @@ interface ActiveSituationBannerProps {
 
 export function ActiveSituationBanner({application}: ActiveSituationBannerProps) {
   const t = useTranslations('profile');
+  const locale = useLocale();
+
+  function formatDate(iso: string): string {
+    try {
+      return new Intl.DateTimeFormat(locale, {dateStyle: 'medium'}).format(new Date(iso));
+    } catch {
+      return iso;
+    }
+  }
 
   if (!application) {
     return (
@@ -27,7 +36,7 @@ export function ActiveSituationBanner({application}: ActiveSituationBannerProps)
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-brand-400" />
                 <span className="font-mono text-xs uppercase tracking-widest text-brand-300">
-                  STATUT CANDIDAT STEG
+                  {t('bannerEyebrow')}
                 </span>
               </div>
               <h2 className="text-lg font-bold text-white mt-1">
@@ -70,7 +79,7 @@ export function ActiveSituationBanner({application}: ActiveSituationBannerProps)
             {isAccepted && (
               <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/20 px-3 py-0.5 text-[11px] font-semibold text-emerald-300 shadow-xs">
                 <IconCheckSquare className="h-3.5 w-3.5" />
-                Affectation Validée
+                {t('assignedBadge')}
               </span>
             )}
           </div>
@@ -98,7 +107,7 @@ export function ActiveSituationBanner({application}: ActiveSituationBannerProps)
                 {t('activeAppType')}
               </span>
               <span className="mt-1 block text-sm font-bold text-white">
-                {application.calculatedType ?? 'Stage STEG'}
+                {application.calculatedType ?? t('typeFallback')}
               </span>
             </div>
 
@@ -107,10 +116,10 @@ export function ActiveSituationBanner({application}: ActiveSituationBannerProps)
               <span className="block font-mono text-[10px] uppercase text-zinc-400">
                 {t('activeAppDates')}
               </span>
-              <span className="mt-1 block font-mono text-xs font-bold text-brand-300">
+              <span className="mt-1 block font-mono text-xs font-bold text-brand-300" dir="ltr">
                 {application.desiredStartDate && application.desiredEndDate
                   ? `${application.desiredStartDate} → ${application.desiredEndDate}`
-                  : 'En attente de confirmation'}
+                  : t('datesPending')}
               </span>
             </div>
 
@@ -120,7 +129,7 @@ export function ActiveSituationBanner({application}: ActiveSituationBannerProps)
                 {t('activeAppSupervisor')}
               </span>
               <span className="mt-1 block text-xs font-bold text-zinc-200">
-                {hasSupervisor ? 'Ingénieur Tuteur STEG' : t('activeAppSupervisorNone')}
+                {hasSupervisor ? t('supervisorFallback') : t('activeAppSupervisorNone')}
               </span>
             </div>
           </div>
@@ -135,7 +144,7 @@ export function ActiveSituationBanner({application}: ActiveSituationBannerProps)
             </Button>
           </Link>
           <span className="font-mono text-[11px] text-zinc-400">
-            Mise à jour : {new Date(application.updatedAt).toLocaleDateString()}
+            {t('updatedLabel')} : {formatDate(application.updatedAt)}
           </span>
         </div>
       </div>

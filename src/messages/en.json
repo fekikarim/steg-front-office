@@ -6,7 +6,7 @@
   "nav": {
     "home": "Home",
     "internships": "Internships",
-    "companion": "InternApp",
+    "companion": "Companion",
     "apply": "Apply",
     "signIn": "Sign in",
     "createAccount": "Create account",
@@ -25,7 +25,11 @@
     "theme": "Theme",
     "themeLight": "Light",
     "themeDark": "Dark",
-    "themeSystem": "System"
+    "themeSystem": "System",
+    "nationalBadge": "National Portal",
+    "candidateSpace": "Candidate Space",
+    "primaryNav": "Primary",
+    "mobileNav": "Mobile"
   },
   "footer": {
     "tagline": "Tunisian Company of Electricity and Gas — internship platform.",
@@ -40,7 +44,12 @@
     "linkContact": "Contact",
     "contactHeading": "Contact",
     "contactEmail": "information@steg.tn",
-    "contactPhone": "+216 71 234 567"
+    "contactPhone": "+216 71 234 567",
+    "deptLine": "STEG — Human Resources & Training Division",
+    "portalLine": "National Portal for Paperless Internship Management",
+    "foundedBadge": "Founded on April 3, 1962",
+    "zeroPaperBadge": "Zero-Paper Approach",
+    "footerNav": "Footer"
   },
   "home": {
     "badge": "Candidate portal",
@@ -144,11 +153,36 @@
     "historyTeaserCta": "Explore corporate history & organizational chart",
     "compTeaserEyebrow": "Mobile Companion",
     "compTeaserTitle": "The dedicated mobile app for your daily internship experience",
-    "compTeaserDesc": "Never lose track of your progress. During your internship, the Internship Companion mobile app helps you plan weekly milestones, log tasks, and receive supervisor feedback.",
+    "compTeaserDesc": "Never lose track of your progress. During your internship, the {productName} mobile app helps you plan weekly milestones, log tasks, and receive supervisor feedback.",
     "compTeaserCta": "Discover all mobile features",
     "finalCtaTitle": "Ready to launch your internship at STEG?",
     "finalCtaDesc": "Join dedicated teams and contribute to high-impact energy and engineering projects across Tunisia.",
-    "finalCtaButton": "Submit My Application Now"
+    "finalCtaButton": "Submit My Application Now",
+    "portalBadge": "Official Portal",
+    "heroSession": "2026/2027 Session",
+    "coverageChip": "24 Governorates",
+    "heroCardTitle": "STEG Training & Integration",
+    "heroCardSub": "Observation • Perfectionnement • PFE",
+    "digitalAlt": "Digitization solution",
+    "digitalText": "Full dematerialization, secure archiving and 100% STEG traceability.",
+    "energyWindTitle": "Energy Transition",
+    "energyWindDesc": "Solar, wind and geothermal at the heart of STEG projects.",
+    "energyWindAlt": "Wind and green energy",
+    "energyGasTitle": "Gas Infrastructure",
+    "energyGasDesc": "Over 1 million natural gas subscribers and an interconnected national grid.",
+    "energyGeoAlt": "Geothermal energy",
+    "syncChip": "Real-time Sync",
+    "certEyebrow": "Recognition & Value",
+    "certTitle": "Official Certified Internship Certificate",
+    "certDesc": "At the end of your internship, receive an official numbered certificate, signed by STEG, for your academic and professional formalities.",
+    "certAlt": "Official STEG Certificate",
+    "mobileAppAlt": "STEG {productName} Mobile App",
+    "applyNowAlt": "Apply today",
+    "heroImageAlt": "Internship opportunities at STEG",
+    "obsImageAlt": "Observation internship",
+    "perfImageAlt": "Advanced training internship",
+    "pfeImageAlt": "Final-year project",
+    "paperlessAlt": "End of paper, full switch to digital"
   },
   "comingSoon": {
     "common": {
@@ -202,7 +236,9 @@
     "errorReference": "Reference",
     "notFoundTitle": "Page not found",
     "notFoundHint": "The requested page does not exist or was moved.",
-    "notFoundAction": "Back to home"
+    "notFoundAction": "Back to home",
+    "notFoundCode": "ERROR 404 // FLOW INTERRUPTED",
+    "notFoundImageAlt": "Page not found - STEG"
   },
   "errors": {
     "network": "Cannot reach the server. Check your connection and try again.",
@@ -298,7 +334,27 @@
     "modeHybridTitle": "Hybrid & Collaborative Stages",
     "modeHybridDesc": "Balanced combination of on-site experimentation and remote analytical work via secure cloud tooling.",
     "modeRemoteTitle": "R&D & Information Systems Projects",
-    "modeRemoteDesc": "Software development, power grid simulations, smart metering analysis, and digitalization projects."
+    "modeRemoteDesc": "Software development, power grid simulations, smart metering analysis, and digitalization projects.",
+    "trackLabel": "Official STEG Track",
+    "joinTitle": "Found the internship that matches your studies?",
+    "joinDesc": "Submit your application now. Classification is confirmed automatically.",
+    "joinImageAlt": "Join us",
+    "matrixBadge": "Summary Table",
+    "obsDuration": "~1 month (< 42 days)",
+    "obsRule": "Depends on curriculum (optional or mandatory)",
+    "obsTheme": "Not required at registration",
+    "obsCompanion": "Welcome & safety briefing",
+    "perfDuration": "42 to 90 days",
+    "perfRule": "Automatically mandatory",
+    "perfTheme": "Discussed with the supervisor",
+    "perfCompanion": "Daily journal & task validation",
+    "pfeDuration": "> 90 days",
+    "pfeRule": "Automatically mandatory",
+    "pfeTheme": "Formal final-year project",
+    "pfeCompanion": "Milestones, deliverables & final evaluation",
+    "modesBadge": "Modern Environments",
+    "hybridAlt": "Hybrid internship",
+    "motionLabel": "Motion Graphic"
   },
   "about": {
     "badge": "Specifications & Digital Vision",
@@ -316,11 +372,11 @@
     "pain4Desc": "Once on-site, tracking daily tasks, journals, and project milestones lacked a modern, standardized digital medium with STEG mentors.",
     "solutionTitle": "2. The integrated digital solution",
     "solutionLead": "STEG established a complete 3-tier interconnected platform to seamlessly cover every stage of the lifecycle:",
-    "facet1Title": "Candidate Front Office (Web)",
+    "facet1Title": "Candidate Front Office",
     "facet1Desc": "This public portal enables transparent discovery, guided multi-step applications, automatic date classification, and direct tracking.",
-    "facet2Title": "Decision-making Back Office (Web)",
+    "facet2Title": "Decision-making Back Office",
     "facet2Desc": "A dedicated workspace for HR coordinators and district leads to review dossiers, assign supervisors, and approve conventions.",
-    "facet3Title": "Internship Companion (Flutter Mobile App)",
+    "facet3Title": "{productName}",
     "facet3Desc": "The student's mobile app for daily task tracking, weekly milestone logs, deliverable uploads, and mentor feedback.",
     "videoSectionTitle": "Digital services demonstration",
     "videoSectionDesc": "Watch how modern digital transformation enhances the STEG internship journey.",
@@ -336,7 +392,17 @@
     "ctaBannerTitle": "Have a project or an internship agreement?",
     "ctaBannerDesc": "Submit your application right now and receive personalised follow-up at every step.",
     "ctaBannerNote": "100% online — no travel required",
-    "backToHome": "Back to Home"
+    "backToHome": "Back to Home",
+    "eyebrowProblem": "Findings & Challenges",
+    "imageAlt": "Old paper-based processes",
+    "imageCaption": "Historical paper processes: slowness, travel and administrative overload.",
+    "badgeWeb": "Public Portal",
+    "badgeBackoffice": "Back Office",
+    "badgeMobile": "Mobile App",
+    "eyebrowSolution": "Unified Architecture",
+    "videoMeta": "1080p Full HD • Official Presentation",
+    "videoFallback": "Your browser does not support video playback.",
+    "badgeImpact": "Benefits & Value"
   },
   "history": {
     "badge": "Corporate Heritage & Milestones",
@@ -372,7 +438,18 @@
     "organigrammeTitle": "Organizational Structure",
     "organigrammeDesc": "Official organizational chart of STEG reflecting corporate governance, directorates general, and regional operations.",
     "organigrammeCaption": "Official Organizational Chart of the Tunisian Company of Electricity and Gas",
-    "backToHome": "Back to Home"
+    "backToHome": "Back to Home",
+    "lawBadge": "Law No. 62-8 of April 3, 1962",
+    "energyTitle": "Renewable Energies",
+    "energyDesc": "Sustained development of wind farms and photovoltaic plants.",
+    "energyAlt": "STEG energy transition",
+    "geoTitle": "Geothermal & Innovation",
+    "geoDesc": "Advanced research and efficient management of gas and thermal resources.",
+    "geoAlt": "Geothermal sources",
+    "statsEyebrow": "Key Historical Indicators",
+    "missionsBadge": "Missions of General Interest",
+    "govEyebrow": "Governance & Structure",
+    "joinCta": "Join STEG for an internship"
   },
   "faq": {
     "title": "Frequently Asked Questions",
@@ -388,7 +465,18 @@
     "faqAnswer5": "50 TND per completed month, capped at 3 months (150 TND maximum).",
     "faqQuestion6": "How does the Finance review work?",
     "faqAnswer6": "The supervisor completes the dossier, Finance reviews and decides to approve or reject.",
-    "backToHome": "Back to home"
+    "backToHome": "Back to home",
+    "badge": "Knowledge Base // STEG Internships",
+    "intro": "Find answers to the most common questions about the process, eligibility criteria and validation of your STEG internship.",
+    "tag1": "APPLICATION",
+    "tag2": "DOCUMENTS",
+    "tag3": "PLACEMENT",
+    "tag4": "DURATION & PERIOD",
+    "tag5": "HR VALIDATION",
+    "tag6": "CERTIFICATE",
+    "ctaTitle": "Still have questions?",
+    "ctaDesc": "Our supervision teams and technical support are listening.",
+    "ctaSupport": "Contact Support"
   },
   "contact": {
     "title": "Contact",
@@ -400,7 +488,11 @@
     "contactAddressLabel": "Address",
     "contactAddress": "STEG, Tunis, Tunisia",
     "disclaimer": "The contact information above is provided for indicative purposes. Please contact the HR department for official requests.",
-    "backToHome": "Back to home"
+    "backToHome": "Back to home",
+    "badge": "TECHNICAL & HR SUPPORT // STEG 2026",
+    "sendMessage": "Send a message",
+    "callStandard": "Call the switchboard",
+    "hqLabel": "STEG Head Office"
   },
   "dropzone": {
     "prompt": "Drag and drop your files here",
@@ -580,7 +672,14 @@
     "docsVerified": "Verified & Approved",
     "docsPending": "Pending Review",
     "historyTitle": "Your Application History",
-    "historyEmpty": "You have not submitted any applications yet."
+    "historyEmpty": "You have not submitted any applications yet.",
+    "bannerEyebrow": "STEG candidate status",
+    "assignedBadge": "Placement confirmed",
+    "typeFallback": "STEG internship",
+    "datesPending": "Pending confirmation",
+    "supervisorFallback": "STEG supervising engineer",
+    "updatedLabel": "Updated",
+    "docsSubtitle": "Access your agreements, certificates and official administrative documents."
   },
   "apply": {
     "title": "Internship application",
@@ -639,11 +738,16 @@
       "cinRequired": "National ID (CIN) is required (at least 5 characters).",
       "emailInvalid": "Please enter a valid email address.",
       "phoneRequired": "Phone number is required.",
-      "birthDateRequired": "Date of birth is required."
+      "birthDateRequired": "Date of birth is required.",
+      "firstNamePlaceholder": "Mohamed",
+      "lastNamePlaceholder": "Ben Ali",
+      "cinPlaceholder": "09876543",
+      "phonePlaceholder": "+216 98 123 456",
+      "emailPlaceholder": "mohamed.benali@esprit.tn"
     },
     "dates": {
       "title": "Internship dates",
-      "eyebrow": "Step 3 of 8",
+      "eyebrow": "Step 3 of 7",
       "intro": "Choose the start and end dates of your internship. The type is classified automatically from the duration.",
       "startDate": "Start date",
       "endDate": "End date",
@@ -685,7 +789,7 @@
     },
     "documents": {
       "title": "Required documents",
-      "eyebrow": "Step 5 of 8",
+      "eyebrow": "Step 5 of 7",
       "intro": "Upload the required documents. The backend validates file type and size.",
       "applicationLetter": "Internship application letter",
       "applicationLetterHint": "A PDF issued by your institution requesting the internship.",
@@ -724,7 +828,9 @@
       "errorCancelled": "Upload cancelled. Your draft is unchanged.",
       "errorGeneric": "The upload could not be completed. Please retry.",
       "submitBlockedDocs": "A required document is missing on the server. Please upload it before submitting.",
-      "allRequired": "Please upload all required documents before continuing."
+      "allRequired": "Please upload all required documents before continuing.",
+      "privacyTitle": "Confidentiality & Security",
+      "privacyBody": "Uploaded supporting documents travel over a secure channel and are seen only by authorized STEG internship coordinators and supervisors."
     },
     "demo": {
       "title": "Optional project demo",
@@ -739,7 +845,7 @@
     },
     "review": {
       "title": "Review your application",
-      "eyebrow": "Step 7 of 8",
+      "eyebrow": "Step 6 of 7",
       "intro": "Check all the information before submitting. You can go back to correct anything.",
       "sectionCandidate": "Candidate",
       "sectionDates": "Internship dates",
@@ -771,11 +877,22 @@
       "itemApplicationLetter": "Internship application letter uploaded",
       "itemAssignmentLetter": "Assignment letter uploaded",
       "itemReady": "You are ready",
-      "itemNotReady": "Not ready"
+      "itemNotReady": "Not ready",
+      "editSection": "Edit",
+      "fieldCin": "CIN / National ID",
+      "fieldPhone": "Phone",
+      "fieldBirthDate": "Date of birth",
+      "sectionEducation": "Education & Institution",
+      "eduLevelLabel": "Education level",
+      "specialityLabel": "Major",
+      "sectionDetails": "Internship details",
+      "preferredDeptLabel": "Preferred department",
+      "demoFileLabel": "Demo file (optional)",
+      "justificationLabel": "Reasoning"
     },
     "submit": {
       "title": "Submit your application",
-      "eyebrow": "Step 8 of 8",
+      "eyebrow": "Step 7 of 7",
       "intro": "Final step. Your application will be sent to the STEG internship department.",
       "submitButton": "Submit my application",
       "submitting": "Submitting…",
@@ -786,6 +903,14 @@
       "successNext": "You can follow the status of your application from your space.",
       "viewApplications": "View my applications",
       "goHome": "Back to home",
+      "bridgePasswordMin": "The password must be at least 6 characters.",
+      "bridgeFinalizeError": "Error while finalizing.",
+      "readyTitle": "Ready for official submission",
+      "readyDesc": "Your dossier is complete and your supporting documents are attached. Click below to send your application to the STEG teams.",
+      "tabCreate": "Create an account",
+      "tabSignIn": "Sign in",
+      "bridgeEmailLabel": "Email address",
+      "bridgePasswordLabel": "Password",
       "alreadySubmittedTitle": "Already submitted",
       "alreadySubmittedBody": "This application has already been submitted."
     },
@@ -801,7 +926,8 @@
         "documents": "Documents",
         "review": "Review",
         "result": "Confirmation"
-      }
+      },
+      "progressLabel": "PROGRESS: {percent}%"
     },
     "nav": {
       "back": "Back",
@@ -848,7 +974,7 @@
     "submitNextStepsTitle": "What happens next?",
     "submitNextStep1": "HR and engineering coordinators verify your documents against district capacity.",
     "submitNextStep2": "You will receive step-by-step notifications and email alerts upon review decisions.",
-    "submitNextStep3": "Upon acceptance, you will receive your assignment letter and mobile companion access.",
+    "submitNextStep3": "Upon acceptance, you will receive your assignment letter and access to the {productName} mobile app.",
     "submitTrackBtn": "Track Application in My Workspace",
     "education": {
       "eyebrow": "Step 2 of 7",
@@ -876,7 +1002,22 @@
       "themeOptionalNotice": "For observation internships, a project theme is optional at this stage.",
       "deptLabel": "Preferred department or unit (Optional)",
       "deptPlaceholder": "E.g. Regional Distribution, Power Plant, IT Department..."
-    }
+    },
+    "landingPortal": "STEG APPLICATION PORTAL 2026",
+    "landingSession": "NATIONAL SESSION",
+    "landingTagline": "Accelerate Your Energy Future",
+    "landingSubtitleExtra": "Fully paperless process, real-time tracking and optimized placement across the 24 Tunisian governorates.",
+    "metricSteps": "STEPS",
+    "metricStepsValue": "7 Key Phases",
+    "metricTime": "AVERAGE TIME",
+    "metricTimeValue": "~5 minutes",
+    "metricSecurity": "SECURITY",
+    "metricSecurityValue": "SHA-256 Fingerprint",
+    "mediaCaption": "STEG Innovation & Mentorship",
+    "mediaQuality": "1080p HD",
+    "mentorAlt": "STEG Team",
+    "mentorTitle": "Expert Tutoring",
+    "mentorDesc": "A dedicated supervisor follows every step of your training."
   },
   "tracking": {
     "title": "My applications",
@@ -949,13 +1090,13 @@
     "timelineStatePrep": "Internship Preparation",
     "timelineStatePrepDesc": "Issuance of assignment letter and university convention formalization.",
     "timelineStateInProgress": "In Progress",
-    "timelineStateInProgressDesc": "Active on-site internship. Progress tracked via the Companion mobile app.",
+    "timelineStateInProgressDesc": "Active on-site internship. Progress tracked via the {productName} mobile app.",
     "timelineStateCompleted": "Completed",
     "timelineStateCompletedDesc": "Final evaluations completed and official certificate issued.",
     "timelineNextAction": "Next action:",
     "timelineNextActionWait": "Your application is being evaluated. You will be notified once a decision is made.",
     "timelineNextActionDocs": "Please download your assignment letter and prepare for day one.",
-    "timelineNextActionCompanion": "Install the Internship Companion app to start daily task tracking.",
+    "timelineNextActionCompanion": "Install the {productName} app to start daily task tracking.",
     "timelineNextActionDone": "Internship completed successfully. Download your certificate below.",
     "rejectionReasonTitle": "Rejection reason:",
     "correctionRequiredTitle": "Correction requested by STEG review team:"
@@ -982,7 +1123,7 @@
   },
   "companion": {
     "badge": "Dedicated Flutter Mobile App",
-    "title": "Internship Companion: Your Daily Mobile Guide",
+    "title": "Your Daily Mobile Guide",
     "subtitle": "The official mobile app designed to support every STEG intern: plan your weeks, document activities, and collaborate directly with your supervisor.",
     "ctaApply": "Apply Now to Get Access",
     "featuresTitle": "All features right at your fingertips",
@@ -1001,7 +1142,7 @@
     "featDeliverablesDesc": "Upload draft report chapters, data sets, and slide decks directly for mentor feedback.",
     "featProgressTitle": "Overall Progress Monitoring",
     "featProgressDesc": "Track completion percentage, remaining calendar days, and objective fulfillment at a glance.",
-    "dayInLifeTitle": "A Day in the Life with Internship Companion",
+    "dayInLifeTitle": "A Day in the Life with",
     "step1Time": "08:30 AM - Morning Brief",
     "step1Desc": "Check your daily task agenda and scheduled sessions with your engineering mentor.",
     "step2Time": "12:00 PM - Progress Check",
@@ -1012,6 +1153,14 @@
     "step4Desc": "Your supervisor reviews notes and provides actionable feedback straight to your phone.",
     "bannerTitle": "Unlocked upon internship approval",
     "bannerDesc": "Once your application is approved and your assignment finalized, sign in with your credentials to activate your companion.",
-    "bannerButton": "Submit My Application"
+    "bannerButton": "Submit My Application",
+    "pillFlutter": "Flutter Companion",
+    "pillRealtime": "Real-time Tracking",
+    "toolsEyebrow": "Everyday Tools",
+    "scenarioBadge": "Usage Scenario",
+    "heroImageAlt": "STEG {productName} mobile app",
+    "productName": "Internship Companion",
+    "titleBrand": "Internship Companion",
+    "dayInLifeProduct": "Internship Companion"
   }
 }

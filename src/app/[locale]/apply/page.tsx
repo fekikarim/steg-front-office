@@ -31,37 +31,37 @@ export default async function ApplyPage({params}: {params: Promise<{locale: stri
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-400/30 bg-brand-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-brand-300 shadow-xs">
                   <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                  PORTAIL CANDIDATURE STEG 2026
+                  {t('landingPortal')}
                 </span>
                 <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] font-mono text-zinc-300">
-                  SESSION NATIONALE
+                  {t('landingSession')}
                 </span>
               </div>
 
               <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
                 <span className="block text-white">{t('title')}</span>
                 <span className="block text-xl sm:text-2xl font-bold mt-1 text-brand-300">
-                  Accélérez Votre Avenir Énergétique
+                  {t('landingTagline')}
                 </span>
               </h1>
 
               <p className="text-sm sm:text-base text-zinc-300 leading-relaxed max-w-xl">
-                {t('subtitle')} Processus 100% dématérialisé, suivi en temps réel et affectation optimisée au sein des 24 gouvernorats tunisiens.
+                {t('subtitle')} {t('landingSubtitleExtra')}
               </p>
 
               {/* Telemetry chips */}
               <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                 <div className="rounded-xl border border-white/10 bg-white/5 p-2.5 backdrop-blur-xs">
-                  <span className="block text-[10px] uppercase font-mono text-zinc-400">ÉTAPES</span>
-                  <span className="font-bold text-white">7 Phases Clés</span>
+                  <span className="block text-[10px] uppercase font-mono text-zinc-400">{t('metricSteps')}</span>
+                  <span className="font-bold text-white">{t('metricStepsValue')}</span>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-white/5 p-2.5 backdrop-blur-xs">
-                  <span className="block text-[10px] uppercase font-mono text-zinc-400">TEMPS MOYEN</span>
-                  <span className="font-bold text-brand-300">~5 Minutes</span>
+                  <span className="block text-[10px] uppercase font-mono text-zinc-400">{t('metricTime')}</span>
+                  <span className="font-bold text-brand-300">{t('metricTimeValue')}</span>
                 </div>
                 <div className="col-span-2 sm:col-span-1 rounded-xl border border-white/10 bg-white/5 p-2.5 backdrop-blur-xs">
-                  <span className="block text-[10px] uppercase font-mono text-zinc-400">SÉCURITÉ</span>
-                  <span className="font-bold text-emerald-400">SHA-256 Chiffré</span>
+                  <span className="block text-[10px] uppercase font-mono text-zinc-400">{t('metricSecurity')}</span>
+                  <span className="font-bold text-emerald-400">{t('metricSecurityValue')}</span>
                 </div>
               </div>
             </div>
@@ -81,9 +81,9 @@ export default async function ApplyPage({params}: {params: Promise<{locale: stri
                 <div className="absolute bottom-3 start-3 end-3 flex items-center justify-between text-xs text-zinc-200">
                   <div className="flex items-center gap-2">
                     <span className="flex h-2 w-2 rounded-full bg-emerald-400" />
-                    <span className="font-semibold text-white">Innovation & Encadrement STEG</span>
+                    <span className="font-semibold text-white">{t('mediaCaption')}</span>
                   </div>
-                  <span className="font-mono text-[10px] text-zinc-300">1080p HD</span>
+                  <span className="font-mono text-[10px] text-zinc-300" dir="ltr">{t('mediaQuality')}</span>
                 </div>
               </div>
 
@@ -92,15 +92,15 @@ export default async function ApplyPage({params}: {params: Promise<{locale: stri
                 <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-white/20">
                   <Image
                     src="/components/apply/teamwork_2000x2000.jpg"
-                    alt="Équipe STEG"
+                    alt={t('mentorAlt')}
                     width={200}
                     height={200}
                     className="h-full w-full object-cover"
                   />
                 </div>
                 <div className="text-xs">
-                  <p className="font-semibold text-white">Tutorat par des Experts</p>
-                  <p className="text-zinc-400 text-[11px]">Un maître de stage dédié suit chaque étape de votre formation.</p>
+                  <p className="font-semibold text-white">{t('mentorTitle')}</p>
+                  <p className="text-zinc-400 text-[11px]">{t('mentorDesc')}</p>
                 </div>
               </div>
             </div>

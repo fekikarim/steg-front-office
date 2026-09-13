@@ -44,7 +44,7 @@ export function Stepper({steps, current}: StepperProps) {
           </p>
         </div>
         <span className="inline-flex items-center gap-1 rounded-md border border-brand-200 bg-brand-50 px-2 py-0.5 text-[10px] font-mono font-medium text-brand-800 dark:border-brand-800/60 dark:bg-brand-950/50 dark:text-brand-300">
-          PROGRÈS : {Math.round(((current + 1) / steps.length) * 100)}%
+          {t('progressLabel', {percent: Math.round(((current + 1) / steps.length) * 100)})}
         </span>
       </div>
 

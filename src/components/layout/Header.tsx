@@ -24,6 +24,10 @@ export async function Header() {
         skipToContent: th('skipToContent'),
         openMenu: th('openMenu'),
         closeMenu: th('closeMenu'),
+        nationalBadge: th('nationalBadge'),
+        candidateSpace: th('candidateSpace'),
+        primaryNav: th('primaryNav'),
+        mobileNav: th('mobileNav'),
       }}
       logo={
         <Image

@@ -33,6 +33,8 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
   setRequestLocale(locale as AppLocale);
   const t = await getTranslations('home');
   const ttypes = await getTranslations('internships');
+  const tcomp = await getTranslations('companion');
+  const productName = tcomp('productName');
 
   const roadmapSteps = [
     {title: t('road1Title'), desc: t('road1Desc'), number: '01'},
@@ -56,10 +58,10 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
             <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3.5 py-1.5 shadow-xs dark:border-slate-700 dark:bg-navy-900">
               <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
               <span className="text-xs font-semibold tracking-wide text-slate-700 dark:text-slate-200">
-                {t('heroBadge')} • Session 2026/2027
+                {t('heroBadge')} • {t('heroSession')}
               </span>
               <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-brand-700 dark:bg-brand-950 dark:text-brand-300">
-                Portail Officiel
+                {t('portalBadge')}
               </span>
             </div>
 
@@ -130,7 +132,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
               <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-3 shadow-md dark:border-slate-800 dark:bg-navy-900">
                 <Image
                   src="/components/home/internship_opportunity_2000x2000.png"
-                  alt="Opportunités de stages à la STEG"
+                  alt={t('heroImageAlt')}
                   width={800}
                   height={800}
                   priority
@@ -141,7 +143,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
                 <div className="absolute top-5 end-5 rounded-xl border border-slate-200/90 bg-white/95 px-3 py-1.5 shadow-sm backdrop-blur-md dark:border-slate-700 dark:bg-navy-950/90">
                   <span className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-800 dark:text-slate-200">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    24 Gouvernorats
+                    {t('coverageChip')}
                   </span>
                 </div>
 
@@ -153,10 +155,10 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
                     </span>
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-slate-900 dark:text-white">
-                        STEG Formation & Insertion
+                        {t('heroCardTitle')}
                       </span>
                       <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                        Observation • Perfectionnement • PFE
+                        {t('heroCardSub')}
                       </span>
                     </div>
                   </div>
@@ -238,7 +240,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
               <div className="relative h-48 w-full overflow-hidden bg-slate-100 dark:bg-navy-900">
                 <Image
                   src="/components/intern-types/observation_internship_illustration_2000x1667.png"
-                  alt="Stage d'Observation"
+                  alt={t('obsImageAlt')}
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-102"
                 />
@@ -270,7 +272,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
               <div className="relative h-48 w-full overflow-hidden bg-slate-100 dark:bg-navy-900">
                 <Image
                   src="/components/intern-types/Advanced_training_internship_illustraton_626x396.png"
-                  alt="Stage de Perfectionnement"
+                  alt={t('perfImageAlt')}
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-102"
                 />
@@ -302,7 +304,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
               <div className="relative h-48 w-full overflow-hidden bg-slate-100 dark:bg-navy-900">
                 <Image
                   src="/components/intern-types/PFE_internship_illustration_2000x1334.png"
-                  alt="Projet de Fin d'Études"
+                  alt={t('pfeImageAlt')}
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-102"
                 />
@@ -373,7 +375,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
             <div className="surface-card overflow-hidden rounded-2xl p-4 shadow-sm">
               <Image
                 src="/components/about/paper_usage_problem_7438x5000.jpg"
-                alt="Fin du papier et passage au tout numérique"
+                alt={t('paperlessAlt')}
                 width={700}
                 height={500}
                 className="h-56 w-full rounded-xl object-cover"
@@ -381,13 +383,13 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
               <div className="mt-4 flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 dark:border-slate-800 dark:bg-navy-900">
                 <Image
                   src="/components/about/digitalize_paper_usage_solution_150x150.svg"
-                  alt="Solution de numérisation"
+                  alt={t('digitalAlt')}
                   width={36}
                   height={36}
                   className="h-9 w-9 shrink-0"
                 />
                 <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                  Dématérialisation complète, archivage sécurisé et traçabilité 100% STEG.
+                  {t('digitalText')}
                 </span>
               </div>
             </div>
@@ -401,7 +403,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
       <section className="relative border-y border-slate-200 bg-navy-900 py-16 text-white sm:py-20 dark:border-slate-800 dark:bg-navy-950">
         <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 sm:px-6 lg:grid-cols-12">
           <div className="relative z-10 flex flex-col items-start gap-4 lg:col-span-7">
-            <Badge tone="brand" className="bg-brand-500/20 text-brand-300 border-brand-400/30">
+            <Badge tone="brand" className="bg-brand-500/20 text-white border-brand-400/30">
               {t('historyTeaserEyebrow')}
             </Badge>
             <h2 className="text-2xl font-bold tracking-tight sm:text-4xl text-white">
@@ -438,30 +440,30 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
               <div className="flex items-center gap-4">
                 <Image
                   src="/components/history/Engineer_working_with_wind_turbines_producing_green_energy_225x150.svg"
-                  alt="Énergie éolienne et verte"
+                  alt={t('energyWindAlt')}
                   width={100}
                   height={70}
                   className="h-16 w-auto shrink-0"
                 />
                 <div className="flex flex-col">
-                  <span className="text-sm font-bold text-white">Transition Énergétique</span>
+                  <span className="text-sm font-bold text-white">{t('energyWindTitle')}</span>
                   <span className="text-xs text-slate-300">
-                    Solaire photovoltaïque, éolien et géothermie au cœur des projets STEG.
+                    {t('energyWindDesc')}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-4 border-t border-white/10 pt-4">
                 <Image
                   src="/components/history/Geothermal_energy_renewable_sources_illustration_225x150.svg"
-                  alt="Énergie géothermique"
+                  alt={t('energyGeoAlt')}
                   width={100}
                   height={70}
                   className="h-16 w-auto shrink-0"
                 />
                 <div className="flex flex-col">
-                  <span className="text-sm font-bold text-white">Infrastructures Gazières</span>
+                  <span className="text-sm font-bold text-white">{t('energyGasTitle')}</span>
                   <span className="text-xs text-slate-300">
-                    Plus de 1 million d&apos;abonnés gaz naturel et réseau national interconnecté.
+                    {t('energyGasDesc')}
                   </span>
                 </div>
               </div>
@@ -483,7 +485,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
                 <div className="absolute top-2 start-1/2 z-10 h-3.5 w-16 -translate-x-1/2 rounded-full bg-slate-800" />
                 <Image
                   src="/components/intern-mobile-app/mobile_app_intern_1335x2000.jpg"
-                  alt="Application Mobile Internship Companion STEG"
+                  alt={t('mobileAppAlt', {productName})}
                   width={500}
                   height={750}
                   className="h-auto w-full object-cover"
@@ -494,7 +496,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
               <div className="absolute -bottom-3 -end-3 rounded-xl border border-slate-200 bg-white px-3 py-1.5 shadow-sm dark:border-slate-700 dark:bg-navy-900">
                 <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  Synchro Temps Réel
+                  {t('syncChip')}
                 </span>
               </div>
             </div>
@@ -507,7 +509,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
               {t('compTeaserTitle')}
             </h2>
             <p className="text-sm leading-relaxed text-slate-600 sm:text-base dark:text-slate-300">
-              {t('compTeaserDesc')}
+              {t('compTeaserDesc', {productName})}
             </p>
 
             <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 pt-2">
@@ -550,20 +552,20 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
           <div className="flex flex-col gap-3 max-w-xl">
             <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Reconnaissance & Valorisation
+              {t('certEyebrow')}
             </span>
             <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
-              Attestation de Stage Officielle & Certifiée
+              {t('certTitle')}
             </h3>
             <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-              À la fin de votre stage, recevez une attestation officielle numérotée, signée numériquement par la STEG et munie d&apos;un QR code de vérification instantanée pour vos démarches académiques et professionnelles.
+              {t('certDesc')}
             </p>
           </div>
           <div className="shrink-0">
             <div className="relative h-40 w-40 overflow-hidden rounded-xl border border-slate-200 shadow-xs dark:border-slate-700">
               <Image
                 src="/components/home/internship_certificate_award_illustration_2000x2000.jpg"
-                alt="Attestation Officielle STEG"
+                alt={t('certAlt')}
                 fill
                 className="object-cover"
               />
@@ -581,14 +583,13 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
             <h2 className="text-2xl font-bold tracking-tight text-white sm:text-4xl">{t('finalCtaTitle')}</h2>
             <p className="text-sm leading-relaxed text-brand-100 sm:text-base">{t('finalCtaDesc')}</p>
             <div className="pt-2">
-              <Link href="/apply">
-                <Button
-                  size="lg"
-                  className="bg-white text-brand-900 hover:bg-slate-100 shadow-sm"
-                >
-                  <span>{t('finalCtaButton')}</span>
-                  <IconArrowRight className="ms-1.5 h-4 w-4 rtl:rotate-180" />
-                </Button>
+              <Link
+                href="/apply"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 text-base font-semibold text-brand-900 shadow-sm hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                style={{backgroundColor: '#ffffff', color: '#0f3657'}}
+              >
+                <span>{t('finalCtaButton')}</span>
+                <IconArrowRight className="ms-1.5 h-4 w-4 rtl:rotate-180" />
               </Link>
             </div>
           </div>
@@ -596,7 +597,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
           <div className="relative h-44 w-44 shrink-0 overflow-hidden rounded-xl border border-white/20 shadow-md">
             <Image
               src="/components/home/apply_now_1024x1024.jpeg"
-              alt="Postulez dès aujourd'hui"
+              alt={t('applyNowAlt')}
               fill
               className="object-cover"
             />

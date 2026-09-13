@@ -97,7 +97,10 @@ export default async function CompanionPage({params}: {params: Promise<{locale: 
             </div>
 
             <h1 className="text-3xl font-black tracking-tight text-navy-950 sm:text-5xl lg:text-6xl dark:text-white">
-              {t('title')}
+              <span className="block" dir={locale === 'ar' ? 'auto' : 'ltr'}>
+                {t('productName')}
+              </span>
+              <span className="block">{t('title')}</span>
             </h1>
 
             <p className="max-w-2xl text-base leading-relaxed text-zinc-600 sm:text-lg dark:text-zinc-300">
@@ -122,7 +125,7 @@ export default async function CompanionPage({params}: {params: Promise<{locale: 
                 <div className="absolute top-2.5 start-1/2 z-10 h-3.5 w-20 -translate-x-1/2 rounded-full bg-zinc-800" />
                 <Image
                   src="/components/intern-mobile-app/mobile_app_intern_1335x2000.jpg"
-                  alt="Application Mobile Internship Companion STEG"
+                  alt={t('heroImageAlt', {productName: t('productName')})}
                   width={600}
                   height={900}
                   priority
@@ -134,13 +137,13 @@ export default async function CompanionPage({params}: {params: Promise<{locale: 
               <div className="absolute -top-3 -start-4 rounded-xl border border-zinc-200/80 bg-white/95 px-3 py-1.5 shadow-md backdrop-blur-xs dark:border-navy-800 dark:bg-navy-900/95">
                 <span className="flex items-center gap-1.5 text-xs font-bold text-brand-800 dark:text-brand-300">
                   <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  Flutter Companion
+                  {t('pillFlutter')}
                 </span>
               </div>
 
               <div className="absolute -bottom-4 -end-4 rounded-xl border border-zinc-200/80 bg-white/95 px-3 py-1.5 shadow-md backdrop-blur-xs dark:border-navy-800 dark:bg-navy-900/95">
                 <span className="flex items-center gap-1.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100">
-                  Suivi en Temps Réel
+                  {t('pillRealtime')}
                 </span>
               </div>
             </div>
@@ -154,7 +157,7 @@ export default async function CompanionPage({params}: {params: Promise<{locale: 
       <section className="relative mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 lg:py-24">
         <div className="flex flex-col items-start gap-2">
           <span className="text-xs font-bold uppercase tracking-wider text-brand-700 dark:text-brand-400">
-            Outils du Quotidien
+            {t('toolsEyebrow')}
           </span>
           <h2 className="text-2xl font-black tracking-tight text-navy-950 sm:text-4xl dark:text-white">
             {t('featuresTitle')}
@@ -186,9 +189,9 @@ export default async function CompanionPage({params}: {params: Promise<{locale: 
       <section className="relative border-y border-zinc-200/80 bg-white py-16 sm:py-20 dark:border-navy-800 dark:bg-navy-900/40">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 sm:px-6">
           <div className="flex flex-col items-start gap-2">
-            <Badge tone="brand" className="w-fit font-semibold">Scénario d&apos;Usage</Badge>
+            <Badge tone="brand" className="w-fit font-semibold">{t('scenarioBadge')}</Badge>
             <h2 className="text-2xl font-black tracking-tight text-navy-950 sm:text-4xl dark:text-white">
-              {t('dayInLifeTitle')}
+              {t('dayInLifeTitle')} <bdi dir={locale === 'ar' ? 'auto' : 'ltr'}>{t('productName')}</bdi>
             </h2>
           </div>
 

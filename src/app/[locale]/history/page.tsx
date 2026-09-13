@@ -94,7 +94,7 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
       <section className="relative mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12">
           <div className="flex flex-col gap-4 lg:col-span-7">
-            <Badge tone="brand" className="w-fit font-semibold">Loi N°62-8 du 3 Avril 1962</Badge>
+            <Badge tone="brand" className="w-fit font-semibold">{t('lawBadge')}</Badge>
             <h2 className="text-2xl font-black tracking-tight text-navy-950 sm:text-4xl dark:text-white">
               {t('foundationTitle')}
             </h2>
@@ -109,34 +109,34 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
             <div className="flex items-center gap-4">
               <Image
                 src="/components/history/Engineer_working_with_wind_turbines_producing_green_energy_225x150.svg"
-                alt="Transition énergétique STEG"
+                alt={t('energyAlt')}
                 width={120}
                 height={80}
                 className="h-20 w-auto shrink-0"
               />
               <div className="flex flex-col">
                 <span className="text-sm font-bold text-brand-800 dark:text-brand-300">
-                  Énergies Renouvelables
+                  {t('energyTitle')}
                 </span>
                 <span className="text-xs text-zinc-600 dark:text-zinc-400">
-                  Développement soutenu des parcs éoliens et des fermes photovoltaïques.
+                  {t('energyDesc')}
                 </span>
               </div>
             </div>
             <div className="flex items-center gap-4 border-t border-zinc-100 pt-4 dark:border-navy-800">
               <Image
                 src="/components/history/Geothermal_energy_renewable_sources_illustration_225x150.svg"
-                alt="Sources géothermiques"
+                alt={t('geoAlt')}
                 width={120}
                 height={80}
                 className="h-20 w-auto shrink-0"
               />
               <div className="flex flex-col">
                 <span className="text-sm font-bold text-navy-950 dark:text-zinc-100">
-                  Géothermie & Innovation
+                  {t('geoTitle')}
                 </span>
                 <span className="text-xs text-zinc-600 dark:text-zinc-400">
-                  Recherche avancée et gestion efficiente des ressources gazières et thermiques.
+                  {t('geoDesc')}
                 </span>
               </div>
             </div>
@@ -151,7 +151,7 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 sm:px-6">
           <div className="flex flex-col items-start gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-brand-700 dark:text-brand-400">
-              Indicateurs Historiques Clés
+              {t('statsEyebrow')}
             </span>
             <h2 className="text-2xl font-black tracking-tight text-navy-950 sm:text-4xl dark:text-white">
               {t('statsTitle')}
@@ -183,7 +183,7 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
       {/* ------------------------------------------------------------------ */}
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 lg:py-24">
         <div className="flex flex-col items-start gap-2">
-          <Badge tone="brand" className="w-fit font-semibold">Missions d&apos;Intérêt Général</Badge>
+          <Badge tone="brand" className="w-fit font-semibold">{t('missionsBadge')}</Badge>
           <h2 className="text-2xl font-black tracking-tight text-navy-950 sm:text-4xl dark:text-white">
             {t('missionsTitle')}
           </h2>
@@ -212,7 +212,7 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 sm:px-6">
           <div className="flex flex-col items-start gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-brand-700 dark:text-brand-400">
-              Gouvernance & Structure
+              {t('govEyebrow')}
             </span>
             <h2 className="text-2xl font-black tracking-tight text-navy-950 sm:text-4xl dark:text-white">
               {t('organigrammeTitle')}
@@ -240,7 +240,7 @@ export default async function HistoryPage({params}: {params: Promise<{locale: st
           <div className="flex justify-center pt-4">
             <Link href="/apply">
               <Button size="lg" variant="primary" className="rounded-xl px-6 py-3.5 shadow-sm">
-                <span>Rejoindre la STEG pour un stage</span>
+                <span>{t('joinCta')}</span>
                 <IconArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
               </Button>
             </Link>

@@ -139,6 +139,8 @@ export function ApplicationDetail({id}: {id: string}) {
   const ta = useTranslations('apply');
   const td = useTranslations('apply.documents');
   const tm = useTranslations('apply.demo');
+  const tc = useTranslations('companion');
+  const productName = tc('productName');
   const locale = useLocale();
   const toast = useToast();
 
@@ -380,8 +382,8 @@ export function ApplicationDetail({id}: {id: string}) {
         <ol className="flex flex-col gap-0">
           {stages.map((stage, i) => {
             const isLast = i === stages.length - 1;
-            const label = (t as (k: string) => string)(stage.labelKey);
-            const desc = (t as (k: string) => string)(stage.descKey);
+            const label = (t as unknown as (k: string, p?: Record<string, string>) => string)(stage.labelKey, {productName});
+            const desc = (t as unknown as (k: string, p?: Record<string, string>) => string)(stage.descKey, {productName});
 
             return (
               <li key={stage.key} className="relative flex gap-4 pb-6 last:pb-0">

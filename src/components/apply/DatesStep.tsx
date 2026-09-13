@@ -59,12 +59,23 @@ export function DatesStep({
   const durationText = useMemo(() => {
     if (!classification) return null;
     const days = classification.durationInDays;
+    if (days < 30) return t('durationDays', {count: days});
     const months = Math.floor(days / 30);
     const remDays = days % 30;
-    if (months === 0) return `${days} jours`;
-    if (remDays === 0) return `${months} mois (${days} jours)`;
-    return `${months} mois et ${remDays} jours (${days} jours)`;
-  }, [classification]);
+    return t('durationMonths', {months, days: remDays});
+  }, [classification, t]);
+
+  const ruleDesc = useMemo(() => {
+    if (!classification) return null;
+    switch (classification.type) {
+      case 'PFE':
+        return t('pfeDesc');
+      case 'PERFECTIONNEMENT':
+        return t('perfDesc');
+      default:
+        return t('obsDesc');
+    }
+  }, [classification, t]);
 
   const statusLabel = useMemo(() => {
     if (!classification) return null;
@@ -126,7 +137,7 @@ export function DatesStep({
 
             <div className="rounded-xl bg-white p-3 text-xs leading-relaxed text-zinc-700 dark:bg-navy-900 dark:text-zinc-300">
               <span className="font-bold text-zinc-900 dark:text-zinc-100">{ta('calcReason')} </span>
-              <span>{classification.appliedRuleDescription}</span>
+              <span>{ruleDesc}</span>
             </div>
 
             {isBoundaryWarning && (

@@ -1,6 +1,6 @@
 'use client';
 
-import {useTranslations} from 'next-intl';
+import {useLocale, useTranslations} from 'next-intl';
 import {Card} from '@/components/ui/Card';
 import {Button} from '@/components/ui/Button';
 import {formatBytes} from '@/lib/files';
@@ -16,12 +16,21 @@ export function AdministrativeDocsSection({
 }: AdministrativeDocsSectionProps) {
   const t = useTranslations('profile');
   const td = useTranslations('apply.documents');
+  const locale = useLocale();
   const units = {b: td('unitB'), kb: td('unitKB'), mb: td('unitMB')};
+
+  function formatDate(iso: string): string {
+    try {
+      return new Intl.DateTimeFormat(locale, {dateStyle: 'medium'}).format(new Date(iso));
+    } catch {
+      return iso;
+    }
+  }
 
   return (
     <Card
       title={t('docsTitle')}
-      subtitle="Accédez à vos conventions, attestations et pièces administratives officielles."
+      subtitle={t('docsSubtitle')}
     >
       {documents.length === 0 ? (
         <div className="rounded-xl border border-dashed border-zinc-200 p-8 text-center dark:border-zinc-800">
@@ -49,7 +58,7 @@ export function AdministrativeDocsSection({
                     <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
                       <span>{formatBytes(doc.document.sizeBytes, units)}</span>
                       <span>•</span>
-                      <span>{new Date(doc.createdAt).toLocaleDateString()}</span>
+                      <span>{formatDate(doc.createdAt)}</span>
                       <span>•</span>
                       {isVerified ? (
                         <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">

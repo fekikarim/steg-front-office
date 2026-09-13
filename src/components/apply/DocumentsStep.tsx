@@ -92,7 +92,7 @@ export function DocumentsStep({
 
           {/* Secure handling & privacy note */}
           <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/80 p-3.5 text-xs leading-relaxed text-zinc-600 dark:border-zinc-800 dark:bg-navy-950/60 dark:text-zinc-400">
-            🔒 <strong>Confidentialité & Sécurité :</strong> Les pièces justificatives téléversées sont transmises via un canal sécurisé et exclusivement consultées par les coordinateurs de stage et encadrants habilités de la STEG.
+            <strong>{t('privacyTitle')} :</strong> {t('privacyBody')}
           </div>
         </div>
       </Card>

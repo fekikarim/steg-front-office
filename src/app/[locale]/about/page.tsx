@@ -27,6 +27,8 @@ export default async function AboutPage({params}: {params: Promise<{locale: stri
   const {locale} = await params;
   setRequestLocale(locale as AppLocale);
   const t = await getTranslations('about');
+  const tcomp = await getTranslations('companion');
+  const productName = tcomp('productName');
 
   const painPoints = [
     {
@@ -55,19 +57,19 @@ export default async function AboutPage({params}: {params: Promise<{locale: stri
     {
       title: t('facet1Title'),
       desc: t('facet1Desc'),
-      badge: "Web Public",
+      badge: t('badgeWeb'),
       icon: <IconLayoutGrid className="h-5 w-5 text-brand-600 dark:text-brand-300" />,
     },
     {
       title: t('facet2Title'),
       desc: t('facet2Desc'),
-      badge: "Back Office",
+      badge: t('badgeBackoffice'),
       icon: <IconBuilding className="h-5 w-5 text-brand-600 dark:text-brand-300" />,
     },
     {
-      title: t('facet3Title'),
+      title: t('facet3Title', {productName}),
       desc: t('facet3Desc'),
-      badge: "Flutter Mobile",
+      badge: t('badgeMobile'),
       icon: <IconSparkles className="h-5 w-5 text-brand-600 dark:text-brand-300" />,
     },
   ];
@@ -126,7 +128,7 @@ export default async function AboutPage({params}: {params: Promise<{locale: stri
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12">
           <div className="flex flex-col gap-3 lg:col-span-7">
             <span className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
-              Constat & Problématique
+              {t('eyebrowProblem')}
             </span>
             <h2 className="text-2xl font-black tracking-tight text-navy-950 sm:text-4xl dark:text-white">
               {t('initialContextTitle')}
@@ -139,7 +141,7 @@ export default async function AboutPage({params}: {params: Promise<{locale: stri
           <div className="surface-card relative overflow-hidden rounded-3xl p-3 shadow-md lg:col-span-5">
             <Image
               src="/components/about/paper_usage_problem_7438x5000.jpg"
-              alt="Anciens processus papier"
+              alt={t('imageAlt')}
               width={700}
               height={450}
               className="h-56 w-full rounded-2xl object-cover"
@@ -147,7 +149,7 @@ export default async function AboutPage({params}: {params: Promise<{locale: stri
             <div className="mt-3 flex items-center gap-2.5 px-2 pb-1">
               <span className="h-2 w-2 rounded-full bg-amber-500" />
               <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                Processus historiques papier : lenteur, déplacements et surcharge administrative.
+                {t('imageCaption')}
               </span>
             </div>
           </div>
@@ -177,7 +179,7 @@ export default async function AboutPage({params}: {params: Promise<{locale: stri
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 sm:px-6">
           <div className="flex flex-col items-start gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
-              Architecture Unifiée
+              {t('eyebrowSolution')}
             </span>
             <h2 className="text-2xl font-black tracking-tight text-navy-950 sm:text-4xl dark:text-white">
               {t('solutionTitle')}
@@ -218,7 +220,7 @@ export default async function AboutPage({params}: {params: Promise<{locale: stri
               </div>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-[11px] font-mono font-medium text-zinc-700 dark:border-navy-700 dark:bg-navy-800 dark:text-zinc-300">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                1080p Full HD • Présentation Officielle
+                {t('videoMeta')}
               </span>
             </div>
             <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-black shadow-inner dark:border-navy-700">
@@ -228,7 +230,7 @@ export default async function AboutPage({params}: {params: Promise<{locale: stri
                 preload="metadata"
               >
                 <source src="/components/about/digital_services_1920x1080.mp4" type="video/mp4" />
-                Votre navigateur ne prend pas en charge la lecture de vidéos.
+                {t('videoFallback')}
               </video>
             </div>
           </div>
@@ -240,7 +242,7 @@ export default async function AboutPage({params}: {params: Promise<{locale: stri
       {/* ------------------------------------------------------------------ */}
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 lg:py-24">
         <div className="flex flex-col items-start gap-2">
-          <Badge tone="brand" className="w-fit font-semibold">Bénéfices & Valeur</Badge>
+          <Badge tone="brand" className="w-fit font-semibold">{t('badgeImpact')}</Badge>
           <h2 className="text-2xl font-black tracking-tight text-navy-950 sm:text-4xl dark:text-white">
             {t('impactTitle')}
           </h2>

@@ -25,11 +25,13 @@ function Section({
   title,
   stepIndex,
   onEdit,
+  editLabel,
   children,
 }: {
   title: string;
   stepIndex: number;
   onEdit: (step: number) => void;
+  editLabel: string;
   children: React.ReactNode;
 }) {
   return (
@@ -39,9 +41,9 @@ function Section({
         <button
           type="button"
           onClick={() => onEdit(stepIndex)}
-          className="text-xs font-semibold text-brand-700 hover:underline dark:text-brand-400 cursor-pointer"
+          className="inline-flex min-h-6 items-center text-xs font-semibold text-brand-700 hover:underline dark:text-brand-400 cursor-pointer"
         >
-          Modifier
+          {editLabel}
         </button>
       }
     >
@@ -78,6 +80,7 @@ export function ReviewStep({
   const t = useTranslations('apply.review');
   const ta = useTranslations('apply');
   const td = useTranslations('apply.documents');
+  const tdates = useTranslations('apply.dates');
   const tn = useTranslations('apply.nav');
 
   const universityName = universities.find((u) => u.id === draft.education.universityId)?.name;
@@ -92,26 +95,26 @@ export function ReviewStep({
   return (
     <StepShell eyebrow={t('eyebrow')} title={t('title')} intro={t('intro')}>
       {/* 1. Personal Information */}
-      <Section title={t('sectionCandidate')} stepIndex={0} onEdit={onJumpToStep}>
+      <Section title={t('sectionCandidate')} stepIndex={0} onEdit={onJumpToStep} editLabel={t('editSection')}>
         <Row
           label={t('fieldName')}
           value={`${draft.personal.firstName} ${draft.personal.lastName}`.trim() || t('notProvided')}
         />
-        <Row label="CIN / Identifiant" value={maskedCin} />
+        <Row label={t('fieldCin')} value={maskedCin} />
         <Row label={t('fieldEmail')} value={draft.personal.email || t('notProvided')} />
-        <Row label="Téléphone" value={draft.personal.phone || t('notProvided')} />
-        <Row label="Date de naissance" value={draft.personal.birthDate || t('notProvided')} />
+        <Row label={t('fieldPhone')} value={draft.personal.phone || t('notProvided')} />
+        <Row label={t('fieldBirthDate')} value={draft.personal.birthDate || t('notProvided')} />
       </Section>
 
       {/* 2. Education */}
-      <Section title="Formation & Établissement" stepIndex={1} onEdit={onJumpToStep}>
-        <Row label="Niveau d'études" value={draft.education.educationLevel} />
-        {draft.education.speciality && <Row label="Filière" value={draft.education.speciality} />}
-        <Row label="Université" value={universityName || t('notProvided')} />
+      <Section title={t('sectionEducation')} stepIndex={1} onEdit={onJumpToStep} editLabel={t('editSection')}>
+        <Row label={t('eduLevelLabel')} value={draft.education.educationLevel} />
+        {draft.education.speciality && <Row label={t('specialityLabel')} value={draft.education.speciality} />}
+        <Row label={t('fieldUniversity')} value={universityName || t('notProvided')} />
       </Section>
 
       {/* 3. Dates & Classification */}
-      <Section title={t('sectionDates')} stepIndex={2} onEdit={onJumpToStep}>
+      <Section title={t('sectionDates')} stepIndex={2} onEdit={onJumpToStep} editLabel={t('editSection')}>
         <Row
           label={t('fieldDates')}
           value={
@@ -126,43 +129,59 @@ export function ReviewStep({
         />
         {classification && (
           <>
-            <Row
-              label={t('classificationType')}
-              value={
-                <Badge tone={classification.type === 'PFE' ? 'brand' : 'info'}>
-                  {classification.type}
-                </Badge>
-              }
-            />
-            <Row
-              label={t('classificationRequirement')}
-              value={classification.requirement === 'OBLIGATOIRE' ? 'Automatiquement obligatoire' : 'Optionnel'}
-            />
-            <Row
-              label={t('classificationDuration')}
-              value={`${classification.durationInDays} jours`}
-            />
-            <Row
-              label="Justification"
-              value={<span className="text-xs text-zinc-600 dark:text-zinc-400">{classification.appliedRuleDescription}</span>}
-            />
+          <Row
+            label={t('classificationType')}
+            value={
+              <Badge tone={classification.type === 'PFE' ? 'brand' : 'info'}>
+                {classification.type === 'PFE'
+                  ? t('typePfe')
+                  : classification.type === 'PERFECTIONNEMENT'
+                    ? t('typePerfectionnement')
+                    : t('typeObservation')}
+              </Badge>
+            }
+          />
+          <Row
+            label={t('classificationRequirement')}
+            value={
+              classification.requirement === 'OBLIGATOIRE'
+                ? t('requirementObligatoire')
+                : t('requirementOptional')
+            }
+          />
+          <Row
+            label={t('classificationDuration')}
+            value={tdates('durationDays', {count: classification.durationInDays})}
+          />
+          <Row
+            label={t('justificationLabel')}
+            value={
+              <span className="text-xs text-zinc-600 dark:text-zinc-400">
+                {classification.type === 'PFE'
+                  ? tdates('pfeDesc')
+                  : classification.type === 'PERFECTIONNEMENT'
+                    ? tdates('perfDesc')
+                    : tdates('obsDesc')}
+              </span>
+            }
+          />
           </>
         )}
       </Section>
 
       {/* 4. Details */}
-      <Section title="Détails du stage" stepIndex={3} onEdit={onJumpToStep}>
+      <Section title={t('sectionDetails')} stepIndex={3} onEdit={onJumpToStep} editLabel={t('editSection')}>
         <Row
           label={t('fieldTheme')}
           value={draft.details.proposedTheme.trim() ? draft.details.proposedTheme : t('notProvided')}
         />
         {draft.details.preferredDepartment && (
-          <Row label="Département souhaité" value={draft.details.preferredDepartment} />
+          <Row label={t('preferredDeptLabel')} value={draft.details.preferredDepartment} />
         )}
       </Section>
 
       {/* 5. Documents */}
-      <Section title={t('sectionDocuments')} stepIndex={4} onEdit={onJumpToStep}>
+      <Section title={t('sectionDocuments')} stepIndex={4} onEdit={onJumpToStep} editLabel={t('editSection')}>
         <Row
           label={t('itemApplicationLetter')}
           value={
@@ -195,7 +214,7 @@ export function ReviewStep({
         />
         {demo && (
           <Row
-            label="Fichier démo (Optionnel)"
+            label={t('demoFileLabel')}
             value={
               <span className="max-w-[200px] truncate text-xs text-zinc-500 dark:text-zinc-400">
                 {demo.document.originalFileName}

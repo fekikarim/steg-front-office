@@ -175,7 +175,11 @@ export function ApplyWizard() {
 
   const saveDraftToStorage = useCallback((updated: WizardDraft) => {
     try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      // Privacy: the national ID must never land in browser storage. It is
+      // re-merged from the authoritative profile on every load (see loadAll),
+      // so omitting it here keeps resume behavior identical.
+      const personal = {...updated.personal, nationalId: ''};
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({...updated, personal}));
     } catch {
       /* ignore storage errors */
     }

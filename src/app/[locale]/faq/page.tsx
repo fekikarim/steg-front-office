@@ -10,12 +10,12 @@ export default async function FaqPage({params}: {params: Promise<{locale: string
   const t = await getTranslations('faq');
 
   const faqs = [
-    {q: t('faqQuestion1'), a: t('faqAnswer1'), tag: 'CANDIDATURE'},
-    {q: t('faqQuestion2'), a: t('faqAnswer2'), tag: 'DOCUMENTS'},
-    {q: t('faqQuestion3'), a: t('faqAnswer3'), tag: 'AFFECTATION'},
-    {q: t('faqQuestion4'), a: t('faqAnswer4'), tag: 'DURÉE & PÉRIODE'},
-    {q: t('faqQuestion5'), a: t('faqAnswer5'), tag: 'VALIDATION RH'},
-    {q: t('faqQuestion6'), a: t('faqAnswer6'), tag: 'ATTESTATION'},
+    {q: t('faqQuestion1'), a: t('faqAnswer1'), tag: t('tag1')},
+    {q: t('faqQuestion2'), a: t('faqAnswer2'), tag: t('tag2')},
+    {q: t('faqQuestion3'), a: t('faqAnswer3'), tag: t('tag3')},
+    {q: t('faqQuestion4'), a: t('faqAnswer4'), tag: t('tag4')},
+    {q: t('faqQuestion5'), a: t('faqAnswer5'), tag: t('tag5')},
+    {q: t('faqQuestion6'), a: t('faqAnswer6'), tag: t('tag6')},
   ];
 
   return (
@@ -29,13 +29,13 @@ export default async function FaqPage({params}: {params: Promise<{locale: string
         <div className="flex flex-col items-center text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-cyan-600 dark:text-cyan-300">
             <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
-            BASE DE CONNAISSANCES // STEG STAGES
+            {t('badge')}
           </div>
           <h1 className="mt-4 text-3xl sm:text-5xl font-extrabold tracking-tight text-navy-900 dark:text-white">
             <span className="gradient-heading block">{t('title')}</span>
           </h1>
           <p className="mt-3 max-w-xl text-base text-zinc-600 dark:text-zinc-300 leading-relaxed">
-            Retrouvez les réponses aux questions les plus courantes sur le déroulement, les critères d&apos;éligibilité et la validation de votre stage à la STEG.
+            {t('intro')}
           </p>
         </div>
 
@@ -67,13 +67,13 @@ export default async function FaqPage({params}: {params: Promise<{locale: string
         {/* Need more help CTA */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6 rounded-2xl border border-brand-500/20 bg-gradient-to-r from-navy-950 via-navy-900 to-navy-950 p-6 text-white backdrop-blur-lg">
           <div>
-            <h3 className="font-bold text-base">Vous avez encore des interrogations ?</h3>
-            <p className="text-xs text-zinc-400 mt-0.5">Nos équipes d&apos;encadrement et le support technique sont à votre écoute.</p>
+            <h3 className="font-bold text-base">{t('ctaTitle')}</h3>
+            <p className="text-xs text-zinc-400 mt-0.5">{t('ctaDesc')}</p>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/contact">
               <Button variant="cyber" size="sm">
-                Contacter le Support
+                {t('ctaSupport')}
               </Button>
             </Link>
             <Link href="/">

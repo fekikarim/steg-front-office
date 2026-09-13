@@ -21,7 +21,7 @@ export default async function ContactPage({params}: {params: Promise<{locale: st
         <div className="flex flex-col items-center text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-cyan-600 dark:text-cyan-300">
             <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
-            SUPPORT TECHNIQUE & RH // STEG 2026
+            {t('badge')}
           </div>
           <h1 className="mt-4 text-3xl sm:text-5xl font-extrabold tracking-tight text-navy-900 dark:text-white">
             <span className="gradient-heading block">{t('title')}</span>
@@ -49,7 +49,7 @@ export default async function ContactPage({params}: {params: Promise<{locale: st
                 href={`mailto:${t('contactEmail')}`}
                 className="inline-flex items-center text-xs font-semibold text-brand-600 hover:text-brand-500 dark:text-cyan-400 dark:hover:text-cyan-300"
               >
-                Envoyer un message
+                {t('sendMessage')}
                 <IconArrowRight className="ms-1 h-3.5 w-3.5 rtl:rotate-180" />
               </a>
             </div>
@@ -72,7 +72,7 @@ export default async function ContactPage({params}: {params: Promise<{locale: st
                 className="inline-flex items-center text-xs font-semibold text-brand-600 hover:text-brand-500 dark:text-cyan-400 dark:hover:text-cyan-300"
                 dir="ltr"
               >
-                Appeler le standard
+                {t('callStandard')}
                 <IconArrowRight className="ms-1 h-3.5 w-3.5 rtl:rotate-180" />
               </a>
             </div>
@@ -91,7 +91,7 @@ export default async function ContactPage({params}: {params: Promise<{locale: st
             </p>
             <div className="mt-4">
               <span className="inline-flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                Siège National STEG
+                {t('hqLabel')}
               </span>
             </div>
           </div>

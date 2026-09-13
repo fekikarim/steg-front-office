@@ -85,3 +85,58 @@ check, a consolidated user journey, and a clean-install full-suite run.
   absent from production DOM and screenshots.
 - Backend OpenAPI error responses reuse success schemas cosmetically; the
   runtime envelope is asserted live by `qa/contract-check.js` instead.
+
+## Addendum — trilingual completeness sweep (post-B7)
+
+User screenshots showed Arabic pages rendering French eyebrows/captions,
+English badges and garbled mixed-script titles. A static scan
+(`qa/literal-scan2.js`) plus per-locale runtime script detection found the
+cause: the parallel apply-wizard/B7-page refactor had introduced ~120
+hardcoded French literals bypassing the message files (message parity held
+at 931 keys throughout, which is why key-count checks never caught it).
+
+Fixed, with key parity (fr/en/ar, now 1077 keys each, zero missing/extra):
+About (10: eyebrows, image alt/caption, translated tier badges, video meta
+and fallback, impact badge; platform parentheticals removed from facet
+titles since badges now carry that identity), Review/Submit/Dates/Documents/
+Personal wizard steps (edit button, CIN/phone/birth/education/detail labels,
+localized duration via existing ICU keys, rule descriptions via existing
+type keys instead of raw English mirror text, privacy note, locale-appropriate
+placeholders, anonymous-bridge strings), ActiveSituationBanner (6 keys +
+locale-aware dates replacing browser-locale `toLocaleDateString`),
+AdministrativeDocsSection subtitle (+ locale-aware date), Footer/Header/
+not-found strings, nav landmark labels, stepper progress label, and full
+content translation of Home (20), Internships matrix + sections (19), Apply
+landing (15), History (11), FAQ (11), Contact (4) and Companion (5) pages,
+plus localized document `<title>`/description via `generateMetadata` in the
+locale layout.
+
+Deliberate terminology (documented, consistent): `STEG`, `PFE`,
+`Perfectionnement`, `CIN`, `Internship Companion`, `1080p`/`Full HD`,
+`SHA-256`, native language names and reference numbers stay invariant;
+backend/university proper nouns and user-typed data render verbatim.
+Claims fix: the home "QR code" certificate claim was removed (no backend QR
+support); "SHA-256 Chiffré" corrected to fingerprint wording.
+
+Bidi: translated badges/titles eliminated the garbled parentheticals
+(verified by screenshot); mixed-script cells verified visually (ar matrix,
+ar wizard); technical tokens use `dir="ltr"` spans.
+
+Verification: `qa/b7-i18n.js` — **63/63** (en: zero French across 13 pages;
+ar: Arabic content + zero French + zero unapproved Latin across 15 pages
+incl. dossier detail; fr: zero Arabic leakage; locale switch preserves path,
+flips `dir`, swaps content fr→ar→en). Onboarding suite **46/46** against the
+refactored wizard, incl. a CIN-privacy assertion.
+
+Security finding fixed en route: the refactored wizard persisted the full
+draft — including the national ID — to `sessionStorage` on every keystroke.
+`saveDraftToStorage` now strips `nationalId` (empty string, type-safe); the
+existing profile-merge on load restores it, so resume behavior is identical
+(E2E asserts the stored draft carries no CIN value). Tokens/passwords/JWTs
+were verified absent from storage, cookies-visible-to-JS and DOM.
+
+Remaining notes: B5/B6/journey suites encode the pre-refactor wizard flow
+(the refactor is in-progress parallel work); the new wizard was verified
+end-to-end instead (prefill → 7 steps → submit reference, 5/5, no JS
+errors). `profile.summaryTitle` is a dead key (untouched). Grid re-run:
+**546/546, zero issues**. Lint/typecheck/build green.

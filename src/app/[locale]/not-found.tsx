@@ -15,7 +15,7 @@ export default async function NotFound() {
         <div className="relative overflow-hidden rounded-3xl border border-brand-500/20 bg-navy-950/40 p-4 shadow-2xl backdrop-blur-xl">
           <Image
             src="/components/error/error_page_illustration_1376x768.jpeg"
-            alt="Page Introuvable - STEG"
+            alt={t('notFoundImageAlt')}
             width={600}
             height={335}
             className="rounded-2xl object-cover"
@@ -25,7 +25,7 @@ export default async function NotFound() {
         </div>
 
         <div className="flex flex-col items-center gap-2">
-          <span className="font-mono text-sm font-bold text-cyan-400">ERREUR 404 // FLUX INTERROMPU</span>
+          <span className="font-mono text-sm font-bold text-cyan-400">{t('notFoundCode')}</span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-navy-900 dark:text-zinc-50">
             {t('notFoundTitle')}
           </h1>

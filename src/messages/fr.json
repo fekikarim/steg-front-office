@@ -25,7 +25,11 @@
     "theme": "Thème",
     "themeLight": "Clair",
     "themeDark": "Sombre",
-    "themeSystem": "Système"
+    "themeSystem": "Système",
+    "nationalBadge": "Portail National",
+    "candidateSpace": "Espace Candidat",
+    "primaryNav": "Principale",
+    "mobileNav": "Mobile"
   },
   "footer": {
     "tagline": "Société Tunisienne de l'Électricité et du Gaz — plateforme des stages.",
@@ -40,7 +44,12 @@
     "linkContact": "Contact",
     "contactHeading": "Contact",
     "contactEmail": "information@steg.tn",
-    "contactPhone": "+216 71 234 567"
+    "contactPhone": "+216 71 234 567",
+    "deptLine": "STEG — Direction des Ressources Humaines & Formation",
+    "portalLine": "Portail National de Gestion Dématérialisée des Stages",
+    "foundedBadge": "Fondée le 3 Avril 1962",
+    "zeroPaperBadge": "Démarche Zéro Papier",
+    "footerNav": "Pied de page"
   },
   "home": {
     "badge": "Portail candidat",
@@ -144,11 +153,36 @@
     "historyTeaserCta": "Explorer l'histoire et l'organigramme",
     "compTeaserEyebrow": "Compagnon Mobile",
     "compTeaserTitle": "L'application mobile dédiée à votre quotidien de stagiaire",
-    "compTeaserDesc": "Ne perdez plus le fil de vos activités. Pendant votre stage, l'application mobile Internship Companion vous accompagne chaque jour pour planifier, noter vos tâches et communiquer avec votre tuteur.",
+    "compTeaserDesc": "Ne perdez plus le fil de vos activités. Pendant votre stage, l'application mobile {productName} vous accompagne chaque jour pour planifier, noter vos tâches et communiquer avec votre tuteur.",
     "compTeaserCta": "Découvrir toutes les fonctionnalités mobiles",
     "finalCtaTitle": "Prêt à démarrer votre stage à la STEG ?",
     "finalCtaDesc": "Rejoignez des équipes passionnées et participez à des projets technologiques à fort impact pour la Tunisie.",
-    "finalCtaButton": "Déposer ma candidature maintenant"
+    "finalCtaButton": "Déposer ma candidature maintenant",
+    "portalBadge": "Portail Officiel",
+    "heroSession": "Session 2026/2027",
+    "coverageChip": "24 Gouvernorats",
+    "heroCardTitle": "STEG Formation & Insertion",
+    "heroCardSub": "Observation • Perfectionnement • PFE",
+    "digitalAlt": "Solution de numérisation",
+    "digitalText": "Dématérialisation complète, archivage sécurisé et traçabilité 100% STEG.",
+    "energyWindTitle": "Transition Énergétique",
+    "energyWindDesc": "Solaire photovoltaïque, éolien et géothermie au cœur des projets STEG.",
+    "energyWindAlt": "Énergie éolienne et verte",
+    "energyGasTitle": "Infrastructures Gazières",
+    "energyGasDesc": "Plus de 1 million d'abonnés gaz naturel et réseau national interconnecté.",
+    "energyGeoAlt": "Énergie géothermique",
+    "syncChip": "Synchro Temps Réel",
+    "certEyebrow": "Reconnaissance & Valorisation",
+    "certTitle": "Attestation de Stage Officielle & Certifiée",
+    "certDesc": "À la fin de votre stage, recevez une attestation officielle numérotée, signée par la STEG, pour vos démarches académiques et professionnelles.",
+    "certAlt": "Attestation Officielle STEG",
+    "mobileAppAlt": "Application Mobile {productName} STEG",
+    "applyNowAlt": "Postulez dès aujourd'hui",
+    "heroImageAlt": "Opportunités de stages à la STEG",
+    "obsImageAlt": "Stage d'Observation",
+    "perfImageAlt": "Stage de Perfectionnement",
+    "pfeImageAlt": "Projet de Fin d'Études",
+    "paperlessAlt": "Fin du papier et passage au tout numérique"
   },
   "comingSoon": {
     "common": {
@@ -202,7 +236,9 @@
     "errorReference": "Référence",
     "notFoundTitle": "Page introuvable",
     "notFoundHint": "La page demandée n'existe pas ou a été déplacée.",
-    "notFoundAction": "Retour à l'accueil"
+    "notFoundAction": "Retour à l'accueil",
+    "notFoundCode": "ERREUR 404 // FLUX INTERROMPU",
+    "notFoundImageAlt": "Page Introuvable - STEG"
   },
   "errors": {
     "network": "Impossible de joindre le serveur. Vérifiez votre connexion puis réessayez.",
@@ -298,7 +334,27 @@
     "modeHybridTitle": "Stages Hybrides & Collaboratifs",
     "modeHybridDesc": "Combinaison de travail sur site et d'analyses de données à distance grâce aux outils numériques.",
     "modeRemoteTitle": "Projets de R&D & Systèmes d'Information",
-    "modeRemoteDesc": "Stages axés sur le développement logiciel, la simulation de réseaux et l'analyse de données énergétiques."
+    "modeRemoteDesc": "Stages axés sur le développement logiciel, la simulation de réseaux et l'analyse de données énergétiques.",
+    "trackLabel": "Filière Officielle STEG",
+    "joinTitle": "Vous avez identifié le stage qui correspond à vos études ?",
+    "joinDesc": "Déposez votre candidature dès maintenant. La classification est confirmée automatiquement.",
+    "joinImageAlt": "Rejoignez-nous",
+    "matrixBadge": "Tableau Récapitulatif",
+    "obsDuration": "~ 1 mois (< 42j)",
+    "obsRule": "Selon cursus (Optionnel ou Obligatoire)",
+    "obsTheme": "Non exigé à l'inscription",
+    "obsCompanion": "Accueil & Consignes de sécurité",
+    "perfDuration": "42 à 90 jours",
+    "perfRule": "Automatiquement obligatoire",
+    "perfTheme": "Discuté avec l'encadrant",
+    "perfCompanion": "Journal quotidien & Validation des tâches",
+    "pfeDuration": "> 90 jours",
+    "pfeRule": "Automatiquement obligatoire",
+    "pfeTheme": "Projet de fin d’études formel",
+    "pfeCompanion": "Jalons, Livrables & Évaluation finale",
+    "modesBadge": "Environnements Modernes",
+    "hybridAlt": "Stage hybride",
+    "motionLabel": "Motion Graphic"
   },
   "about": {
     "badge": "Cahier des Charges & Vision Numérique",
@@ -316,11 +372,11 @@
     "pain4Desc": "Une fois le stage entamé, le suivi des tâches quotidiennes et des livrables manquait d'un cadre standardisé et interactif entre l'étudiant et son encadrant STEG.",
     "solutionTitle": "2. La réponse numérique intégrée",
     "solutionLead": "La STEG a structuré une solution complète à 3 facettes interconnectées pour répondre à chaque étape du cycle de vie :",
-    "facet1Title": "Front Office Candidat (Web)",
+    "facet1Title": "Front Office Candidat",
     "facet1Desc": "Ce portail public permet la découverte transparente des stages, la candidature guidée, la classification automatique des durées et le suivi direct.",
-    "facet2Title": "Back Office Décisionnel (Web)",
+    "facet2Title": "Back Office Décisionnel",
     "facet2Desc": "Un environnement dédié aux coordinateurs RH et chefs de district pour instruire les dossiers, affecter les encadrants et valider les conventions.",
-    "facet3Title": "Internship Companion (App Mobile Flutter)",
+    "facet3Title": "{productName}",
     "facet3Desc": "L'application mobile du stagiaire pour consigner son journal de bord, valider ses tâches hebdomadaires et recevoir les appréciations de son tuteur.",
     "videoSectionTitle": "Démonstration des services numériques",
     "videoSectionDesc": "Découvrez en vidéo les innovations apportées par la numérisation des processus de stage à la STEG.",
@@ -336,7 +392,17 @@
     "ctaBannerTitle": "Vous avez un projet ou une convention de stage ?",
     "ctaBannerDesc": "Déposez votre dossier dès maintenant et recevez un suivi personnalisé à chaque étape.",
     "ctaBannerNote": "100% en ligne — aucun déplacement requis",
-    "backToHome": "Retour à l'accueil"
+    "backToHome": "Retour à l'accueil",
+    "eyebrowProblem": "Constat & Problématique",
+    "imageAlt": "Anciens processus papier",
+    "imageCaption": "Processus historiques papier : lenteur, déplacements et surcharge administrative.",
+    "badgeWeb": "Web Public",
+    "badgeBackoffice": "Back Office",
+    "badgeMobile": "Application Mobile",
+    "eyebrowSolution": "Architecture Unifiée",
+    "videoMeta": "1080p Full HD • Présentation Officielle",
+    "videoFallback": "Votre navigateur ne prend pas en charge la lecture de vidéos.",
+    "badgeImpact": "Bénéfices & Valeur"
   },
   "history": {
     "badge": "Histoire & Patrimoine Institutionnel",
@@ -372,7 +438,18 @@
     "organigrammeTitle": "Organisation & Structure Institutionnelle",
     "organigrammeDesc": "Découvrez l'organigramme officiel de la STEG illustrant la gouvernance, les directions générales et la répartition des compétences techniques et administratives.",
     "organigrammeCaption": "Organigramme officiel de la Société Tunisienne de l'Electricité et du Gaz",
-    "backToHome": "Retour à l'accueil"
+    "backToHome": "Retour à l'accueil",
+    "lawBadge": "Loi N°62-8 du 3 Avril 1962",
+    "energyTitle": "Énergies Renouvelables",
+    "energyDesc": "Développement soutenu des parcs éoliens et des fermes photovoltaïques.",
+    "energyAlt": "Transition énergétique STEG",
+    "geoTitle": "Géothermie & Innovation",
+    "geoDesc": "Recherche avancée et gestion efficiente des ressources gazières et thermiques.",
+    "geoAlt": "Sources géothermiques",
+    "statsEyebrow": "Indicateurs Historiques Clés",
+    "missionsBadge": "Missions d'Intérêt Général",
+    "govEyebrow": "Gouvernance & Structure",
+    "joinCta": "Rejoindre la STEG pour un stage"
   },
   "faq": {
     "title": "Foire aux questions",
@@ -388,7 +465,18 @@
     "faqAnswer5": "50 TND par mois complet, dans la limite de 3 mois soit 150 TND maximum.",
     "faqQuestion6": "Comment se déroule la revue finance ?",
     "faqAnswer6": "Le superviseur complète le dossier, Finance vérifie et décide d'approuver ou de rejeter.",
-    "backToHome": "Retour à l'accueil"
+    "backToHome": "Retour à l'accueil",
+    "badge": "BASE DE CONNAISSANCES // STEG STAGES",
+    "intro": "Retrouvez les réponses aux questions les plus courantes sur le déroulement, les critères d’éligibilité et la validation de votre stage à la STEG.",
+    "tag1": "CANDIDATURE",
+    "tag2": "DOCUMENTS",
+    "tag3": "AFFECTATION",
+    "tag4": "DURÉE & PÉRIODE",
+    "tag5": "VALIDATION RH",
+    "tag6": "ATTESTATION",
+    "ctaTitle": "Vous avez encore des interrogations ?",
+    "ctaDesc": "Nos équipes d’encadrement et le support technique sont à votre écoute.",
+    "ctaSupport": "Contacter le Support"
   },
   "contact": {
     "title": "Contact",
@@ -400,7 +488,11 @@
     "contactAddressLabel": "Adresse",
     "contactAddress": "STEG, Tunis, Tunisie",
     "disclaimer": "Les coordonnées ci-dessus sont fournies à titre indicatif. Veuillez contacter le service RH pour toute demande officielle.",
-    "backToHome": "Retour à l'accueil"
+    "backToHome": "Retour à l'accueil",
+    "badge": "SUPPORT TECHNIQUE & RH // STEG 2026",
+    "sendMessage": "Envoyer un message",
+    "callStandard": "Appeler le standard",
+    "hqLabel": "Siège National STEG"
   },
   "dropzone": {
     "prompt": "Glissez-déposez vos fichiers ici",
@@ -580,7 +672,14 @@
     "docsVerified": "Document vérifié et validé",
     "docsPending": "En attente de traitement",
     "historyTitle": "Historique de vos candidatures",
-    "historyEmpty": "Vous n'avez soumis aucune candidature pour le moment."
+    "historyEmpty": "Vous n'avez soumis aucune candidature pour le moment.",
+    "bannerEyebrow": "STATUT CANDIDAT STEG",
+    "assignedBadge": "Affectation Validée",
+    "typeFallback": "Stage STEG",
+    "datesPending": "En attente de confirmation",
+    "supervisorFallback": "Ingénieur Tuteur STEG",
+    "updatedLabel": "Mise à jour",
+    "docsSubtitle": "Accédez à vos conventions, attestations et pièces administratives officielles."
   },
   "apply": {
     "title": "Candidature de stage",
@@ -639,11 +738,16 @@
       "cinRequired": "Le numéro de CIN est obligatoire (au moins 5 caractères).",
       "emailInvalid": "Veuillez saisir une adresse e-mail valide.",
       "phoneRequired": "Le numéro de téléphone est obligatoire.",
-      "birthDateRequired": "La date de naissance est obligatoire."
+      "birthDateRequired": "La date de naissance est obligatoire.",
+      "firstNamePlaceholder": "Mohamed",
+      "lastNamePlaceholder": "Ben Ali",
+      "cinPlaceholder": "09876543",
+      "phonePlaceholder": "+216 98 123 456",
+      "emailPlaceholder": "mohamed.benali@esprit.tn"
     },
     "dates": {
       "title": "Dates du stage",
-      "eyebrow": "Étape 3 sur 8",
+      "eyebrow": "Étape 3 sur 7",
       "intro": "Choisissez les dates de début et de fin de votre stage. Le type est classifié automatiquement selon la durée.",
       "startDate": "Date de début",
       "endDate": "Date de fin",
@@ -685,7 +789,7 @@
     },
     "documents": {
       "title": "Documents requis",
-      "eyebrow": "Étape 5 sur 8",
+      "eyebrow": "Étape 5 sur 7",
       "intro": "Téléversez les documents requis. Le backend valide le type et la taille des fichiers.",
       "applicationLetter": "Lettre de demande de stage",
       "applicationLetterHint": "Un PDF émis par votre établissement demandant le stage.",
@@ -724,7 +828,9 @@
       "errorCancelled": "Téléversement annulé. Votre brouillon est inchangé.",
       "errorGeneric": "Le téléversement n'a pas pu aboutir. Veuillez réessayer.",
       "submitBlockedDocs": "Un document requis est manquant sur le serveur. Veuillez le téléverser avant de soumettre.",
-      "allRequired": "Veuillez téléverser tous les documents requis avant de continuer."
+      "allRequired": "Veuillez téléverser tous les documents requis avant de continuer.",
+      "privacyTitle": "Confidentialité & Sécurité",
+      "privacyBody": "Les pièces justificatives téléversées sont transmises via un canal sécurisé et exclusivement consultées par les coordinateurs de stage et encadrants habilités de la STEG."
     },
     "demo": {
       "title": "Démonstration de projet (optionnel)",
@@ -739,7 +845,7 @@
     },
     "review": {
       "title": "Vérification de votre candidature",
-      "eyebrow": "Étape 7 sur 8",
+      "eyebrow": "Étape 6 sur 7",
       "intro": "Vérifiez toutes les informations avant de soumettre. Vous pouvez revenir en arrière pour corriger.",
       "sectionCandidate": "Candidat",
       "sectionDates": "Dates du stage",
@@ -771,11 +877,22 @@
       "itemApplicationLetter": "Lettre de demande de stage téléversée",
       "itemAssignmentLetter": "Lettre de mission téléversée",
       "itemReady": "Vous êtes prêt(e)",
-      "itemNotReady": "Non prêt"
+      "itemNotReady": "Non prêt",
+      "editSection": "Modifier",
+      "fieldCin": "CIN / Identifiant",
+      "fieldPhone": "Téléphone",
+      "fieldBirthDate": "Date de naissance",
+      "sectionEducation": "Formation & Établissement",
+      "eduLevelLabel": "Niveau d'études",
+      "specialityLabel": "Filière",
+      "sectionDetails": "Détails du stage",
+      "preferredDeptLabel": "Département souhaité",
+      "demoFileLabel": "Fichier démo (optionnel)",
+      "justificationLabel": "Justification"
     },
     "submit": {
       "title": "Soumettre votre candidature",
-      "eyebrow": "Étape 8 sur 8",
+      "eyebrow": "Étape 7 sur 7",
       "intro": "Dernière étape. Votre candidature sera envoyée au service des stages de la STEG.",
       "submitButton": "Soumettre ma candidature",
       "submitting": "Soumission en cours…",
@@ -786,6 +903,14 @@
       "successNext": "Vous pouvez suivre le statut de votre candidature depuis votre espace.",
       "viewApplications": "Voir mes candidatures",
       "goHome": "Retour à l'accueil",
+      "bridgePasswordMin": "Le mot de passe doit comporter au moins 6 caractères.",
+      "bridgeFinalizeError": "Erreur lors de la finalisation.",
+      "readyTitle": "Prêt pour la transmission officielle",
+      "readyDesc": "Votre dossier est complet et vos pièces justificatives sont attachées. Cliquez ci-dessous pour transmettre votre candidature aux équipes de la STEG.",
+      "tabCreate": "Créer un compte",
+      "tabSignIn": "Se connecter",
+      "bridgeEmailLabel": "Adresse e-mail",
+      "bridgePasswordLabel": "Mot de passe",
       "alreadySubmittedTitle": "Déjà soumise",
       "alreadySubmittedBody": "Cette candidature a déjà été soumise."
     },
@@ -801,7 +926,8 @@
         "documents": "Documents",
         "review": "Vérification",
         "result": "Confirmation"
-      }
+      },
+      "progressLabel": "PROGRÈS : {percent}%"
     },
     "nav": {
       "back": "Retour",
@@ -848,7 +974,7 @@
     "submitNextStepsTitle": "Et maintenant ?",
     "submitNextStep1": "Nos équipes RH et techniques vérifient vos documents et l'adéquation avec nos capacités d'accueil.",
     "submitNextStep2": "Vous recevrez des notifications d'étape et un e-mail dès qu'une décision sera prise.",
-    "submitNextStep3": "Une fois accepté, vous recevrez votre lettre d'affectation et vos accès à l'application mobile Internship Companion.",
+    "submitNextStep3": "Une fois accepté, vous recevrez votre lettre d'affectation et vos accès à l'application mobile {productName}.",
     "submitTrackBtn": "Suivre ma candidature dans mon espace",
     "education": {
       "eyebrow": "Étape 2 sur 7",
@@ -876,7 +1002,22 @@
       "themeOptionalNotice": "Pour un stage d'observation, le thème n'est pas obligatoire à ce stade.",
       "deptLabel": "Direction ou département d'accueil souhaité (Optionnel)",
       "deptPlaceholder": "Ex: Direction Distribution Tunis, Centrale Rades, Direction Informatique..."
-    }
+    },
+    "landingPortal": "PORTAIL CANDIDATURE STEG 2026",
+    "landingSession": "SESSION NATIONALE",
+    "landingTagline": "Accélérez Votre Avenir Énergétique",
+    "landingSubtitleExtra": "Processus 100% dématérialisé, suivi en temps réel et affectation optimisée au sein des 24 gouvernorats tunisiens.",
+    "metricSteps": "ÉTAPES",
+    "metricStepsValue": "7 Phases Clés",
+    "metricTime": "TEMPS MOYEN",
+    "metricTimeValue": "~5 minutes",
+    "metricSecurity": "SÉCURITÉ",
+    "metricSecurityValue": "Empreinte SHA-256",
+    "mediaCaption": "Innovation & Encadrement STEG",
+    "mediaQuality": "1080p HD",
+    "mentorAlt": "Équipe STEG",
+    "mentorTitle": "Tutorat par des Experts",
+    "mentorDesc": "Un maître de stage dédié suit chaque étape de votre formation."
   },
   "tracking": {
     "title": "Mes candidatures",
@@ -949,13 +1090,13 @@
     "timelineStatePrep": "Préparation du stage",
     "timelineStatePrepDesc": "Émission de la lettre d'affectation et formalisation de la convention.",
     "timelineStateInProgress": "Stage en cours",
-    "timelineStateInProgressDesc": "Stage actif sur site. Activités suivies via l'application mobile Companion.",
+    "timelineStateInProgressDesc": "Stage actif sur site. Activités suivies via l'application mobile {productName}.",
     "timelineStateCompleted": "Stage clôturé",
     "timelineStateCompletedDesc": "Évaluations terminées et attestation officielle de stage délivrée.",
     "timelineNextAction": "Action suivante :",
     "timelineNextActionWait": "Votre dossier est en cours de traitement. Vous serez notifié de la décision.",
     "timelineNextActionDocs": "Veuillez télécharger votre lettre d'affectation et préparer votre premier jour.",
-    "timelineNextActionCompanion": "Installez l'application Internship Companion pour démarrer votre suivi.",
+    "timelineNextActionCompanion": "Installez l'application {productName} pour démarrer votre suivi.",
     "timelineNextActionDone": "Votre stage est complété avec succès. Téléchargez votre attestation ci-dessous.",
     "rejectionReasonTitle": "Motif de refus :",
     "correctionRequiredTitle": "Correction demandée par la STEG :"
@@ -982,7 +1123,7 @@
   },
   "companion": {
     "badge": "Application Mobile Flutter Dédiée",
-    "title": "Internship Companion : Votre guide mobile de stage",
+    "title": "Votre guide mobile de stage",
     "subtitle": "L'application mobile officielle conçue pour accompagner chaque stagiaire de la STEG : planifiez vos semaines, consignez vos activités et échangez en direct avec votre encadrant.",
     "ctaApply": "Postuler pour accéder à l'application",
     "featuresTitle": "Toutes les fonctionnalités à portée de main",
@@ -1001,7 +1142,7 @@
     "featDeliverablesDesc": "Téléversez vos versions intermédiaires de rapport et vos présentations en un clic pour revue.",
     "featProgressTitle": "Indicateur de progression globale",
     "featProgressDesc": "Visualisez votre taux d'avancement, le nombre de jours restants et la complétion de vos objectifs.",
-    "dayInLifeTitle": "Une journée type avec Internship Companion",
+    "dayInLifeTitle": "Une journée type avec",
     "step1Time": "08h30 - Arrivée sur site",
     "step1Desc": "Consultez vos objectifs de la journée et vos réunions prévues avec votre équipe.",
     "step2Time": "12h00 - Point d'étape",
@@ -1012,6 +1153,14 @@
     "step4Desc": "Votre tuteur commente et valide vos progrès directement depuis son interface.",
     "bannerTitle": "Accessible dès validation de votre stage",
     "bannerDesc": "Une fois votre dossier accepté et votre affectation confirmée, connectez-vous avec vos identifiants pour activer votre espace personnel mobile.",
-    "bannerButton": "Déposer ma candidature"
+    "bannerButton": "Déposer ma candidature",
+    "pillFlutter": "Flutter Companion",
+    "pillRealtime": "Suivi en Temps Réel",
+    "toolsEyebrow": "Outils du Quotidien",
+    "scenarioBadge": "Scénario d'Usage",
+    "heroImageAlt": "Application Mobile {productName} STEG",
+    "productName": "Compagnon de Stage",
+    "titleBrand": "Compagnon de Stage",
+    "dayInLifeProduct": "Compagnon de Stage"
   }
 }

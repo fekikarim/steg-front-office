@@ -38,6 +38,8 @@ export function SubmitStep({
 }: SubmitStepProps) {
   const t = useTranslations('apply.submit');
   const ta = useTranslations('apply');
+  const tc = useTranslations('companion');
+  const productName = tc('productName');
   const [password, setPassword] = useState('');
   const [isNewAccount, setIsNewAccount] = useState(true);
   const [bridgeSubmitting, setBridgeSubmitting] = useState(false);
@@ -46,7 +48,7 @@ export function SubmitStep({
   async function handleBridgeSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!password || password.length < 6) {
-      setBridgeError('Le mot de passe doit comporter au moins 6 caractères.');
+      setBridgeError(t('bridgePasswordMin'));
       return;
     }
     setBridgeError(null);
@@ -54,7 +56,7 @@ export function SubmitStep({
     try {
       await onAnonymousSubmit(password, isNewAccount);
     } catch (err: unknown) {
-      setBridgeError(err instanceof Error ? err.message : 'Erreur lors de la finalisation.');
+      setBridgeError(err instanceof Error ? err.message : t('bridgeFinalizeError'));
     } finally {
       setBridgeSubmitting(false);
     }
@@ -106,7 +108,7 @@ export function SubmitStep({
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="mt-0.5 text-emerald-600">✓</span>
-                  <span>{ta('submitNextStep3')}</span>
+                  <span>{ta('submitNextStep3', {productName})}</span>
                 </li>
               </ul>
             </div>
@@ -135,10 +137,10 @@ export function SubmitStep({
             </span>
             <div className="flex flex-col gap-1">
               <h3 className="text-lg font-bold text-navy-900 dark:text-zinc-50">
-                Prêt pour la transmission officielle
+                {t('readyTitle')}
               </h3>
               <p className="max-w-md text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Votre dossier est complet et vos pièces justificatives sont attachées. Cliquez ci-dessous pour transmettre votre candidature aux équipes de la STEG.
+                {t('readyDesc')}
               </p>
             </div>
 
@@ -180,7 +182,7 @@ export function SubmitStep({
                     : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400'
                 }`}
               >
-                Créer un compte
+                {t('tabCreate')}
               </button>
               <button
                 type="button"
@@ -191,12 +193,12 @@ export function SubmitStep({
                     : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400'
                 }`}
               >
-                Se connecter
+                {t('tabSignIn')}
               </button>
             </div>
 
             <Input
-              label="Adresse e-mail"
+              label={t('bridgeEmailLabel')}
               type="email"
               value={candidateEmail}
               disabled
@@ -205,7 +207,7 @@ export function SubmitStep({
 
             <Input
               id="bridge-password"
-              label="Mot de passe"
+              label={t('bridgePasswordLabel')}
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
