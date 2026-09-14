@@ -700,7 +700,7 @@
     "statusLabel": "الحالة",
     "welcome": {
       "title": "مرحبًا",
-      "eyebrow": "الخطوة 1 من 8",
+      "eyebrow": "Step 1 of 6",
       "intro": "قبل البدء، لنتأكد من استيفائك لمعايير الأهلية لتربص في الستاغ.",
       "criteriaTitle": "معايير الأهلية",
       "criterion1": "أنت طالب مسجّل في مؤسسة تعليم عالٍ.",
@@ -712,14 +712,14 @@
       "howTitle": "ما سيطلبه منك النموذج",
       "how1": "تأكيد معلوماتك الشخصية والأكاديمية",
       "how2": "اختيار تواريخ تربصك — يُصنَّف النوع تلقائيًا",
-      "how3": "تقديم معلومات خاصة بالتربص",
+      "how3": "Upload your required documents",
       "how4": "رفع الوثائق المطلوبة",
-      "how5": "إضافة صورة عرض / مشروع اختياريًا",
+      "how5": "Review your file before submitting",
       "how6": "مراجعة ملفك قبل التقديم"
     },
     "personal": {
       "title": "معلوماتك الشخصية",
-      "eyebrow": "الخطوة 1 من 7",
+      "eyebrow": "Step 1 of 6",
       "intro": "أدخل بيانات هويتك الرسمية كما هي مبينة في وثائقك الثبوتية الوطنية.",
       "firstName": "الاسم",
       "lastName": "اللقب",
@@ -747,7 +747,7 @@
     },
     "dates": {
       "title": "تواريخ التربص",
-      "eyebrow": "الخطوة 3 من 7",
+      "eyebrow": "Step 3 of 6",
       "intro": "اختر تاريخ بداية ونهاية تربصك. يُصنَّف النوع تلقائيًا حسب المدة.",
       "startDate": "تاريخ البداية",
       "endDate": "تاريخ النهاية",
@@ -773,23 +773,9 @@
       "confirmLabel": "أؤكد تواريخ تربصي",
       "confirmRequired": "يرجى تأكيد تواريخك للمتابعة."
     },
-    "info": {
-      "title": "تفاصيل التربص",
-      "eyebrow": "الخطوة 4 من 8",
-      "intro": "قدّم بعض التفاصيل الخاصة بتربصك.",
-      "projectTheme": "موضوع المشروع",
-      "projectThemeHint": "وصف مختصر للموضوع الذي ستعمل عليه.",
-      "projectThemeRequired": "موضوع المشروع مطلوب لـ {type}.",
-      "projectThemeOptional": "اختياري لتربصات الملاحظة.",
-      "themePlaceholder": "مثال: دراسة توقع استهلاك الكهرباء",
-      "requirementLabel": "الإلزامية",
-      "requirementValue": "هذا التربص {value}.",
-      "confirmLabel": "أؤكد تفاصيل التربص هذه",
-      "confirmRequired": "يرجى تأكيد التفاصيل للمتابعة."
-    },
     "documents": {
       "title": "الوثائق المطلوبة",
-      "eyebrow": "الخطوة 5 من 7",
+      "eyebrow": "Step 4 of 6",
       "intro": "قم برفع الوثائق المطلوبة. يتحقق النظام الخلفي من نوع الملف وحجمه.",
       "applicationLetter": "رسالة طلب التربص",
       "applicationLetterHint": "PDF صادر عن مؤسستك يطلب التربص.",
@@ -832,33 +818,19 @@
       "privacyTitle": "السرية والأمان",
       "privacyBody": "تنتقل الوثائق المرفوعة عبر قناة آمنة ولا يطّلع عليها إلا منسقو التربصات والمشرفون المخوّلون في الستاغ."
     },
-    "demo": {
-      "title": "عرض المشروع (اختياري)",
-      "eyebrow": "الخطوة 6 من 8",
-      "intro": "أضف اختياريًا صورة عرض أو لقطة شاشة لمشروع. هذا ليس مطلوبًا.",
-      "projectDemo": "صورة عرض المشروع",
-      "projectDemoHint": "PNG أو JPG. اختياري.",
-      "skip": "تخطي هذه الخطوة",
-      "demoUploaded": "تم رفع صورة العرض",
-      "demoOptionalNote": "هذا اختياري ويمكن إضافته لاحقًا.",
-      "remove": "إزالة"
-    },
     "review": {
       "title": "مراجعة طلبك",
-      "eyebrow": "الخطوة 6 من 7",
+      "eyebrow": "Step 5 of 6",
       "intro": "تحقق من جميع المعلومات قبل التقديم. يمكنك العودة للخلف لتصحيح أي شيء.",
       "sectionCandidate": "المترشح",
       "sectionDates": "تواريخ التربص",
       "sectionClassification": "التصنيف",
-      "sectionTheme": "موضوع المشروع",
       "sectionDocuments": "الوثائق",
-      "sectionDemo": "عرض المشروع",
       "fieldReference": "المرجع",
       "fieldName": "الاسم الكامل",
       "fieldEmail": "البريد الإلكتروني",
       "fieldUniversity": "الجامعة",
       "fieldDates": "التواريخ",
-      "fieldTheme": "موضوع المشروع",
       "classificationType": "النوع",
       "classificationRequirement": "الإلزامية",
       "classificationDuration": "المدة (بالأيام)",
@@ -873,7 +845,6 @@
       "checkIncomplete": "بعض العناصر المطلوبة ناقصة. يرجى مراجعة العناصر أدناه.",
       "itemCandidateConfirmed": "تأكيد معلومات المترشح",
       "itemDatesConfirmed": "تأكيد تواريخ التربص مع التصنيف",
-      "itemThemeProvided": "تقديم موضوع المشروع",
       "itemApplicationLetter": "رفع رسالة طلب التربص",
       "itemAssignmentLetter": "رفع رسالة المهمة",
       "itemReady": "أنت جاهز",
@@ -885,14 +856,11 @@
       "sectionEducation": "التكوين والمؤسسة",
       "eduLevelLabel": "المستوى الدراسي",
       "specialityLabel": "الشعبة",
-      "sectionDetails": "تفاصيل التربص",
-      "preferredDeptLabel": "القسم المرغوب",
-      "demoFileLabel": "ملف العرض (اختياري)",
       "justificationLabel": "التعليل"
     },
     "submit": {
       "title": "تقديم طلبك",
-      "eyebrow": "الخطوة 7 من 7",
+      "eyebrow": "Step 6 of 6",
       "intro": "الخطوة الأخيرة. سيُرسل طلبك إلى إدارة التربصات في الستاغ.",
       "submitButton": "تقديم طلبي",
       "submitting": "جارٍ التقديم…",
@@ -922,12 +890,11 @@
         "personal": "المعلومات",
         "education": "الدراسة",
         "dates": "التواريخ والنوع",
-        "details": "التفاصيل",
         "documents": "الوثائق",
         "review": "المراجعة",
         "result": "التأكيد"
       },
-      "progressLabel": "التقدم: {percent}٪"
+      "progressLabel": "PROGRESS: {percent}%"
     },
     "nav": {
       "back": "رجوع",
@@ -1017,7 +984,12 @@
     "mediaQuality": "1080p HD",
     "mentorAlt": "فريق الستاغ",
     "mentorTitle": "تأطير الخبراء",
-    "mentorDesc": "مشرف مخصص يتابع كل مرحلة من تكوينك."
+    "mentorDesc": "مشرف مخصص يتابع كل مرحلة من تكوينك.",
+    "alreadyAppliedTitle": "توجد طلب بالفعل",
+    "alreadyAppliedBody": "لديك طلب تربص مقدم بالفعل. لا يحق لكل متربص إلا طلب واحد لكل دورة. يمكنك التقديم مجددًا في الدورة التالية فقط.",
+    "alreadyAppliedRef": "مرجعك: {reference}",
+    "alreadyAppliedNext": "يمكنك متابعة حالة طلبك أو التواصل مع إدارة الموارد البشرية في الستاغ لمزيد من المعلومات.",
+    "trackMyApplication": "تابع طلبي"
   },
   "tracking": {
     "title": "طلباتي",
@@ -1044,7 +1016,6 @@
     "fieldType": "نوع التربص",
     "fieldRequirement": "الشرط",
     "fieldDates": "تواريخ التربص",
-    "fieldTheme": "موضوع المشروع",
     "fieldSubmitted": "قُدم في",
     "fieldCreated": "أُنشئ في",
     "fieldUpdated": "آخر تحديث",

@@ -120,11 +120,9 @@ function buildFullTimeline(app: ApplicationResponse): TimelineStage[] {
 function docTypeLabel(
   type: string,
   td: (k: string) => string,
-  tm: (k: string) => string,
 ): string {
   if (type === 'INTERNSHIP_APPLICATION') return td('applicationLetter');
   if (type === 'ASSIGNMENT_LETTER') return td('assignmentLetter');
-  if (type === 'PROJECT_DEMO_IMAGE') return tm('projectDemo');
   return type;
 }
 
@@ -138,7 +136,6 @@ export function ApplicationDetail({id}: {id: string}) {
   const t = useTranslations('tracking');
   const ta = useTranslations('apply');
   const td = useTranslations('apply.documents');
-  const tm = useTranslations('apply.demo');
   const tc = useTranslations('companion');
   const productName = tc('productName');
   const locale = useLocale();
@@ -351,12 +348,6 @@ export function ApplicationDetail({id}: {id: string}) {
             </dd>
           </div>
           <div className="flex items-baseline justify-between gap-3 border-b border-zinc-100 py-2 dark:border-zinc-800">
-            <dt className="text-zinc-500 dark:text-zinc-400">{t('fieldTheme')}</dt>
-            <dd className="text-end font-medium break-words text-zinc-800 dark:text-zinc-100" dir="auto">
-              {app.proposedTheme?.trim() ? app.proposedTheme : t('notProvided')}
-            </dd>
-          </div>
-          <div className="flex items-baseline justify-between gap-3 border-b border-zinc-100 py-2 dark:border-zinc-800">
             <dt className="text-zinc-500 dark:text-zinc-400">{t('fieldSubmitted')}</dt>
             <dd className="text-end font-medium text-zinc-800 dark:text-zinc-100">
               {app.submissionDate ? formatDate(app.submissionDate, locale) : t('notProvided')}
@@ -480,7 +471,7 @@ export function ApplicationDetail({id}: {id: string}) {
                     {d.document.originalFileName}
                   </span>
                   <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {docTypeLabel(d.document.type, td as (k: string) => string, tm as (k: string) => string)} ·{' '}
+                    {docTypeLabel(d.document.type, td as (k: string) => string)} ·{' '}
                     <span dir="ltr">
                       {d.document.mimeType} ·{' '}
                       {formatBytes(d.document.sizeBytes, {

@@ -46,7 +46,7 @@ async function applicationRequest<T>(path: string, init: RequestInit): Promise<T
 
 /* ----- Applications ----- */
 
-export function createDraft(body: {desiredStartDate?: string | null; desiredEndDate?: string | null; proposedTheme?: string | null}) {
+export function createDraft(body: {desiredStartDate?: string | null; desiredEndDate?: string | null}) {
   return applicationRequest<ApplicationResponse>('/api/applications', {
     method: 'POST',
     body: JSON.stringify({submittedOnline: true, ...body}),
@@ -61,7 +61,7 @@ export function listApplications() {
   return applicationRequest<ApplicationResponse[]>('/api/applications', {method: 'GET'});
 }
 
-export function updateDraft(id: string, body: {desiredStartDate?: string | null; desiredEndDate?: string | null; proposedTheme?: string | null}) {
+export function updateDraft(id: string, body: {desiredStartDate?: string | null; desiredEndDate?: string | null}) {
   return applicationRequest<ApplicationResponse>(`/api/applications/${id}`, {
     method: 'PUT',
     body: JSON.stringify(body),

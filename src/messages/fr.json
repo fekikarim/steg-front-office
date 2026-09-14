@@ -700,7 +700,7 @@
     "statusLabel": "Statut",
     "welcome": {
       "title": "Bienvenue",
-      "eyebrow": "Étape 1 sur 8",
+      "eyebrow": "Step 1 of 6",
       "intro": "Avant de commencer, vérifions que vous remplissez les critères d'éligibilité pour un stage à la STEG.",
       "criteriaTitle": "Critères d'éligibilité",
       "criterion1": "Vous êtes étudiant(e) inscrit(e) dans un établissement d'enseignement supérieur.",
@@ -712,14 +712,14 @@
       "howTitle": "Ce que le formulaire vous demandera",
       "how1": "Confirmer vos informations personnelles et académiques",
       "how2": "Choisir vos dates de stage — le type est classifié automatiquement",
-      "how3": "Fournir des informations propres au stage",
+      "how3": "Upload your required documents",
       "how4": "Téléverser vos documents requis",
-      "how5": "Ajouter éventuellement une image de démonstration / projet",
+      "how5": "Review your file before submitting",
       "how6": "Vérifier votre dossier avant de soumettre"
     },
     "personal": {
       "title": "Vos informations personnelles",
-      "eyebrow": "Étape 1 sur 7",
+      "eyebrow": "Step 1 of 6",
       "intro": "Renseignez vos coordonnées officielles telles qu'elles figurent sur vos documents d'identité.",
       "firstName": "Prénom",
       "lastName": "Nom de famille",
@@ -747,7 +747,7 @@
     },
     "dates": {
       "title": "Dates du stage",
-      "eyebrow": "Étape 3 sur 7",
+      "eyebrow": "Step 3 of 6",
       "intro": "Choisissez les dates de début et de fin de votre stage. Le type est classifié automatiquement selon la durée.",
       "startDate": "Date de début",
       "endDate": "Date de fin",
@@ -773,23 +773,9 @@
       "confirmLabel": "Je confirme mes dates de stage",
       "confirmRequired": "Veuillez confirmer vos dates pour continuer."
     },
-    "info": {
-      "title": "Détails du stage",
-      "eyebrow": "Étape 4 sur 8",
-      "intro": "Fournissez quelques détails propres à votre stage.",
-      "projectTheme": "Thème du projet",
-      "projectThemeHint": "Une courte description du sujet sur lequel vous travaillerez.",
-      "projectThemeRequired": "Un thème de projet est requis pour {type}.",
-      "projectThemeOptional": "Optionnel pour les stages d'observation.",
-      "themePlaceholder": "ex. Étude de prévision de la consommation électrique",
-      "requirementLabel": "Exigence",
-      "requirementValue": "Ce stage est {value}.",
-      "confirmLabel": "Je confirme ces détails de stage",
-      "confirmRequired": "Veuillez confirmer les détails pour continuer."
-    },
     "documents": {
       "title": "Documents requis",
-      "eyebrow": "Étape 5 sur 7",
+      "eyebrow": "Step 4 of 6",
       "intro": "Téléversez les documents requis. Le backend valide le type et la taille des fichiers.",
       "applicationLetter": "Lettre de demande de stage",
       "applicationLetterHint": "Un PDF émis par votre établissement demandant le stage.",
@@ -832,33 +818,19 @@
       "privacyTitle": "Confidentialité & Sécurité",
       "privacyBody": "Les pièces justificatives téléversées sont transmises via un canal sécurisé et exclusivement consultées par les coordinateurs de stage et encadrants habilités de la STEG."
     },
-    "demo": {
-      "title": "Démonstration de projet (optionnel)",
-      "eyebrow": "Étape 6 sur 8",
-      "intro": "Ajoutez éventuellement une image de démonstration ou une capture d'écran d'un projet. Ce n'est pas requis.",
-      "projectDemo": "Image de démonstration du projet",
-      "projectDemoHint": "PNG ou JPG. Optionnel.",
-      "skip": "Passer cette étape",
-      "demoUploaded": "Image de démonstration téléversée",
-      "demoOptionalNote": "Ceci est optionnel et peut être ajouté plus tard.",
-      "remove": "Retirer"
-    },
     "review": {
       "title": "Vérification de votre candidature",
-      "eyebrow": "Étape 6 sur 7",
+      "eyebrow": "Step 5 of 6",
       "intro": "Vérifiez toutes les informations avant de soumettre. Vous pouvez revenir en arrière pour corriger.",
       "sectionCandidate": "Candidat",
       "sectionDates": "Dates du stage",
       "sectionClassification": "Classification",
-      "sectionTheme": "Thème du projet",
       "sectionDocuments": "Documents",
-      "sectionDemo": "Démonstration du projet",
       "fieldReference": "Référence",
       "fieldName": "Nom complet",
       "fieldEmail": "E-mail",
       "fieldUniversity": "Université",
       "fieldDates": "Dates",
-      "fieldTheme": "Thème du projet",
       "classificationType": "Type",
       "classificationRequirement": "Exigence",
       "classificationDuration": "Durée (jours)",
@@ -873,7 +845,6 @@
       "checkIncomplete": "Certains éléments requis sont manquants. Veuillez examiner les éléments ci-dessous.",
       "itemCandidateConfirmed": "Informations du candidat confirmées",
       "itemDatesConfirmed": "Dates de stage confirmées avec classification",
-      "itemThemeProvided": "Thème du projet fourni",
       "itemApplicationLetter": "Lettre de demande de stage téléversée",
       "itemAssignmentLetter": "Lettre de mission téléversée",
       "itemReady": "Vous êtes prêt(e)",
@@ -885,14 +856,11 @@
       "sectionEducation": "Formation & Établissement",
       "eduLevelLabel": "Niveau d'études",
       "specialityLabel": "Filière",
-      "sectionDetails": "Détails du stage",
-      "preferredDeptLabel": "Département souhaité",
-      "demoFileLabel": "Fichier démo (optionnel)",
       "justificationLabel": "Justification"
     },
     "submit": {
       "title": "Soumettre votre candidature",
-      "eyebrow": "Étape 7 sur 7",
+      "eyebrow": "Step 6 of 6",
       "intro": "Dernière étape. Votre candidature sera envoyée au service des stages de la STEG.",
       "submitButton": "Soumettre ma candidature",
       "submitting": "Soumission en cours…",
@@ -922,12 +890,11 @@
         "personal": "Informations",
         "education": "Formation",
         "dates": "Dates & Type",
-        "details": "Détails",
         "documents": "Documents",
         "review": "Vérification",
         "result": "Confirmation"
       },
-      "progressLabel": "PROGRÈS : {percent}%"
+      "progressLabel": "PROGRESS: {percent}%"
     },
     "nav": {
       "back": "Retour",
@@ -1017,7 +984,12 @@
     "mediaQuality": "1080p HD",
     "mentorAlt": "Équipe STEG",
     "mentorTitle": "Tutorat par des Experts",
-    "mentorDesc": "Un maître de stage dédié suit chaque étape de votre formation."
+    "mentorDesc": "Un maître de stage dédié suit chaque étape de votre formation.",
+    "alreadyAppliedTitle": "Candidature déjà existante",
+    "alreadyAppliedBody": "Vous avez déjà une candidature soumise. Chaque candidat ne peut soumettre qu'une seule candidature par session. Vous ne pouvez postuler qu'à la prochaine session de recrutement.",
+    "alreadyAppliedRef": "Votre référence : {reference}",
+    "alreadyAppliedNext": "Vous pouvez suivre l'état de votre candidature ou contacter la DRH de la STEG pour plus d'informations.",
+    "trackMyApplication": "Suivre ma candidature"
   },
   "tracking": {
     "title": "Mes candidatures",
@@ -1044,7 +1016,6 @@
     "fieldType": "Type de stage",
     "fieldRequirement": "Exigence",
     "fieldDates": "Dates du stage",
-    "fieldTheme": "Thème du projet",
     "fieldSubmitted": "Soumise le",
     "fieldCreated": "Créée le",
     "fieldUpdated": "Dernière mise à jour",

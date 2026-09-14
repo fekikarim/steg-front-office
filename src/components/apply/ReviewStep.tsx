@@ -15,7 +15,6 @@ interface ReviewStepProps {
   classification: ClassificationResult | null;
   applicationLetter: ApplicationDocumentResponse | null;
   assignmentLetter: ApplicationDocumentResponse | null;
-  demo: ApplicationDocumentResponse | null;
   onJumpToStep: (stepIndex: number) => void;
   onToggleTerms: (confirmed: boolean) => void;
   onContinue: () => void;
@@ -62,7 +61,7 @@ function Row({label, value}: {label: string; value?: React.ReactNode}) {
 }
 
 /**
- * Step 6 — Review and Confirmation.
+ * Step 5 — Review and Confirmation.
  * Displays a scannable summary across all previous steps, masked CIN,
  * jump-back edit links, and an explicit confirmation checkbox.
  */
@@ -72,7 +71,6 @@ export function ReviewStep({
   classification,
   applicationLetter,
   assignmentLetter,
-  demo,
   onJumpToStep,
   onToggleTerms,
   onContinue,
@@ -169,19 +167,8 @@ export function ReviewStep({
         )}
       </Section>
 
-      {/* 4. Details */}
-      <Section title={t('sectionDetails')} stepIndex={3} onEdit={onJumpToStep} editLabel={t('editSection')}>
-        <Row
-          label={t('fieldTheme')}
-          value={draft.details.proposedTheme.trim() ? draft.details.proposedTheme : t('notProvided')}
-        />
-        {draft.details.preferredDepartment && (
-          <Row label={t('preferredDeptLabel')} value={draft.details.preferredDepartment} />
-        )}
-      </Section>
-
-      {/* 5. Documents */}
-      <Section title={t('sectionDocuments')} stepIndex={4} onEdit={onJumpToStep} editLabel={t('editSection')}>
+      {/* 4. Documents */}
+      <Section title={t('sectionDocuments')} stepIndex={3} onEdit={onJumpToStep} editLabel={t('editSection')}>
         <Row
           label={t('itemApplicationLetter')}
           value={
@@ -212,16 +199,6 @@ export function ReviewStep({
             )
           }
         />
-        {demo && (
-          <Row
-            label={t('demoFileLabel')}
-            value={
-              <span className="max-w-[200px] truncate text-xs text-zinc-500 dark:text-zinc-400">
-                {demo.document.originalFileName}
-              </span>
-            }
-          />
-        )}
       </Section>
 
       {/* Confirmation Checkbox */}

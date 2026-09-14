@@ -1,6 +1,6 @@
 'use client';
 
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {ApiError} from '@/lib/api-client';
@@ -13,14 +13,14 @@ import {EmptyState} from '@/components/feedback/EmptyState';
 import {Card} from '@/components/ui/Card';
 import {StatusPill} from '@/components/ui/Badge';
 import {formatDateTime} from '@/lib/dates';
+import {TrackingTimeline} from './TrackingTimeline';
 
 type Phase = 'loading' | 'anonymous' | 'empty' | 'ready' | 'error';
 
 /**
- * Candidate's applications at `/[locale]/applications` (B6). Newest first;
- * compact cards on phones, an accessible data table on larger screens —
- * never a forced desktop table on mobile (UI_UX §5.3). Each row links to
- * the dossier detail page; per-document verification lives there.
+ * Secure tracking journey at `/[locale]/applications`.
+ * Shows the candidate's most recent application as a single-journey
+ * timeline with status history, instead of a list of cards.
  */
 export function ApplicationsList() {
   const t = useTranslations('tracking');
@@ -29,12 +29,16 @@ export function ApplicationsList() {
   const [phase, setPhase] = useState<Phase>('loading');
   const [apps, setApps] = useState<ApplicationResponse[]>([]);
   const [traceId, setTraceId] = useState<string | null>(null);
+  const [selectedApp, setSelectedApp] = useState<ApplicationResponse | null>(null);
 
   const load = useCallback(async () => {
     try {
       const list = await listApplications();
       setApps(list);
       setPhase(list.length === 0 ? 'empty' : 'ready');
+      if (list.length > 0) {
+        setSelectedApp(list[0]);
+      }
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         setPhase('anonymous');
@@ -46,22 +50,8 @@ export function ApplicationsList() {
   }, []);
 
   useEffect(() => {
-    // async bootstrap on mount
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
-
-  const sorted = useMemo(
-    () => [...apps].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)),
-    [apps],
-  );
-
-  /** Incremental reveal (same pattern as the notification center): the
-   *  backend list endpoint is unpaginated, so long histories render in
-   *  bounded chunks instead of one giant DOM (UI_UX §10.11, §12.12). */
-  const PAGE_SIZE = 10;
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const visible = sorted.slice(0, visibleCount);
 
   if (phase === 'loading') {
     return <CardSkeleton />;
@@ -113,135 +103,88 @@ export function ApplicationsList() {
     );
   }
 
-  const dateRange = (app: ApplicationResponse) =>
-    app.desiredStartDate && app.desiredEndDate
-      ? `${app.desiredStartDate} → ${app.desiredEndDate}`
-      : t('notProvided');
+  const app = selectedApp ?? apps[0];
+  if (!app) return null;
 
   return (
-    <>
-      {/* Mobile: stacked cards */}
-      <ul className="flex flex-col gap-3 md:hidden">
-        {visible.map((app) => (
-          <li key={app.id}>
-            <Card>
-              <div className="flex items-start justify-between gap-2">
-                <Link
-                  href={`/applications/${app.id}`}
-                  className="font-mono text-sm font-semibold whitespace-nowrap text-brand-700 underline-offset-2 hover:underline dark:text-brand-300"
-                  dir="ltr"
-                >
-                  {app.reference}
-                </Link>
-                <StatusPill code={app.status} />
-              </div>
-              <dl className="mt-3 flex flex-col gap-1.5 text-sm">
-                <div className="flex items-baseline justify-between gap-3">
-                  <dt className="text-zinc-500 dark:text-zinc-400">{t('colType')}</dt>
-                  <dd className="text-end font-medium text-zinc-800 dark:text-zinc-100">
-                    {app.calculatedType ? <StatusPill code={app.calculatedType} /> : t('typeUnclassified')}
-                  </dd>
-                </div>
-                <div className="flex items-baseline justify-between gap-3">
-                  <dt className="text-zinc-500 dark:text-zinc-400">{t('colDates')}</dt>
-                  <dd className="text-end font-medium text-zinc-800 dark:text-zinc-100" dir="ltr">
-                    {dateRange(app)}
-                  </dd>
-                </div>
-                <div className="flex items-baseline justify-between gap-3">
-                  <dt className="text-zinc-500 dark:text-zinc-400">{t('colUpdated')}</dt>
-                  <dd className="text-end font-medium text-zinc-800 dark:text-zinc-100">
-                    {formatDateTime(app.updatedAt, locale)}
-                  </dd>
-                </div>
-              </dl>
-              <div className="mt-3 flex justify-end">
-                <Link
-                  href={`/applications/${app.id}`}
-                  className="text-sm font-semibold text-brand-700 underline-offset-2 hover:underline dark:text-brand-300"
-                >
-                  {t('open')}
-                </Link>
-              </div>
-            </Card>
-          </li>
-        ))}
-      </ul>
-
-      {/* Larger screens: data table */}
-      <div className="hidden overflow-x-auto rounded-xl border border-zinc-200 md:block dark:border-zinc-800">
-        <table className="w-full border-collapse bg-white text-left text-sm rtl:text-right dark:bg-navy-900">
-          <caption className="sr-only">{t('title')}</caption>
-          <thead>
-            <tr className="border-b border-zinc-200 dark:border-zinc-800">
-              <th scope="col" className="px-4 py-3 text-xs font-bold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
-                {t('colReference')}
-              </th>
-              <th scope="col" className="px-4 py-3 text-xs font-bold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
-                {t('colType')}
-              </th>
-              <th scope="col" className="px-4 py-3 text-xs font-bold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
-                {t('colDates')}
-              </th>
-              <th scope="col" className="px-4 py-3 text-xs font-bold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
-                {t('colStatus')}
-              </th>
-              <th scope="col" className="px-4 py-3 text-xs font-bold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
-                {t('colUpdated')}
-              </th>
-              <th scope="col" className="px-4 py-3 text-end text-xs font-bold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
-                <span className="sr-only">{t('colActions')}</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {visible.map((app) => (
-              <tr
-                key={app.id}
-                className="border-b border-zinc-100 transition-colors last:border-0 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-white/5"
-              >
-                <td className="px-4 py-3">
-                  <Link
-                    href={`/applications/${app.id}`}
-                    className="font-mono text-[13px] font-semibold whitespace-nowrap text-brand-700 underline-offset-2 hover:underline dark:text-brand-300"
-                    dir="ltr"
-                  >
-                    {app.reference}
-                  </Link>
-                </td>
-                <td className="px-4 py-3">
-                  {app.calculatedType ? <StatusPill code={app.calculatedType} /> : t('typeUnclassified')}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-zinc-700 dark:text-zinc-200" dir="ltr">
-                  {dateRange(app)}
-                </td>
-                <td className="px-4 py-3">
-                  <StatusPill code={app.status} />
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-zinc-700 dark:text-zinc-200">
-                  {formatDateTime(app.updatedAt, locale)}
-                </td>
-                <td className="px-4 py-3 text-end">
-                  <Link
-                    href={`/applications/${app.id}`}
-                    className="text-[13px] font-semibold text-brand-700 underline-offset-2 hover:underline dark:text-brand-300"
-                  >
-                    {t('open')}
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {visible.length < sorted.length && (
-        <div className="mt-4 flex justify-center">
-          <Button variant="secondary" size="md" onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}>
-            {t('showMore', {remaining: sorted.length - visible.length})}
-          </Button>
+    <div className="mx-auto max-w-3xl space-y-6">
+      {/* Application selector */}
+      {apps.length > 1 && (
+        <div className="flex flex-wrap gap-2">
+          {apps.map((a) => (
+            <button
+              key={a.id}
+              type="button"
+              onClick={() => setSelectedApp(a)}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium border transition-colors ${
+                a.id === app.id
+                  ? 'border-brand-600 bg-brand-50 text-brand-700 dark:bg-brand-950/30 dark:text-brand-300'
+                  : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 dark:border-zinc-800 dark:bg-navy-900 dark:text-zinc-400'
+              }`}
+            >
+              {a.reference}
+            </button>
+          ))}
         </div>
       )}
-    </>
+
+      {/* Single-journey tracking timeline */}
+      <Card>
+        <div className="flex items-start justify-between gap-4 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+          <div>
+            <h2 className="text-lg font-bold text-navy-900 dark:text-zinc-50">
+              {t('detailTitle', {reference: app.reference})}
+            </h2>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+              {app.submittedOnline
+                ? t('timelineStateSubmitted')
+                : t('timelineStateDraft')}
+            </p>
+          </div>
+          <StatusPill code={app.status} />
+        </div>
+
+        <div className="mt-4 space-y-4">
+          <TrackingTimeline application={app} />
+        </div>
+      </Card>
+
+      {/* Key facts */}
+      <Card>
+        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-3">{t('sectionOverview')}</h3>
+        <dl className="grid grid-cols-1 gap-y-2 sm:grid-cols-2">
+          <div className="flex items-baseline justify-between gap-3">
+            <dt className="text-sm text-zinc-500 dark:text-zinc-400">{t('fieldReference')}</dt>
+            <dd className="text-sm font-mono font-medium text-zinc-800 dark:text-zinc-200">{app.reference}</dd>
+          </div>
+          <div className="flex items-baseline justify-between gap-3">
+            <dt className="text-sm text-zinc-500 dark:text-zinc-400">{t('fieldStatus')}</dt>
+            <dd><StatusPill code={app.status} /></dd>
+          </div>
+          {app.desiredStartDate && app.desiredEndDate && (
+            <div className="flex items-baseline justify-between gap-3">
+              <dt className="text-sm text-zinc-500 dark:text-zinc-400">{t('fieldDates')}</dt>
+              <dd className="text-sm font-medium text-zinc-800 dark:text-zinc-200" dir="ltr">
+                {app.desiredStartDate} → {app.desiredEndDate}
+              </dd>
+            </div>
+          )}
+          <div className="flex items-baseline justify-between gap-3">
+            <dt className="text-sm text-zinc-500 dark:text-zinc-400">{t('fieldSubmitted')}</dt>
+            <dd className="text-sm text-zinc-800 dark:text-zinc-200">
+              {app.submissionDate ? formatDateTime(app.submissionDate, locale) : t('notProvided')}
+            </dd>
+          </div>
+          <div className="flex items-baseline justify-between gap-3">
+            <dt className="text-sm text-zinc-500 dark:text-zinc-400">{t('fieldUpdated')}</dt>
+            <dd className="text-sm text-zinc-800 dark:text-zinc-200">{formatDateTime(app.updatedAt, locale)}</dd>
+          </div>
+          <div className="flex items-baseline justify-between gap-3">
+            <dt className="text-sm text-zinc-500 dark:text-zinc-400">{t('fieldCreated')}</dt>
+            <dd className="text-sm text-zinc-800 dark:text-zinc-200">{formatDateTime(app.createdAt, locale)}</dd>
+          </div>
+        </dl>
+      </Card>
+    </div>
   );
 }

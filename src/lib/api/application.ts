@@ -37,7 +37,6 @@ export type DocumentType =
   | 'INTERNSHIP_CONVENTION'
   | 'STEG_INTERNSHIP_REPORT'
   | 'CAHIER_DES_CHARGES'
-  | 'PROJECT_DEMO_IMAGE'
   | 'INTERNSHIP_CERTIFICATE'
   | 'INTERNSHIP_LOGBOOK'
   | 'CIN_COPY'
@@ -62,7 +61,6 @@ export interface ApplicationResponse {
   candidateName: string;
   desiredStartDate: string | null;
   desiredEndDate: string | null;
-  proposedTheme: string | null;
   submittedOnline: boolean;
   submissionDate: string | null;
   calculatedType: InternshipType | null;
@@ -78,14 +76,12 @@ export interface ApplicationResponse {
 export interface ApplicationCreateRequest {
   desiredStartDate?: string | null;
   desiredEndDate?: string | null;
-  proposedTheme?: string | null;
   submittedOnline?: boolean;
 }
 
 export interface ApplicationUpdateRequest {
   desiredStartDate?: string | null;
   desiredEndDate?: string | null;
-  proposedTheme?: string | null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -155,7 +151,7 @@ export interface DocumentRule {
  * `document/domain/service/DocumentValidationService` — `SIZE_LIMITS` and
  * `ALLOWED_MIME_TYPES`). INTERNSHIP_APPLICATION and ASSIGNMENT_LETTER are
  * absent from `SIZE_LIMITS`, so they fall under `DEFAULT_MAX_SIZE` (10 MB).
- * PROJECT_DEMO_IMAGE is capped at 15 MB with jpeg/png/jpg MIMEs.
+ 
  *
  * These constants drive client-side pre-validation and slot chrome (accepted
  * formats, max size) as UX feedback only — the backend (Tika content
@@ -164,7 +160,7 @@ export interface DocumentRule {
  * EMPTY_FILE) are surfaced verbatim to the user.
  */
 export const DOCUMENT_RULES: Record<
-  'INTERNSHIP_APPLICATION' | 'ASSIGNMENT_LETTER' | 'PROJECT_DEMO_IMAGE',
+  'INTERNSHIP_APPLICATION' | 'ASSIGNMENT_LETTER',
   DocumentRule
 > = {
   INTERNSHIP_APPLICATION: {
@@ -178,12 +174,6 @@ export const DOCUMENT_RULES: Record<
     extensions: ['.pdf'],
     maxBytes: 10 * 1024 * 1024,
     required: true,
-  },
-  PROJECT_DEMO_IMAGE: {
-    mimes: ['image/jpeg', 'image/png', 'image/jpg'],
-    extensions: ['.jpg', '.jpeg', '.png'],
-    maxBytes: 15 * 1024 * 1024,
-    required: false,
   },
 };
 

@@ -30,7 +30,6 @@ import {Stepper, type StepDef} from './Stepper';
 import {PersonalStep} from './PersonalStep';
 import {EducationStep} from './EducationStep';
 import {DatesStep} from './DatesStep';
-import {DetailsStep} from './DetailsStep';
 import {DocumentsStep} from './DocumentsStep';
 import {ReviewStep} from './ReviewStep';
 import {SubmitStep} from './SubmitStep';
@@ -44,7 +43,7 @@ import {
 } from '@/lib/apply-wizard';
 import {idleSlot, type SlotError, type SlotState} from './DocumentSlot';
 
-type Phase = 'loading' | 'ready' | 'error';
+type Phase = 'loading' | 'ready' | 'error' | 'alreadyApplied';
 
 const STEP_DEFS: StepDef[] = STEPS.map((id) => ({id, key: id}));
 const STORAGE_KEY = 'steg_apply_wizard_draft_v2';
@@ -53,12 +52,10 @@ function docsToUploads(docs: ApplicationDocumentResponse[]) {
   const next = {
     INTERNSHIP_APPLICATION: null,
     ASSIGNMENT_LETTER: null,
-    PROJECT_DEMO_IMAGE: null,
   } as Record<UploadKind, ApplicationDocumentResponse | null>;
   for (const d of docs) {
     if (d.document.type === 'INTERNSHIP_APPLICATION') next.INTERNSHIP_APPLICATION = d;
     else if (d.document.type === 'ASSIGNMENT_LETTER') next.ASSIGNMENT_LETTER = d;
-    else if (d.document.type === 'PROJECT_DEMO_IMAGE') next.PROJECT_DEMO_IMAGE = d;
   }
   return next;
 }
@@ -97,19 +94,16 @@ export function ApplyWizard() {
   const [slots, setSlots] = useState<Record<UploadKind, SlotState>>({
     INTERNSHIP_APPLICATION: idleSlot(),
     ASSIGNMENT_LETTER: idleSlot(),
-    PROJECT_DEMO_IMAGE: idleSlot(),
   });
 
   const pendingFiles = useRef<Record<UploadKind, File | null>>({
     INTERNSHIP_APPLICATION: null,
     ASSIGNMENT_LETTER: null,
-    PROJECT_DEMO_IMAGE: null,
   });
 
   const aborters = useRef<Record<UploadKind, AbortController | null>>({
     INTERNSHIP_APPLICATION: null,
     ASSIGNMENT_LETTER: null,
-    PROJECT_DEMO_IMAGE: null,
   });
 
   const draftPromise = useRef<Promise<ApplicationResponse> | null>(null);
@@ -119,7 +113,6 @@ export function ApplyWizard() {
     () => ({
       INTERNSHIP_APPLICATION: slots.INTERNSHIP_APPLICATION.attachment,
       ASSIGNMENT_LETTER: slots.ASSIGNMENT_LETTER.attachment,
-      PROJECT_DEMO_IMAGE: slots.PROJECT_DEMO_IMAGE.attachment,
     }),
     [slots],
   );
@@ -132,9 +125,6 @@ export function ApplyWizard() {
       ASSIGNMENT_LETTER:
         slots.ASSIGNMENT_LETTER.phase === 'uploading' ||
         slots.ASSIGNMENT_LETTER.phase === 'attaching',
-      PROJECT_DEMO_IMAGE:
-        slots.PROJECT_DEMO_IMAGE.phase === 'uploading' ||
-        slots.PROJECT_DEMO_IMAGE.phase === 'attaching',
     }),
     [slots],
   );
@@ -142,6 +132,7 @@ export function ApplyWizard() {
   const [stepError, setStepError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [alreadyAppliedRef, setAlreadyAppliedRef] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submittedReference, setSubmittedReference] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
@@ -216,8 +207,22 @@ export function ApplyWizard() {
       return;
     }
 
-    // If authenticated, check for an existing DRAFT or prefill from profile
+    // If authenticated, check for any existing application (one application only)
     if (prof) {
+      try {
+        const {listApplications} = await import('@/lib/api/application-client');
+        const list = await listApplications();
+        if (list.length > 0) {
+          const a = list[0];
+          setAlreadyAppliedRef(a.reference);
+          setPhase('alreadyApplied');
+          return;
+        }
+      } catch {
+        /* proceed to profile prefill */
+      }
+
+      // No existing application: check for DRAFT or prefill from profile
       try {
         const {listApplications} = await import('@/lib/api/application-client');
         const list = await listApplications();
@@ -251,10 +256,6 @@ export function ApplyWizard() {
                 desiredStartDate: a.desiredStartDate || prev.dates.desiredStartDate,
                 desiredEndDate: a.desiredEndDate || prev.dates.desiredEndDate,
               },
-              details: {
-                proposedTheme: a.proposedTheme || prev.details.proposedTheme,
-                preferredDepartment: prev.details.preferredDepartment,
-              },
             };
             saveDraftToStorage(next);
             return next;
@@ -267,7 +268,6 @@ export function ApplyWizard() {
             setSlots({
               INTERNSHIP_APPLICATION: idleSlot(byKind.INTERNSHIP_APPLICATION),
               ASSIGNMENT_LETTER: idleSlot(byKind.ASSIGNMENT_LETTER),
-              PROJECT_DEMO_IMAGE: idleSlot(byKind.PROJECT_DEMO_IMAGE),
             });
           } catch {
             /* ignore document loading failures */
@@ -337,7 +337,6 @@ export function ApplyWizard() {
         const body = {
           desiredStartDate: target.dates.desiredStartDate || null,
           desiredEndDate: target.dates.desiredEndDate || null,
-          proposedTheme: target.details.proposedTheme || null,
         };
         if (app) {
           const updated = await updateDraft(app.id, body);
@@ -412,7 +411,6 @@ export function ApplyWizard() {
       draftPromise.current = createDraft({
         desiredStartDate: draft.dates.desiredStartDate || null,
         desiredEndDate: draft.dates.desiredEndDate || null,
-        proposedTheme: draft.details.proposedTheme || null,
       })
         .then((created) => {
           appRef.current = created;
@@ -424,7 +422,7 @@ export function ApplyWizard() {
         });
     }
     return draftPromise.current;
-  }, [draft.dates.desiredEndDate, draft.dates.desiredStartDate, draft.details.proposedTheme]);
+  }, [draft.dates.desiredEndDate, draft.dates.desiredStartDate]);
 
   const startUpload = useCallback(
     async (kind: UploadKind, file: File) => {
@@ -586,7 +584,7 @@ export function ApplyWizard() {
     setStepError(null);
 
     // If authenticated, persist draft checkpoint to backend when leaving dates or details
-    if (isAuthenticated && (currentStepId === 'dates' || currentStepId === 'details')) {
+    if (isAuthenticated && (currentStepId === 'dates')) {
       try {
         await persistDraft();
       } catch {
@@ -725,7 +723,6 @@ export function ApplyWizard() {
       const createdDraft = await createDraft({
         desiredStartDate: draft.dates.desiredStartDate || null,
         desiredEndDate: draft.dates.desiredEndDate || null,
-        proposedTheme: draft.details.proposedTheme || null,
       });
       appRef.current = createdDraft;
       setApp(createdDraft);
@@ -734,7 +731,6 @@ export function ApplyWizard() {
       const kinds: UploadKind[] = [
         'INTERNSHIP_APPLICATION',
         'ASSIGNMENT_LETTER',
-        'PROJECT_DEMO_IMAGE',
       ];
       for (const kind of kinds) {
         const file = pendingFiles.current[kind];
@@ -786,6 +782,63 @@ export function ApplyWizard() {
           void loadAll();
         }}
       />
+    );
+  }
+
+  if (phase === 'alreadyApplied') {
+    return (
+      <div className="flex min-h-[80vh] items-center justify-center px-4 py-16">
+        <div className="w-full max-w-md">
+          <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-50/90 p-8 shadow-xl backdrop-blur-sm dark:border-amber-400/30 dark:bg-amber-500/10">
+              {/* Icon */}
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/30">
+                <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+
+              {/* Title */}
+              <h2 className="text-2xl font-bold text-amber-950 dark:text-amber-50">
+                {t('alreadyAppliedTitle')}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-amber-800/80 dark:text-amber-100/80">
+                {t('alreadyAppliedBody')}
+              </p>
+
+              {/* Reference badge */}
+              {alreadyAppliedRef && (
+                <div className="mt-5 flex justify-center">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-100/80 px-5 py-2.5 text-xs font-mono font-semibold text-amber-900 dark:text-amber-200 dark:border-amber-400/50 dark:bg-amber-400/10">
+                    <svg className="h-3.5 w-3.5 text-amber-600 dark:text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M7 20l4-16m2 16l4-16M3 8h18M3 16h18" />
+                    </svg>
+                    {t('alreadyAppliedRef', {reference: alreadyAppliedRef})}
+                  </span>
+                </div>
+              )}
+
+              {/* Info text */}
+              <p className="mt-5 text-xs text-amber-700/60 dark:text-amber-300/60">
+                {t('alreadyAppliedNext')}
+              </p>
+
+              {/* CTA Button */}
+              <div className="mt-8 flex justify-center">
+                <a
+                  href="/apply/track"
+                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-8 py-3.5 text-sm font-bold text-amber-950 dark:text-amber-900 shadow-lg shadow-amber-500/30 transition-all duration-300 hover:from-amber-400 hover:to-amber-500 hover:shadow-amber-400/40"
+                >
+                  <svg className="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                  {t('trackMyApplication')}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -859,30 +912,11 @@ export function ApplyWizard() {
         />
       )}
 
-      {/* Step 4: Internship Details & Project Theme */}
-      {stepIndex === 3 && (
-        <DetailsStep
-          data={draft.details}
-          classificationType={classificationType}
-          onChange={(patch) => {
-            setDraft((prev) => {
-              const next = {...prev, details: {...prev.details, ...patch}};
-              saveDraftToStorage(next);
-              return next;
-            });
-            setDirty(true);
-          }}
-          errorKey={stepError}
-          onContinue={() => void goNext()}
-        />
-      )}
-
       {/* Step 5: Required Documents */}
-      {stepIndex === 4 && (
+      {stepIndex === 3 && (
         <DocumentsStep
           application={slots.INTERNSHIP_APPLICATION}
           assignment={slots.ASSIGNMENT_LETTER}
-          demo={slots.PROJECT_DEMO_IMAGE}
           disabled={saving}
           onSelectFiles={(kind, files) => {
             if (files.length > 0) void startUpload(kind, files[0]);
@@ -896,14 +930,13 @@ export function ApplyWizard() {
       )}
 
       {/* Step 6: Scannable Review */}
-      {stepIndex === 5 && (
+      {stepIndex === 4 && (
         <ReviewStep
           draft={draft}
           universities={universities}
           classification={classification}
           applicationLetter={uploads.INTERNSHIP_APPLICATION}
           assignmentLetter={uploads.ASSIGNMENT_LETTER}
-          demo={uploads.PROJECT_DEMO_IMAGE}
           onJumpToStep={handleJumpToStep}
           onToggleTerms={(val) => {
             setDraft((prev) => {
@@ -918,7 +951,7 @@ export function ApplyWizard() {
       )}
 
       {/* Step 7: Confirmation & Tracking / Anonymous Bridge */}
-      {stepIndex === 6 && (
+      {stepIndex === 5 && (
         <SubmitStep
           isAuthenticated={isAuthenticated}
           submitting={submitting}

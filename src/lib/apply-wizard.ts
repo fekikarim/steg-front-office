@@ -4,20 +4,18 @@ import type {
 } from '@/lib/api/application';
 
 /**
- * 7-step guided Apply wizard identifiers conforming to Phase B7 specification:
+ * 6-step guided Apply wizard identifiers conforming to Phase B7 specification:
  * 1. personal (Full name, CIN, Phone, Email, Birth date)
  * 2. education (Level, University)
  * 3. dates (Start date, End date, automatic live classification preview)
- * 4. details (Internship-specific details, project theme for Perf/PFE)
- * 5. documents (Required PDF uploads + optional demo)
- * 6. review (Full scannable summary + confirmation checkbox)
- * 7. result (Submission success reference and tracking)
+ * 4. documents (Required PDF uploads)
+ * 5. review (Full scannable summary + confirmation checkbox)
+ * 6. result (Submission success reference and tracking)
  */
 export const STEPS = [
   'personal',
   'education',
   'dates',
-  'details',
   'documents',
   'review',
   'result',
@@ -45,20 +43,14 @@ export interface InternshipDatesDraft {
   desiredEndDate: string;
 }
 
-export interface InternshipDetailsDraft {
-  proposedTheme: string;
-  preferredDepartment?: string;
-}
-
 export interface WizardDraft {
   personal: PersonalInfoDraft;
   education: EducationDraft;
   dates: InternshipDatesDraft;
-  details: InternshipDetailsDraft;
   confirmedTerms: boolean;
 }
 
-export type UploadKind = 'INTERNSHIP_APPLICATION' | 'ASSIGNMENT_LETTER' | 'PROJECT_DEMO_IMAGE';
+export type UploadKind = 'INTERNSHIP_APPLICATION' | 'ASSIGNMENT_LETTER';
 
 export const INITIAL_WIZARD_DRAFT: WizardDraft = {
   personal: {
@@ -77,10 +69,6 @@ export const INITIAL_WIZARD_DRAFT: WizardDraft = {
   dates: {
     desiredStartDate: '',
     desiredEndDate: '',
-  },
-  details: {
-    proposedTheme: '',
-    preferredDepartment: '',
   },
   confirmedTerms: false,
 };
@@ -117,13 +105,6 @@ export function validateStep(
       const d = draft.dates;
       if (!d.desiredStartDate || !d.desiredEndDate) return 'apply.dates.errorBothRequired';
       if (d.desiredEndDate < d.desiredStartDate) return 'apply.dates.errorEndBeforeStart';
-      return null;
-    }
-    case 'details': {
-      // Perfectionnement and PFE require a project theme
-      if (classificationType === 'PERFECTIONNEMENT' || classificationType === 'PFE') {
-        if (!draft.details.proposedTheme.trim()) return 'apply.info.projectThemeRequired';
-      }
       return null;
     }
     case 'documents': {
