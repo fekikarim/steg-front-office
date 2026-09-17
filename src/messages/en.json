@@ -184,37 +184,6 @@
     "pfeImageAlt": "Final-year project",
     "paperlessAlt": "End of paper, full switch to digital"
   },
-  "comingSoon": {
-    "common": {
-      "eyebrow": "Coming soon",
-      "whatsComing": "What to expect",
-      "backHome": "Back to home",
-      "browseInternships": "Browse internships",
-      "contact": "Contact us",
-      "note": "This feature arrives with a forthcoming phase of the project. It will be available here as soon as it is launched."
-    },
-    "apply": {
-      "title": "Online application",
-      "intro": "The guided application form will let you submit your file in a few steps, with document upload and status tracking.",
-      "point1": "Step-by-step form for your personal and university information",
-      "point2": "Date selection with automatic internship-type classification",
-      "point3": "Upload of your assignment letter and a CIN copy (PDF)"
-    },
-    "companion": {
-      "title": "Intern space",
-      "intro": "The companion app will support interns and supervisors daily: tasks, journal, communication and deliverables.",
-      "point1": "Internship roadmap and tasks",
-      "point2": "Daily journal and supervisor feedback",
-      "point3": "Secure communication and deliverable tracking"
-    },
-    "login": {
-      "title": "Sign in to your space",
-      "intro": "Access to your personal space will let you follow your applications, documents and notifications.",
-      "point1": "Secure access to your candidate account",
-      "point2": "Centralised tracking of your applications",
-      "point3": "Manage your documents and notifications"
-    }
-  },
   "common": {
     "loading": "Loading…",
     "retry": "Retry",
@@ -989,7 +958,15 @@
     "alreadyAppliedBody": "You already have a submitted internship application. Each candidate is allowed exactly one application per session. You can only reapply in the next recruitment session.",
     "alreadyAppliedRef": "Your reference: {reference}",
     "alreadyAppliedNext": "You can track your application status or contact the STEG HR department for more information.",
-    "trackMyApplication": "Track my application"
+    "trackMyApplication": "Track my application",
+    "trackingTokenLabel": "Tracking token (keep it safe)",
+    "trackingTokenOnce": "Shown once: without an account, this is the only way to track your file.",
+    "copyToken": "Copy token",
+    "copied": "Copied!",
+    "copyFailed": "Copy failed.",
+    "orDivider": "or",
+    "anonymousDirectDesc": "No account needed: your file is submitted immediately and you receive a tracking token.",
+    "anonymousDirectBtn": "Submit without an account"
   },
   "tracking": {
     "title": "My applications",
@@ -1090,7 +1067,8 @@
     "timeHours": "{count} h ago",
     "timeDays": "{count} d ago",
     "loadErrorTitle": "Notifications unavailable",
-    "loadErrorHint": "We could not load your notifications. Please retry."
+    "loadErrorHint": "We could not load your notifications. Please retry.",
+    "live": "Live sync active"
   },
   "companion": {
     "badge": "Dedicated Flutter Mobile App",
@@ -1133,5 +1111,28 @@
     "productName": "Internship Companion",
     "titleBrand": "Internship Companion",
     "dayInLifeProduct": "Internship Companion"
+  },
+  "assistant": {
+    "title": "STEG virtual assistant",
+    "advisory": "AI-generated answers from the official documentation — advisory only, staff decisions prevail.",
+    "empty": "Ask about internship types, required documents or the application procedure.",
+    "emptyAnswer": "The assistant could not formulate an answer.",
+    "errorGeneric": "Assistance service unavailable right now.",
+    "inputLabel": "Your question",
+    "placeholder": "E.g. What is the difference between Observation and PFE?",
+    "send": "Send",
+    "sending": "Sending…",
+    "thinking": "Thinking…",
+    "loginRequired": "Sign in to query the STEG virtual assistant."
+  },
+  "track": {
+    "title": "Application tracking",
+    "intro": "Paste the tracking token received at anonymous submission to see its progress.",
+    "tokenLabel": "Tracking token",
+    "tokenPlaceholder": "E.g. 9f2c…",
+    "tokenRequired": "A tracking token is required.",
+    "trackButton": "Track my application",
+    "tracking": "Looking up…",
+    "errorGeneric": "Tracking unavailable right now."
   }
 }

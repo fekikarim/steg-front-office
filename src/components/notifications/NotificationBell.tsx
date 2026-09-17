@@ -5,7 +5,7 @@ import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {useAuth} from '@/lib/auth';
 import {getUnreadCount} from '@/lib/api/notifications-client';
-import {startNotificationPolling} from '@/lib/notifications';
+import {startRealtimeNotifications, type RealtimeState} from '@/lib/realtime';
 import {cx} from '@/lib/cx';
 
 interface NotificationBellProps {
@@ -25,6 +25,7 @@ export function NotificationBell({className}: NotificationBellProps) {
   const {status} = useAuth();
   const [count, setCount] = useState<number | null>(null);
   const [seenStatus, setSeenStatus] = useState(status);
+  const [live, setLive] = useState(false);
 
   // Reset the badge when the session changes (render-time adjustment, not an effect).
   if (seenStatus !== status) {
@@ -46,11 +47,15 @@ export function NotificationBell({className}: NotificationBellProps) {
     // async bootstrap on sign-in
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
-    const stopPoll = startNotificationPolling(() => void refresh());
+    // Realtime first (STOMP), polling fallback inside — REST stays authoritative.
+    const stopLive = startRealtimeNotifications(() => void refresh(), (s: RealtimeState) => {
+      if (s === 'connected') setLive(true);
+      else setLive(false);
+    });
     const onChanged = () => void refresh();
     window.addEventListener('notifications:changed', onChanged);
     return () => {
-      stopPoll();
+      stopLive();
       window.removeEventListener('notifications:changed', onChanged);
     };
   }, [status, refresh]);
@@ -82,6 +87,13 @@ export function NotificationBell({className}: NotificationBellProps) {
           d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"
         />
       </svg>
+      {live && (
+        <span
+          aria-hidden="true"
+          title={t('live')}
+          className="absolute bottom-0.5 end-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-navy-900"
+        />
+      )}
       {count !== null && count > 0 && (
         <span
           aria-hidden="true"

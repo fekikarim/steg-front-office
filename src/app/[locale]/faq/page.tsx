@@ -3,6 +3,7 @@ import {getTranslations} from 'next-intl/server';
 import {setRequestLocale} from 'next-intl/server';
 import type {AppLocale} from '@/i18n/routing';
 import {Button} from '@/components/ui/Button';
+import {ChatAssistant} from '@/components/ai/ChatAssistant';
 
 export default async function FaqPage({params}: {params: Promise<{locale: string}>}) {
   const {locale} = await params;
@@ -63,6 +64,9 @@ export default async function FaqPage({params}: {params: Promise<{locale: string
             </details>
           ))}
         </div>
+
+        {/* STEG RAG assistant (E3.1): knowledge-base answers via Spring Boot → Gemini */}
+        <ChatAssistant />
 
         {/* Need more help CTA */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6 rounded-2xl border border-brand-500/20 bg-gradient-to-r from-navy-950 via-navy-900 to-navy-950 p-6 text-white backdrop-blur-lg">

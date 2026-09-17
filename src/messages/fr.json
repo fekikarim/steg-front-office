@@ -184,37 +184,6 @@
     "pfeImageAlt": "Projet de Fin d'Études",
     "paperlessAlt": "Fin du papier et passage au tout numérique"
   },
-  "comingSoon": {
-    "common": {
-      "eyebrow": "Bientôt disponible",
-      "whatsComing": "Ce qui vous attend",
-      "backHome": "Retour à l'accueil",
-      "browseInternships": "Voir les stages",
-      "contact": "Nous contacter",
-      "note": "Cette fonctionnalité arrive avec une prochaine phase du projet. Elle sera accessible ici dès son lancement."
-    },
-    "apply": {
-      "title": "Candidature en ligne",
-      "intro": "Le formulaire de candidature guidé vous permettra de déposer votre dossier en quelques étapes, avec téléversement des documents et suivi du statut.",
-      "point1": "Formulaire pas à pas de vos informations personnelles et universitaires",
-      "point2": "Choix des dates avec classification automatique du type de stage",
-      "point3": "Téléversement de la lettre de mission et de la copie CIN (PDF)"
-    },
-    "companion": {
-      "title": "Espace stagiaire",
-      "intro": "L'application compagnon accompagnera stagiaires et superviseurs au quotidien : tâches, journal, communication et livrables.",
-      "point1": "Feuille de route et tâches du stage",
-      "point2": "Journal quotidien et retours du superviseur",
-      "point3": "Communication sécurisée et suivi des livrables"
-    },
-    "login": {
-      "title": "Connexion à votre espace",
-      "intro": "L'accès à votre espace personnel vous permettra de suivre vos candidatures, vos documents et vos notifications.",
-      "point1": "Connexion sécurisée à votre compte candidat",
-      "point2": "Suivi centralisé de vos candidatures",
-      "point3": "Gestion de vos documents et notifications"
-    }
-  },
   "common": {
     "loading": "Chargement…",
     "retry": "Réessayer",
@@ -989,7 +958,15 @@
     "alreadyAppliedBody": "Vous avez déjà une candidature soumise. Chaque candidat ne peut soumettre qu'une seule candidature par session. Vous ne pouvez postuler qu'à la prochaine session de recrutement.",
     "alreadyAppliedRef": "Votre référence : {reference}",
     "alreadyAppliedNext": "Vous pouvez suivre l'état de votre candidature ou contacter la DRH de la STEG pour plus d'informations.",
-    "trackMyApplication": "Suivre ma candidature"
+    "trackMyApplication": "Suivre ma candidature",
+    "trackingTokenLabel": "Jeton de suivi (à conserver)",
+    "trackingTokenOnce": "Présenté une seule fois : sans compte, c'est le seul moyen de suivre votre dossier.",
+    "copyToken": "Copier le jeton",
+    "copied": "Copié !",
+    "copyFailed": "Copie impossible.",
+    "orDivider": "ou",
+    "anonymousDirectDesc": "Sans créer de compte : votre dossier est déposé immédiatement et vous recevez un jeton de suivi.",
+    "anonymousDirectBtn": "Déposer sans compte"
   },
   "tracking": {
     "title": "Mes candidatures",
@@ -1090,7 +1067,8 @@
     "timeHours": "Il y a {count} h",
     "timeDays": "Il y a {count} j",
     "loadErrorTitle": "Notifications indisponibles",
-    "loadErrorHint": "Nous n'avons pas pu charger vos notifications. Veuillez réessayer."
+    "loadErrorHint": "Nous n'avons pas pu charger vos notifications. Veuillez réessayer.",
+    "live": "Synchronisation en direct active"
   },
   "companion": {
     "badge": "Application Mobile Flutter Dédiée",
@@ -1133,5 +1111,28 @@
     "productName": "Compagnon de Stage",
     "titleBrand": "Compagnon de Stage",
     "dayInLifeProduct": "Compagnon de Stage"
+  },
+  "assistant": {
+    "title": "Assistant virtuel STEG",
+    "advisory": "Réponses générées par IA à partir de la documentation officielle — informations indicatives, les décisions du personnel font foi.",
+    "empty": "Posez une question sur les types de stage, les documents requis ou la procédure de candidature.",
+    "emptyAnswer": "L'assistant n'a pas pu formuler de réponse.",
+    "errorGeneric": "Service d'assistance indisponible pour le moment.",
+    "inputLabel": "Votre question",
+    "placeholder": "Ex. Quelle est la différence entre Observation et PFE ?",
+    "send": "Envoyer",
+    "sending": "Envoi…",
+    "thinking": "Réflexion…",
+    "loginRequired": "Connectez-vous pour interroger l'assistant virtuel STEG."
+  },
+  "track": {
+    "title": "Suivi de candidature",
+    "intro": "Collez le jeton de suivi reçu lors de votre candidature sans compte pour voir son avancement.",
+    "tokenLabel": "Jeton de suivi",
+    "tokenPlaceholder": "Ex. 9f2c…",
+    "tokenRequired": "Un jeton de suivi est requis.",
+    "trackButton": "Suivre ma candidature",
+    "tracking": "Recherche…",
+    "errorGeneric": "Suivi impossible pour le moment."
   }
 }

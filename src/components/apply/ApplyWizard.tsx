@@ -24,6 +24,7 @@ import {createProfile, fetchUniversities, getProfile, updateProfile} from '@/lib
 import {extensionsLabel, formatBytes} from '@/lib/files';
 import {useToast} from '@/components/ui/Toast';
 import {Button} from '@/components/ui/Button';
+import {Link} from '@/i18n/navigation';
 import {CardSkeleton} from '@/components/feedback/Skeleton';
 import {ErrorState} from '@/components/feedback/ErrorState';
 import {Stepper, type StepDef} from './Stepper';
@@ -135,6 +136,7 @@ export function ApplyWizard() {
   const [alreadyAppliedRef, setAlreadyAppliedRef] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submittedReference, setSubmittedReference] = useState<string | null>(null);
+  const [trackingToken, setTrackingToken] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
 
   const bootstrapDone = useRef(false);
@@ -654,8 +656,7 @@ export function ApplyWizard() {
   /**
    * Anonymous candidate bridge: creates candidate account or signs in,
    * creates the draft, uploads queued files, and submits the dossier.
-   *
-   * // TODO — BACKEND SUPPORT REQUIRED: Anonymous application submission endpoint without prior authentication.
+   * (For account-less submission see handleAnonymousDirect.)
    */
   const handleAnonymousSubmit = useCallback(
     async (password: string, isNewAccount: boolean) => {
@@ -748,6 +749,7 @@ export function ApplyWizard() {
       appRef.current = finalApp;
       setApp(finalApp);
       setSubmittedReference(finalApp.reference);
+      setTrackingToken(null);
       setDirty(false);
       try {
         sessionStorage.removeItem(STORAGE_KEY);
@@ -757,6 +759,57 @@ export function ApplyWizard() {
     },
     [draft],
   );
+
+  /**
+   * Account-less submission (E3.1): posts the wizard draft + queued files to the
+   * public endpoint. Backend owns validation, CIN-uniqueness and classification.
+   * The tracking token is shown once — the only credential for `/track`.
+   */
+  const handleAnonymousDirect = useCallback(async () => {
+    const files: File[] = [];
+    for (const kind of ['INTERNSHIP_APPLICATION', 'ASSIGNMENT_LETTER'] as UploadKind[]) {
+      const file = pendingFiles.current[kind];
+      if (!file) {
+        setSubmitError(tError('submitError', {message: td('submitBlockedDocs')}));
+        return;
+      }
+      files.push(file);
+    }
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const {submitAnonymous} = await import('@/lib/api/anonymous-client');
+      const result = await submitAnonymous(
+        {
+          firstName: draft.personal.firstName,
+          lastName: draft.personal.lastName,
+          email: draft.personal.email,
+          phone: draft.personal.phone || undefined,
+          birthDate: draft.personal.birthDate || undefined,
+          nationalId: draft.personal.nationalId,
+          universityId: draft.education.universityId,
+          speciality: draft.education.speciality || undefined,
+          diploma: draft.education.educationLevel || undefined,
+          desiredStartDate: draft.dates.desiredStartDate,
+          desiredEndDate: draft.dates.desiredEndDate,
+        },
+        files,
+      );
+      setSubmittedReference(result.reference);
+      setTrackingToken(result.trackingToken);
+      setDirty(false);
+      try {
+        sessionStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : t('loadErrorHint');
+      setSubmitError(tError('submitError', {message: msg}));
+    } finally {
+      setSubmitting(false);
+    }
+  }, [draft, t, tError, td]);
 
   /* ----- Render Loading / Error ----- */
   if (phase === 'loading') {
@@ -825,15 +878,15 @@ export function ApplyWizard() {
 
               {/* CTA Button */}
               <div className="mt-8 flex justify-center">
-                <a
-                  href="/apply/track"
+                <Link
+                  href="/track"
                   className="group inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-8 py-3.5 text-sm font-bold text-amber-950 dark:text-amber-900 shadow-lg shadow-amber-500/30 transition-all duration-300 hover:from-amber-400 hover:to-amber-500 hover:shadow-amber-400/40"
                 >
                   <svg className="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                   {t('trackMyApplication')}
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -956,10 +1009,12 @@ export function ApplyWizard() {
           isAuthenticated={isAuthenticated}
           submitting={submitting}
           submittedReference={submittedReference}
+          trackingToken={trackingToken}
           candidateEmail={draft.personal.email}
           errorKey={submitError}
           onSubmit={() => void handleSubmit()}
           onAnonymousSubmit={handleAnonymousSubmit}
+          onAnonymousDirect={() => handleAnonymousDirect()}
         />
       )}
 

@@ -14,27 +14,30 @@ interface SubmitStepProps {
   isAuthenticated: boolean;
   submitting: boolean;
   submittedReference: string | null;
+  trackingToken: string | null;
   candidateEmail: string;
   errorKey: string | null;
   onSubmit: () => void;
   onAnonymousSubmit: (password: string, isNewAccount: boolean) => Promise<void>;
+  onAnonymousDirect: () => Promise<void>;
 }
 
 /**
  * Step 7 — Submission Result & Anonymous Bridge.
  * If authenticated: Submits the draft to the backend and displays the official reference code.
- * If anonymous: Bridges seamlessly via account creation or login without losing any entered data.
- *
- * // TODO — BACKEND SUPPORT REQUIRED: Anonymous application submission endpoint without prior authentication.
+ * If anonymous: submits directly without an account (reference + one-time tracking token),
+ * or bridges via account creation/login without losing any entered data.
  */
 export function SubmitStep({
   isAuthenticated,
   submitting,
   submittedReference,
+  trackingToken,
   candidateEmail,
   errorKey,
   onSubmit,
   onAnonymousSubmit,
+  onAnonymousDirect,
 }: SubmitStepProps) {
   const t = useTranslations('apply.submit');
   const ta = useTranslations('apply');
@@ -44,6 +47,31 @@ export function SubmitStep({
   const [isNewAccount, setIsNewAccount] = useState(true);
   const [bridgeSubmitting, setBridgeSubmitting] = useState(false);
   const [bridgeError, setBridgeError] = useState<string | null>(null);
+  const [directSubmitting, setDirectSubmitting] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  async function handleDirectSubmit() {
+    setBridgeError(null);
+    setDirectSubmitting(true);
+    try {
+      await onAnonymousDirect();
+    } catch (err: unknown) {
+      setBridgeError(err instanceof Error ? err.message : t('bridgeFinalizeError'));
+    } finally {
+      setDirectSubmitting(false);
+    }
+  }
+
+  async function copyToken() {
+    if (!trackingToken) return;
+    try {
+      await navigator.clipboard.writeText(trackingToken);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      setBridgeError(ta('copyFailed'));
+    }
+  }
 
   async function handleBridgeSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -92,6 +120,25 @@ export function SubmitStep({
               </p>
             </div>
 
+            {trackingToken && (
+              <div className="w-full rounded-2xl border border-amber-300 bg-amber-50/80 px-6 py-4 dark:border-amber-800 dark:bg-amber-950/30">
+                <span className="text-xs font-semibold text-amber-800 dark:text-amber-200">
+                  {ta('trackingTokenLabel')}
+                </span>
+                <p className="mt-1 break-all font-mono text-sm font-bold text-amber-900 dark:text-amber-100" dir="ltr">
+                  {trackingToken}
+                </p>
+                <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">{ta('trackingTokenOnce')}</p>
+                <button
+                  type="button"
+                  onClick={() => void copyToken()}
+                  className="mt-2 rounded-lg border border-amber-400 px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100 dark:text-amber-200 dark:hover:bg-amber-900/40"
+                >
+                  {copied ? ta('copied') : ta('copyToken')}
+                </button>
+              </div>
+            )}
+
             {/* Next Steps Guidance */}
             <div className="mt-2 w-full max-w-lg rounded-2xl border border-zinc-200 bg-zinc-50/80 p-5 text-start dark:border-zinc-800 dark:bg-navy-900">
               <h3 className="text-xs font-bold uppercase tracking-wider text-navy-900 dark:text-zinc-100">
@@ -114,12 +161,21 @@ export function SubmitStep({
             </div>
 
             <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-              <Link href="/applications">
-                <Button variant="primary" size="md" className="hover-lift shadow-sm">
-                  {ta('submitTrackBtn')}
-                  <IconArrowRight className="h-4 w-4 rtl:rotate-180" />
-                </Button>
-              </Link>
+              {trackingToken ? (
+                <Link href="/track">
+                  <Button variant="primary" size="md" className="hover-lift shadow-sm">
+                    {ta('submitTrackBtn')}
+                    <IconArrowRight className="h-4 w-4 rtl:rotate-180" />
+                  </Button>
+                </Link>
+              ) : (
+                <Link href="/applications">
+                  <Button variant="primary" size="md" className="hover-lift shadow-sm">
+                    {ta('submitTrackBtn')}
+                    <IconArrowRight className="h-4 w-4 rtl:rotate-180" />
+                  </Button>
+                </Link>
+              )}
               <Link href="/">
                 <Button variant="secondary" size="md">
                   {t('goHome')}
@@ -228,6 +284,31 @@ export function SubmitStep({
               >
                 {isNewAccount ? ta('anonymousCreateAccountBtn') : ta('anonymousSignInBtn')}
                 <IconArrowRight className="h-4 w-4 rtl:rotate-180" />
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-3 pt-1" aria-hidden="true">
+              <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                {ta('orDivider')}
+              </span>
+              <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                {ta('anonymousDirectDesc')}
+              </p>
+              <Button
+                type="button"
+                variant="secondary"
+                size="lg"
+                loading={directSubmitting}
+                loadingLabel={t('submitting')}
+                onClick={() => void handleDirectSubmit()}
+                className="w-full justify-center"
+              >
+                {ta('anonymousDirectBtn')}
               </Button>
             </div>
           </form>
