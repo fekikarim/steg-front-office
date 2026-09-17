@@ -1,6 +1,6 @@
 'use client';
 
-import {useCallback, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {Card} from '@/components/ui/Card';
@@ -9,7 +9,7 @@ import {CardSkeleton} from '@/components/feedback/Skeleton';
 import {ErrorState} from '@/components/feedback/ErrorState';
 import {formatBytes} from '@/lib/files';
 import {IconFileText, IconCheckSquare, IconDownload} from '@/components/ui/icons';
-import type {ApplicationDocumentResponse, ApplicationResponse} from '@/lib/api/application';
+import type {ApplicationDocumentResponse} from '@/lib/api/application';
 import {listApplications, getApplicationDocuments} from '@/lib/api/application-client';
 
 interface EnrichedDoc {
@@ -27,38 +27,41 @@ export function AvailableDocumentsWorkspace() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [docs, setDocs] = useState<EnrichedDoc[]>([]);
-  const [apps, setApps] = useState<ApplicationResponse[]>([]);
   const [filterType, setFilterType] = useState<string>('ALL');
+  const [retryKey, setRetryKey] = useState(0);
 
   const units = {b: td('unitB'), kb: td('unitKB'), mb: td('unitMB')};
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const applicationList = await listApplications();
-      setApps(applicationList);
-      const allDocs: EnrichedDoc[] = [];
-      await Promise.all(
-        applicationList.map(async (app) => {
-          try {
-            const appDocs = await getApplicationDocuments(app.id);
-            for (const d of appDocs) {
-              allDocs.push({ doc: d, appRef: app.reference, appId: app.id });
-            }
-          } catch { /* Ignore isolated per-dossier errors */ }
-        })
-      );
-      allDocs.sort((a, b) => new Date(b.doc.createdAt).getTime() - new Date(a.doc.createdAt).getTime());
-      setDocs(allDocs);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error loading documents');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { void loadData(); }, [loadData]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!cancelled) { setLoading(true); setError(null); }
+      try {
+        const applicationList = await listApplications();
+        if (cancelled) return;
+        const allDocs: EnrichedDoc[] = [];
+        await Promise.all(
+          applicationList.map(async (app) => {
+            try {
+              const appDocs = await getApplicationDocuments(app.id);
+              for (const d of appDocs) {
+                allDocs.push({ doc: d, appRef: app.reference, appId: app.id });
+              }
+            } catch { /* Ignore isolated per-dossier errors */ }
+          })
+        );
+        if (cancelled) return;
+        allDocs.sort((a, b) => new Date(b.doc.createdAt).getTime() - new Date(a.doc.createdAt).getTime());
+        setDocs(allDocs);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : 'Error loading documents');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [retryKey]);
 
   function formatDate(iso: string): string {
     try { return new Intl.DateTimeFormat(locale, {dateStyle: 'medium'}).format(new Date(iso)); }
@@ -81,7 +84,7 @@ export function AvailableDocumentsWorkspace() {
   }
 
   if (error) {
-    return <ErrorState title={ts('errorTitle')} hint={error || ts('errorHint')} onRetry={() => void loadData()} />;
+    return <ErrorState title={ts('errorTitle')} hint={error || ts('errorHint')} onRetry={() => setRetryKey((k) => k + 1)} />;
   }
 
   return (

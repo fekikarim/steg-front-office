@@ -1,6 +1,6 @@
 'use client';
 
-import {useCallback, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {ApiError} from '@/lib/api-client';
@@ -30,28 +30,26 @@ export function ApplicationsList() {
   const [apps, setApps] = useState<ApplicationResponse[]>([]);
   const [traceId, setTraceId] = useState<string | null>(null);
   const [selectedApp, setSelectedApp] = useState<ApplicationResponse | null>(null);
-
-  const load = useCallback(async () => {
-    try {
-      const list = await listApplications();
-      setApps(list);
-      setPhase(list.length === 0 ? 'empty' : 'ready');
-      if (list.length > 0) {
-        setSelectedApp(list[0]);
-      }
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 401) {
-        setPhase('anonymous');
-        return;
-      }
-      if (err instanceof ApiError) setTraceId(err.traceId ?? null);
-      setPhase('error');
-    }
-  }, []);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    let cancelled = false;
+    (async () => {
+      try {
+        const list = await listApplications();
+        if (cancelled) return;
+        setApps(list);
+        setPhase(list.length === 0 ? 'empty' : 'ready');
+        if (list.length > 0) setSelectedApp(list[0]);
+      } catch (err) {
+        if (cancelled) return;
+        if (err instanceof ApiError && err.status === 401) { setPhase('anonymous'); return; }
+        if (err instanceof ApiError) setTraceId(err.traceId ?? null);
+        setPhase('error');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [retryKey]);
 
   if (phase === 'loading') {
     return <CardSkeleton />;
@@ -65,7 +63,7 @@ export function ApplicationsList() {
         traceId={traceId}
         onRetry={() => {
           setPhase('loading');
-          void load();
+          setRetryKey((k) => k + 1);
         }}
       />
     );

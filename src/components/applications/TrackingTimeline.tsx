@@ -77,7 +77,7 @@ export function TrackingTimeline({application: app}: {application: ApplicationRe
       {/* Timeline line */}
       <div className="absolute left-4 top-4 bottom-4 w-px bg-zinc-200 dark:bg-zinc-800" />
 
-      {stages.map((stage, i) => {
+      {stages.map((stage) => {
         const isReached = stage.state === 'reached' || stage.state === 'active';
         const isActive = stage.state === 'active';
         return (

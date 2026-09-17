@@ -1,7 +1,6 @@
 'use client';
 
 import {Link} from '@/i18n/navigation';
-import {Button} from '../ui/Button';
 import {AuthCard, AuthHeader} from './AuthCard';
 
 interface ForgotLabels {
@@ -36,7 +35,7 @@ export function ForgotPasswordForm({labels}: {labels: ForgotLabels}) {
             href="/reset-password"
             className="text-center text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
           >
-            Réinitialiser avec un jeton
+            {labels.contactSupport}
           </Link>
           <Link
             href="/login"
