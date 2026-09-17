@@ -12,6 +12,7 @@
     "createAccount": "Create account",
     "profile": "My profile",
     "applications": "My applications",
+    "documents": "My documents",
     "notifications": "Notifications",
     "signOut": "Sign out",
     "about": "About",
@@ -648,7 +649,16 @@
     "datesPending": "Pending confirmation",
     "supervisorFallback": "STEG supervising engineer",
     "updatedLabel": "Updated",
-    "docsSubtitle": "Access your agreements, certificates and official administrative documents."
+    "docsSubtitle": "Access your agreements, certificates and official administrative documents.",
+    "docsFilterAll": "All documents",
+    "docsFilterApplication": "Internship application",
+    "docsFilterAssignment": "Assignment letter",
+    "docsFilterConvention": "Internship convention",
+    "docsFilterOther": "Other documents",
+    "docsNoAppBody": "You have not uploaded any documents yet, or your dossier is being prepared.",
+    "docsNoAppCta": "Submit an application",
+    "docsCertTitle": "Attestations & Official Certificates",
+    "docsCertBody": "Once your internship reaches the status Completed and your supervisor's evaluation is recorded, your official attestations and internship certificates are automatically made available in your space for secure download."
   },
   "apply": {
     "title": "Internship application",

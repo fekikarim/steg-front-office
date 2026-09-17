@@ -60,7 +60,7 @@ const STAGE_PIPELINE: Array<{key: string; statuses: string[]; labelKey: string; 
   {key: 'completed',   statuses: [],                            labelKey: 'timelineStateCompleted',   descKey: 'timelineStateCompletedDesc'},
 ];
 
-function buildFullTimeline(app: ApplicationResponse): TimelineStage[] {
+function buildFullTimeline(app: ApplicationResponse, workflow: WorkflowInstanceResponse | null): TimelineStage[] {
   // Determine the active stage index from the current backend status.
   const statusToStageIndex: Record<string, number> = {
     DRAFT: 0,
@@ -89,11 +89,13 @@ function buildFullTimeline(app: ApplicationResponse): TimelineStage[] {
       state = 'future';
     }
 
-    // Determine the date for reached/active stages.
+    // Determine the date for reached/active stages using backend workflow dates when available.
     let date: string | null = null;
     if (state === 'reached' || state === 'active') {
       if (i === 0) date = app.createdAt;
       else if (i === 1) date = app.submissionDate;
+      else if (i === 2) date = workflow?.startedAt || app.submissionDate || app.updatedAt;
+      else if (i === 3) date = workflow?.completedAt || app.updatedAt;
       else date = app.updatedAt;
     }
 
@@ -255,7 +257,7 @@ export function ApplicationDetail({id}: {id: string}) {
   }
 
   const canWithdraw = app.status !== 'ACCEPTED' && app.status !== 'WITHDRAWN';
-  const stages = buildFullTimeline(app);
+  const stages = buildFullTimeline(app, workflow);
   const statusHelp = (t as (k: string) => string)(`statusHelp.${app.status}`);
 
   return (
@@ -291,10 +293,26 @@ export function ApplicationDetail({id}: {id: string}) {
         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300" dir="auto">
           {statusHelp}
         </p>
-        {workflow?.currentStepName && (
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400" dir="auto">
-            {t('currentStep', {step: workflow.currentStepName})}
-          </p>
+        {workflow && (
+          <div className="mt-3 rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 text-xs dark:border-zinc-800 dark:bg-navy-900/40">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="font-semibold text-brand-700 dark:text-brand-300">
+                {workflow.definitionName || 'Workflow'}
+              </span>
+              <span className="rounded-full bg-brand-100 px-2 py-0.5 font-bold text-brand-800 dark:bg-brand-950/60 dark:text-brand-300">
+                {workflow.status}
+              </span>
+            </div>
+            {workflow.currentStepName && (
+              <p className="mt-1 font-medium text-navy-900 dark:text-zinc-200">
+                {t('currentStep', {step: workflow.currentStepName})}
+              </p>
+            )}
+            <div className="mt-1 flex flex-wrap items-center gap-3 text-zinc-500 dark:text-zinc-400">
+              {workflow.startedAt && <span>Démarré le {formatDateTime(workflow.startedAt, locale)}</span>}
+              {workflow.completedAt && <span>Finalisé le {formatDateTime(workflow.completedAt, locale)}</span>}
+            </div>
+          </div>
         )}
       </Card>
 

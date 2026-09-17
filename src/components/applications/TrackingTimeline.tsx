@@ -47,6 +47,10 @@ function buildFullTimeline(app: ApplicationResponse): TimelineStage[] {
     }
 
     let date: string | null = null;
+    // STEG Architectural Decision: TrackingTimeline is used on public tracking pages (/track/[token])
+    // where authentication is not available. Only ApplicationResponse (or PublicApplicationTrackingResponse)
+    // metadata is accessible; granular workflow transition timestamps require authenticated getApplicationWorkflow.
+    // Therefore, date milestones intentionally fall back to createdAt, submissionDate, and updatedAt.
     if (state === 'reached' || state === 'active') {
       if (i === 0) date = app.createdAt;
       else if (i === 1) date = app.submissionDate;

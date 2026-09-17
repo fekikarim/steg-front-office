@@ -19,6 +19,7 @@ export async function Header() {
         createAccount: t('createAccount'),
         profile: t('profile'),
         applications: t('applications'),
+        documents: t('documents'),
         notifications: t('notifications'),
         signOut: t('signOut'),
         skipToContent: th('skipToContent'),

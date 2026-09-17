@@ -12,6 +12,7 @@
     "createAccount": "إنشاء حساب",
     "profile": "حسابي",
     "applications": "مطالبي",
+    "documents": "وثائقي",
     "notifications": "الإشعارات",
     "signOut": "الخروج",
     "about": "عن المنصة",
@@ -648,7 +649,16 @@
     "datesPending": "بانتظار التأكيد",
     "supervisorFallback": "مهندس مؤطر بالستاغ",
     "updatedLabel": "آخر تحديث",
-    "docsSubtitle": "اطّلع على اتفاقياتك وشهاداتك ووثائقك الإدارية الرسمية."
+    "docsSubtitle": "اطّلع على اتفاقياتك وشهاداتك ووثائقك الإدارية الرسمية.",
+    "docsFilterAll": "جميع الوثائق",
+    "docsFilterApplication": "طلب التربص",
+    "docsFilterAssignment": "رسالة الانتداب",
+    "docsFilterConvention": "اتفاقية التربص",
+    "docsFilterOther": "وثائق أخرى",
+    "docsNoAppBody": "لم تقم بتحميل أي وثائق بعد، أو أن ملفك لا يزال قيد الإعداد.",
+    "docsNoAppCta": "تقديم طلب تربص",
+    "docsCertTitle": "الشهادات والوثائق الرسمية",
+    "docsCertBody": "بمجرد أن يبلغ تربصك حالة مكتمل وتُسجَّل تقييمات مؤطرك، تُتاح شهاداتك الرسمية ووثائق التربص في فضائك تلقائياً للتنزيل الآمن."
   },
   "apply": {
     "title": "طلب التربص",

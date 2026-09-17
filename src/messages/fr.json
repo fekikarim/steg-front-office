@@ -12,6 +12,7 @@
     "createAccount": "Créer un compte",
     "profile": "Mon profil",
     "applications": "Mes candidatures",
+    "documents": "Mes documents",
     "notifications": "Notifications",
     "signOut": "Se déconnecter",
     "about": "À propos",
@@ -648,7 +649,16 @@
     "datesPending": "En attente de confirmation",
     "supervisorFallback": "Ingénieur Tuteur STEG",
     "updatedLabel": "Mise à jour",
-    "docsSubtitle": "Accédez à vos conventions, attestations et pièces administratives officielles."
+    "docsSubtitle": "Accédez à vos conventions, attestations et pièces administratives officielles.",
+    "docsFilterAll": "Tous les documents",
+    "docsFilterApplication": "Demande de stage",
+    "docsFilterAssignment": "Lettre d'affectation",
+    "docsFilterConvention": "Convention de stage",
+    "docsFilterOther": "Autres pièces",
+    "docsNoAppBody": "Vous n'avez encore téléversé aucun document ou votre dossier est en cours de préparation.",
+    "docsNoAppCta": "Déposer une candidature",
+    "docsCertTitle": "Attestations & Certificats officiels",
+    "docsCertBody": "Dès que votre stage atteint le statut Terminé et que l'évaluation de votre encadrant est enregistrée, vos attestations officielles et certificats de stage sont automatiquement mis à disposition dans votre espace pour téléchargement sécurisé."
   },
   "apply": {
     "title": "Candidature de stage",

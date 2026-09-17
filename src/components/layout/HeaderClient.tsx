@@ -10,6 +10,7 @@ import {useAuth} from '@/lib/auth';
 import {
   IconUser,
   IconFolder,
+  IconFileText,
   IconBell,
   IconArrowRight,
 } from '@/components/ui/icons';
@@ -25,6 +26,7 @@ interface Labels {
   createAccount: string;
   profile: string;
   applications: string;
+  documents: string;
   notifications: string;
   signOut: string;
   skipToContent: string;
@@ -179,6 +181,14 @@ export function HeaderClient({labels, logo}: {labels: Labels; logo: ReactNode}) 
                       <span>{labels.applications}</span>
                     </Link>
                     <Link
+                      href="/documents"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white"
+                    >
+                      <IconFileText className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                      <span>{labels.documents}</span>
+                    </Link>
+                    <Link
                       href="/notifications"
                       onClick={() => setProfileOpen(false)}
                       className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white"
@@ -269,6 +279,16 @@ export function HeaderClient({labels, logo}: {labels: Labels; logo: ReactNode}) 
                     >
                       <IconFolder className="h-4 w-4 text-brand-600 dark:text-brand-400" />
                       <span>{labels.applications}</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/documents"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-white/10"
+                    >
+                      <IconFileText className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                      <span>{labels.documents}</span>
                     </Link>
                   </li>
                   <li>

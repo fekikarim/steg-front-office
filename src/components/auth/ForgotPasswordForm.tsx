@@ -14,15 +14,10 @@ interface ForgotLabels {
 }
 
 /**
- * Forgot-password pending flow.
+ * Forgot-password status flow (E3.1).
  *
- * The backend does not yet expose a password-reset endpoint (see the IAM
- * contract in the plan). Per B2 task 5, we must NOT pretend an email was sent,
- * so this screen gives honest, professional status: the capability is coming
- * in a later phase and the candidate is pointed to help. It will be replaced
- * by the real flow when the backend endpoint lands.
- *
- * TODO — backend endpoint pending (forgot/reset).
+ * Provides honest status regarding password recovery workflows and directs
+ * candidates holding reset tokens to the reset password interface.
  */
 export function ForgotPasswordForm({labels}: {labels: ForgotLabels}) {
   return (
@@ -37,9 +32,12 @@ export function ForgotPasswordForm({labels}: {labels: ForgotLabels}) {
           <span className="text-zinc-700 dark:text-zinc-300">{labels.unavailableBody}</span>
         </div>
         <div className="flex w-full flex-col gap-3">
-          <Button type="button" variant="secondary" size="lg" disabled aria-disabled="true">
-            {labels.title}
-          </Button>
+          <Link
+            href="/reset-password"
+            className="text-center text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
+          >
+            Réinitialiser avec un jeton
+          </Link>
           <Link
             href="/login"
             className="text-center text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300"
