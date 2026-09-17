@@ -20,6 +20,7 @@ export default async function NotFound() {
             height={335}
             className="rounded-2xl object-cover"
             priority
+            sizes="(max-width: 640px) 100vw, 600px"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-navy-950/80 via-transparent to-transparent pointer-events-none" />
         </div>

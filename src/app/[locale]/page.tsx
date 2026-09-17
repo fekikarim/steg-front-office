@@ -136,6 +136,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
                   width={800}
                   height={800}
                   priority
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 450px"
                   className="h-auto w-full rounded-2xl object-cover"
                 />
 
@@ -242,6 +243,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
                   src="/components/intern-types/observation_internship_illustration_2000x1667.png"
                   alt={t('obsImageAlt')}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 380px"
                   className="object-cover transition-transform duration-300 group-hover:scale-102"
                 />
                 <div className="absolute top-3 start-3">
@@ -274,6 +276,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
                   src="/components/intern-types/Advanced_training_internship_illustraton_626x396.png"
                   alt={t('perfImageAlt')}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 380px"
                   className="object-cover transition-transform duration-300 group-hover:scale-102"
                 />
                 <div className="absolute top-3 start-3">
@@ -306,6 +309,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
                   src="/components/intern-types/PFE_internship_illustration_2000x1334.png"
                   alt={t('pfeImageAlt')}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 380px"
                   className="object-cover transition-transform duration-300 group-hover:scale-102"
                 />
                 <div className="absolute top-3 start-3">
@@ -378,6 +382,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
                 alt={t('paperlessAlt')}
                 width={700}
                 height={500}
+                sizes="(max-width: 1024px) 100vw, 450px"
                 className="h-56 w-full rounded-xl object-cover"
               />
               <div className="mt-4 flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 dark:border-slate-800 dark:bg-navy-900">
@@ -488,6 +493,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
                   alt={t('mobileAppAlt', {productName})}
                   width={500}
                   height={750}
+                  sizes="256px"
                   className="h-auto w-full object-cover"
                 />
               </div>
@@ -567,6 +573,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
                 src="/components/home/internship_certificate_award_illustration_2000x2000.jpg"
                 alt={t('certAlt')}
                 fill
+                sizes="160px"
                 className="object-cover"
               />
             </div>
@@ -599,6 +606,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
               src="/components/home/apply_now_1024x1024.jpeg"
               alt={t('applyNowAlt')}
               fill
+              sizes="176px"
               className="object-cover"
             />
           </div>

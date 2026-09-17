@@ -51,6 +51,7 @@ export async function Footer() {
                   alt="STEG"
                   width={1200}
                   height={327}
+                  sizes="120px"
                   className="h-8 w-auto"
                 />
               </div>

@@ -144,6 +144,7 @@ export default async function AboutPage({params}: {params: Promise<{locale: stri
               alt={t('imageAlt')}
               width={700}
               height={450}
+              sizes="(max-width: 1024px) 100vw, 500px"
               className="h-56 w-full rounded-2xl object-cover"
             />
             <div className="mt-3 flex items-center gap-2.5 px-2 pb-1">

@@ -95,6 +95,7 @@ export default async function ApplyPage({params}: {params: Promise<{locale: stri
                     alt={t('mentorAlt')}
                     width={200}
                     height={200}
+                    sizes="48px"
                     className="h-full w-full object-cover"
                   />
                 </div>

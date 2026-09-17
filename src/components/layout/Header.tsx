@@ -36,6 +36,8 @@ export async function Header() {
           alt="STEG"
           width={1200}
           height={327}
+          priority
+          sizes="132px"
           className="h-9 w-auto"
         />
       }

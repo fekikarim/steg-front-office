@@ -278,6 +278,7 @@ export default async function InternshipsPage({params}: {params: Promise<{locale
                 src="/components/intern-types/hybrid_internship_illustration_2000x2000.jpg"
                 alt={t('hybridAlt')}
                 fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
             </div>

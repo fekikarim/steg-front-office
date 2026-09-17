@@ -129,6 +129,7 @@ export default async function CompanionPage({params}: {params: Promise<{locale: 
                   width={600}
                   height={900}
                   priority
+                  sizes="(max-width: 640px) 256px, 288px"
                   className="h-auto w-full object-cover"
                 />
               </div>
