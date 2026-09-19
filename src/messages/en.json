@@ -909,6 +909,16 @@
       },
       "progressLabel": "PROGRESS: {percent}%"
     },
+    "recoveryTitle": "Progress restored",
+    "recoveryBody": "We restored your progress from {time}.",
+    "recoveryHint": "You can continue where you left off.",
+    "recoveryDismiss": "Dismiss",
+    "recoveryStartOver": "Start over",
+    "recoveryRestarted": "Progress reset.",
+    "recoveryJustNow": "just now",
+    "recoveryMinutes": "{count} min ago",
+    "recoveryHours": "{count} h ago",
+    "recoveryDays": "{count} d ago",
     "nav": {
       "back": "Back",
       "continue": "Continue",

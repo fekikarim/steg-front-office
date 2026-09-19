@@ -26,13 +26,22 @@ export function Modal({open, onClose, title, description, children, footer, clos
   const descId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const invokerRef = useRef<Element | null>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
     invokerRef.current = document.activeElement;
-    dialogRef.current?.focus();
+    // Only autofocus the dialog if focus is not already inside it (prevents stealing focus from inputs on parent re-renders)
+    const active = document.activeElement;
+    const isInside = dialogRef.current?.contains(active);
+    if (!isInside) {
+      dialogRef.current?.focus();
+    }
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
     };
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
@@ -41,7 +50,7 @@ export function Modal({open, onClose, title, description, children, footer, clos
       document.body.style.overflow = '';
       (invokerRef.current as HTMLElement | null)?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 

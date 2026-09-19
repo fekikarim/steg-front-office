@@ -185,6 +185,22 @@ export function validateStep(
     }
     case 'review': {
       if (!draft.confirmedTerms) return 'reviewAgreeTerms';
+      // Also enforce documents + AI gate on review — editing personal info
+      // invalidates AI, so review cannot be passed until re-validated.
+      const requiredKinds: UploadKind[] = ['INTERNSHIP_APPLICATION', 'ASSIGNMENT_LETTER'];
+      for (const k of requiredKinds) {
+        if (!uploads[k]) return 'documents.allRequired';
+        if (uploadingStates[k]) return 'documents.allRequired';
+        if (aiValidating?.[k]) return 'documents.aiValidating';
+        const v = aiValidations?.[k] ?? null;
+        if (!v) return 'documents.aiNotValidated';
+        if (!v.valid) {
+          if (!v.documentTypeValid && !v.candidateNameValid) return 'documents.aiInvalidTypeAndName';
+          if (!v.documentTypeValid) return 'documents.aiInvalidType';
+          if (!v.candidateNameValid) return 'documents.aiInvalidName';
+          return 'documents.aiInvalid';
+        }
+      }
       return null;
     }
     case 'result':

@@ -909,6 +909,16 @@
       },
       "progressLabel": "PROGRESS: {percent}%"
     },
+    "recoveryTitle": "Progression restaurée",
+    "recoveryBody": "Nous avons restauré votre progression d'il y a {time}.",
+    "recoveryHint": "Vous pouvez reprendre là où vous vous étiez arrêté.",
+    "recoveryDismiss": "Fermer",
+    "recoveryStartOver": "Recommencer",
+    "recoveryRestarted": "Progression réinitialisée.",
+    "recoveryJustNow": "à l'instant",
+    "recoveryMinutes": "il y a {count} min",
+    "recoveryHours": "il y a {count} h",
+    "recoveryDays": "il y a {count} j",
     "nav": {
       "back": "Retour",
       "continue": "Continuer",

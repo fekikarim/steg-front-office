@@ -50,34 +50,144 @@ import {idleSlot, type SlotError, type SlotState} from './DocumentSlot';
 type Phase = 'loading' | 'ready' | 'error' | 'alreadyApplied';
 
 const STEP_DEFS: StepDef[] = STEPS.map((id) => ({id, key: id}));
-const STORAGE_KEY = 'steg_apply_wizard_draft_v2';
-const STORAGE_STEP_KEY = 'steg_apply_wizard_step_v2';
-const STORAGE_FILES_KEY = 'steg_apply_wizard_files_v2';
+
+// ---- Robust persistence (v3) ----
+const STORAGE_KEY_V3 = 'steg_apply_wizard_v3';
+const STORAGE_VERSION = 3;
+const STORAGE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const LEGACY_KEYS = ['steg_apply_wizard_draft_v2', 'steg_apply_wizard_step_v2', 'steg_apply_wizard_files_v2'];
 
 type PendingFileMeta = Record<UploadKind, {name: string; size: number} | null>;
 const EMPTY_META: PendingFileMeta = {INTERNSHIP_APPLICATION: null, ASSIGNMENT_LETTER: null};
 
-function readPendingMeta(): PendingFileMeta {
+interface StoredWizard {
+  v: number;
+  ts: number;
+  draft: WizardDraft;
+  stepIndex: number;
+  pendingMeta: PendingFileMeta;
+  appId: string | null;
+  isAuthenticated: boolean;
+}
+
+function safeJsonParse<T>(raw: string | null): T | null {
+  if (!raw) return null;
   try {
-    const raw = sessionStorage.getItem(STORAGE_FILES_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as Partial<Record<UploadKind, {name: string; size: number}>>;
-      return {
-        INTERNSHIP_APPLICATION: parsed.INTERNSHIP_APPLICATION ?? null,
-        ASSIGNMENT_LETTER: parsed.ASSIGNMENT_LETTER ?? null,
-      };
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+function readStoredWizard(): StoredWizard | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_V3);
+    if (!raw) return null;
+    const parsed = safeJsonParse<StoredWizard>(raw);
+    if (!parsed || parsed.v !== STORAGE_VERSION || typeof parsed.ts !== 'number') return null;
+    if (Date.now() - parsed.ts > STORAGE_TTL_MS) {
+      localStorage.removeItem(STORAGE_KEY_V3);
+      return null;
+    }
+    // Basic shape validation
+    if (!parsed.draft || typeof parsed.stepIndex !== 'number' || !parsed.pendingMeta) return null;
+    if (parsed.stepIndex < 0 || parsed.stepIndex >= STEPS.length) parsed.stepIndex = 0;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredWizard(draft: WizardDraft, stepIndex: number, pendingMeta: PendingFileMeta, appId: string | null, isAuthenticated: boolean) {
+  try {
+    const payload: StoredWizard = {
+      v: STORAGE_VERSION,
+      ts: Date.now(),
+      draft,
+      stepIndex: Math.min(Math.max(stepIndex, 0), STEPS.length - 1),
+      pendingMeta,
+      appId,
+      isAuthenticated,
+    };
+    localStorage.setItem(STORAGE_KEY_V3, JSON.stringify(payload));
+  } catch {
+    /* quota or private mode — ignore, backend remains truth */
+  }
+}
+
+function clearStoredWizard() {
+  try {
+    localStorage.removeItem(STORAGE_KEY_V3);
+    // Clean legacy keys (sessionStorage + localStorage)
+    for (const k of LEGACY_KEYS) {
+      try {
+        sessionStorage.removeItem(k);
+      } catch {}
+      try {
+        localStorage.removeItem(k);
+      } catch {}
     }
   } catch {
-    /* ignore storage errors */
+    /* ignore */
   }
+}
+
+function migrateLegacyStorage(): StoredWizard | null {
+  try {
+    const draftRaw = sessionStorage.getItem('steg_apply_wizard_draft_v2') || localStorage.getItem('steg_apply_wizard_draft_v2');
+    const stepRaw = sessionStorage.getItem('steg_apply_wizard_step_v2') || localStorage.getItem('steg_apply_wizard_step_v2');
+    const filesRaw = sessionStorage.getItem('steg_apply_wizard_files_v2') || localStorage.getItem('steg_apply_wizard_files_v2');
+    if (!draftRaw && !stepRaw && !filesRaw) return null;
+    const draft = draftRaw ? safeJsonParse<WizardDraft>(draftRaw) : null;
+    const step = stepRaw ? Number.parseInt(stepRaw, 10) : 0;
+    const meta = filesRaw ? safeJsonParse<PendingFileMeta>(filesRaw) : null;
+    if (!draft && Number.isNaN(step) && !meta) return null;
+    const payload: StoredWizard = {
+      v: STORAGE_VERSION,
+      ts: Date.now(),
+      draft: draft || INITIAL_WIZARD_DRAFT,
+      stepIndex: Number.isInteger(step) ? Math.min(Math.max(step as number, 0), STEPS.length - 1) : 0,
+      pendingMeta: meta || {...EMPTY_META},
+      appId: null,
+      isAuthenticated: false,
+    };
+    // Write to new key and clear legacy
+    writeStoredWizard(payload.draft, payload.stepIndex, payload.pendingMeta, payload.appId, payload.isAuthenticated);
+    for (const k of LEGACY_KEYS) {
+      try {
+        sessionStorage.removeItem(k);
+      } catch {}
+      try {
+        localStorage.removeItem(k);
+      } catch {}
+    }
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+// Legacy helpers kept for file-meta updates (now backed by v3)
+function readPendingMeta(): PendingFileMeta {
+  const stored = readStoredWizard() || migrateLegacyStorage();
+  if (stored?.pendingMeta) return stored.pendingMeta;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_V3);
+    if (raw) {
+      const p = safeJsonParse<StoredWizard>(raw);
+      if (p?.pendingMeta) return p.pendingMeta;
+    }
+  } catch {}
   return {...EMPTY_META};
 }
 
 function writePendingMeta(meta: PendingFileMeta) {
-  try {
-    sessionStorage.setItem(STORAGE_FILES_KEY, JSON.stringify(meta));
-  } catch {
-    /* ignore storage errors */
+  const stored = readStoredWizard();
+  if (stored) {
+    writeStoredWizard(stored.draft, stored.stepIndex, meta, stored.appId, stored.isAuthenticated);
+  } else {
+    // No wizard yet — store minimal for file meta
+    writeStoredWizard(INITIAL_WIZARD_DRAFT, 0, meta, null, false);
   }
 }
 
@@ -89,13 +199,7 @@ function setPendingMetaKind(kind: UploadKind, value: {name: string; size: number
 }
 
 function clearWizardStorage() {
-  try {
-    sessionStorage.removeItem(STORAGE_KEY);
-    sessionStorage.removeItem(STORAGE_STEP_KEY);
-    sessionStorage.removeItem(STORAGE_FILES_KEY);
-  } catch {
-    /* ignore storage errors */
-  }
+  clearStoredWizard();
 }
 
 function docsToUploads(docs: ApplicationDocumentResponse[]) {
@@ -215,47 +319,105 @@ export function ApplyWizard() {
 
   const classificationType = classification?.type ?? null;
 
-  /* ----- Draft + step + file-meta persistence (survives locale switches) ----- */
+  // ---- Robust persistence state ----
+  const [recoveryInfo, setRecoveryInfo] = useState<{ts: number; isLegacy?: boolean} | null>(null);
+  const hasPersistedRef = useRef(false);
+  const isRestoringRef = useRef(false);
+
+  // Immediate restore from localStorage (before backend) — gives instant recovery on refresh
   useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem(STORAGE_KEY);
-      const storedStep = sessionStorage.getItem(STORAGE_STEP_KEY);
-      const meta = readPendingMeta();
-      if (stored || storedStep !== null) {
-        const parsed = stored ? (JSON.parse(stored) as WizardDraft) : null;
-        const step = storedStep !== null ? Number.parseInt(storedStep, 10) : Number.NaN;
-        setTimeout(() => {
-          if (parsed) setDraft(parsed);
-          if (Number.isInteger(step)) {
-            setStepIndex(Math.min(Math.max(step, 0), STEPS.length - 1));
-          }
-          setPendingMeta(meta);
-        }, 0);
+    const stored = readStoredWizard() || migrateLegacyStorage();
+    if (stored) {
+      isRestoringRef.current = true;
+      // Validate draft shape before restoring
+      const isValidDraft = stored.draft && typeof stored.draft.personal?.firstName === 'string';
+      const hasData =
+        isValidDraft &&
+        (stored.stepIndex > 0 ||
+          Boolean(
+            stored.draft.personal.firstName.trim() ||
+              stored.draft.personal.lastName.trim() ||
+              stored.draft.personal.email.trim() ||
+              stored.draft.personal.phone.trim() ||
+              stored.draft.education.speciality.trim() ||
+              stored.draft.education.universityId ||
+              stored.draft.dates.desiredStartDate ||
+              stored.draft.dates.desiredEndDate ||
+              stored.pendingMeta?.INTERNSHIP_APPLICATION ||
+              stored.pendingMeta?.ASSIGNMENT_LETTER,
+          ));
+      if (isValidDraft) {
+        setDraft(stored.draft);
+        setStepIndex(Math.min(Math.max(stored.stepIndex, 0), STEPS.length - 1));
+        setPendingMeta(stored.pendingMeta || {...EMPTY_META});
+        if (hasData) {
+          setRecoveryInfo({ts: stored.ts, isLegacy: false});
+        }
+        hasPersistedRef.current = true;
       }
-    } catch {
-      /* ignore storage errors */
+      // Defer clearing flag to allow next effect to persist correctly
+      setTimeout(() => {
+        isRestoringRef.current = false;
+      }, 0);
     }
   }, []);
 
   const saveStepToStorage = useCallback((index: number) => {
-    try {
-      sessionStorage.setItem(STORAGE_STEP_KEY, String(index));
-    } catch {
-      /* ignore storage errors */
-    }
-  }, []);
+    // Unified write — also updates timestamp to keep step and draft in sync
+    const currentDraft = draft; // captured via closure, but effect below will also persist
+    // Use functional read to avoid stale closure for pendingMeta/app
+    const stored = readStoredWizard();
+    const meta = stored?.pendingMeta || pendingMeta;
+    const appId = appRef.current?.id || app?.id || stored?.appId || null;
+    writeStoredWizard(currentDraft, index, meta, appId, isAuthenticated);
+    // Also keep in-memory step for immediate UI
+  }, [draft, pendingMeta, app, isAuthenticated]);
 
   const saveDraftToStorage = useCallback((updated: WizardDraft) => {
-    try {
-      // Privacy: the national ID must never land in browser storage. It is
-      // re-merged from the authoritative profile on every load (see loadAll),
-      // so omitting it here keeps resume behavior identical.
-      const personal = {...updated.personal, nationalId: ''};
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({...updated, personal}));
-    } catch {
-      /* ignore storage errors */
-    }
-  }, []);
+    // Privacy: for authenticated users, nationalId is re-merged from profile, so omit it to avoid storing PII
+    // For anonymous, we must store it to allow recovery (no profile source)
+    const draftToStore = isAuthenticated ? {...updated, personal: {...updated.personal, nationalId: ''}} : updated;
+    const stored = readStoredWizard();
+    const step = stored?.stepIndex ?? stepIndex;
+    const meta = stored?.pendingMeta ?? pendingMeta;
+    const appId = appRef.current?.id || app?.id || stored?.appId || null;
+    writeStoredWizard(draftToStore, step, meta, appId, isAuthenticated);
+  }, [isAuthenticated, stepIndex, pendingMeta, app]);
+
+  // Auto-persist any progress change (debounced) — survives refresh, navigation, tab close
+  useEffect(() => {
+    if (phase !== 'ready' && phase !== 'loading') return;
+    if (isRestoringRef.current) return;
+    // Don't persist empty initial state on first mount before restore
+    if (!hasPersistedRef.current && stepIndex === 0 && draft === INITIAL_WIZARD_DRAFT && pendingMeta === EMPTY_META) return;
+    const handler = setTimeout(() => {
+      const draftToStore = isAuthenticated ? {...draft, personal: {...draft.personal, nationalId: ''}} : draft;
+      writeStoredWizard(draftToStore, stepIndex, pendingMeta, appRef.current?.id || app?.id || null, isAuthenticated);
+      hasPersistedRef.current = true;
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [draft, stepIndex, pendingMeta, app, isAuthenticated, phase]);
+
+  // Persist on tab hide / refresh / close for immediate durability
+  useEffect(() => {
+    const persistNow = () => {
+      if (phase !== 'ready') return;
+      const draftToStore = isAuthenticated ? {...draft, personal: {...draft.personal, nationalId: ''}} : draft;
+      writeStoredWizard(draftToStore, stepIndex, pendingMeta, appRef.current?.id || app?.id || null, isAuthenticated);
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') persistNow();
+    };
+    const onPageHide = () => persistNow();
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', onPageHide);
+    window.addEventListener('beforeunload', onPageHide);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', onPageHide);
+      window.removeEventListener('beforeunload', onPageHide);
+    };
+  }, [draft, stepIndex, pendingMeta, app, isAuthenticated, phase]);
 
   /* ----- Bootstrap: check auth, profile, universities, drafts ----- */
   const loadAll = useCallback(async () => {
@@ -276,6 +438,15 @@ export function ApplyWizard() {
       if (err instanceof ApiError && err.status === 401) {
         // Anonymous user — not an error! They can continue steps 1-6 seamlessly
         setIsAuthenticated(false);
+        // If we already restored local progress, keep it; otherwise stay ready with empty draft
+        setPhase('ready');
+        return;
+      }
+      // Network / backend down but we have local progress — stay usable offline
+      const hasLocal = !!readStoredWizard();
+      if (hasLocal) {
+        setIsAuthenticated(false);
+        toast.notify({title: t('loadErrorHint'), tone: 'error'});
         setPhase('ready');
         return;
       }
@@ -316,29 +487,41 @@ export function ApplyWizard() {
           appRef.current = a;
           setApp(a);
 
-          // Update draft from backend data
+          // Merge backend data with locally restored draft — respect timestamps to avoid overwriting newer data
+          const storedForMerge = readStoredWizard();
+          const backendTs = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+          const localIsNewer = storedForMerge ? storedForMerge.ts > backendTs : false;
+          const localHasDates = Boolean(storedForMerge?.draft.dates.desiredStartDate || storedForMerge?.draft.dates.desiredEndDate);
           setDraft((prev) => {
+            // If local is newer and has meaningful data, keep local; otherwise use backend/profile as truth
+            const keepLocalPersonal = localIsNewer && Boolean(prev.personal.firstName || prev.personal.lastName || prev.personal.email);
+            const keepLocalEducation = localIsNewer && Boolean(prev.education.speciality || prev.education.universityId);
+            const keepLocalDates = localIsNewer && localHasDates;
             const next = {
               ...prev,
-              personal: {
-                firstName: prof?.firstName || prev.personal.firstName,
-                lastName: prof?.lastName || prev.personal.lastName,
-                nationalId: prof?.nationalId || prev.personal.nationalId,
-                email: prof?.email || prev.personal.email,
-                phone: prof?.phone || prev.personal.phone,
-                birthDate: prof?.birthDate || prev.personal.birthDate,
-              },
-              education: {
-                educationLevel: prof?.diploma || prev.education.educationLevel || 'LICENCE',
-                speciality: prof?.speciality || prev.education.speciality,
-                universityId: prof?.universityId || prev.education.universityId,
-              },
+              personal: keepLocalPersonal
+                ? prev.personal
+                : {
+                    firstName: prev.personal.firstName || prof?.firstName || '',
+                    lastName: prev.personal.lastName || prof?.lastName || '',
+                    nationalId: prev.personal.nationalId || prof?.nationalId || '',
+                    email: prev.personal.email || prof?.email || '',
+                    phone: prev.personal.phone || prof?.phone || '',
+                    birthDate: prev.personal.birthDate || prof?.birthDate || '',
+                  },
+              education: keepLocalEducation
+                ? prev.education
+                : {
+                    educationLevel: prev.education.educationLevel !== 'LICENCE' || prev.education.speciality ? prev.education.educationLevel : prof?.diploma || 'LICENCE',
+                    speciality: prev.education.speciality || prof?.speciality || '',
+                    universityId: prev.education.universityId || prof?.universityId || '',
+                  },
               dates: {
-                desiredStartDate: a.desiredStartDate || prev.dates.desiredStartDate,
-                desiredEndDate: a.desiredEndDate || prev.dates.desiredEndDate,
+                desiredStartDate: keepLocalDates ? prev.dates.desiredStartDate || a.desiredStartDate || '' : a.desiredStartDate || prev.dates.desiredStartDate || '',
+                desiredEndDate: keepLocalDates ? prev.dates.desiredEndDate || a.desiredEndDate || '' : a.desiredEndDate || prev.dates.desiredEndDate || '',
               },
             };
-            saveDraftToStorage(next);
+            // Don't call saveDraftToStorage here — auto-persist effect will handle it with correct isAuthenticated
             return next;
           });
           setIsPrefilled(true);
@@ -388,7 +571,7 @@ export function ApplyWizard() {
     }
 
     setPhase('ready');
-  }, [saveDraftToStorage, t]);
+  }, [saveDraftToStorage, t, toast]);
 
   useEffect(() => {
     if (bootstrapDone.current) return;
@@ -848,6 +1031,8 @@ export function ApplyWizard() {
     window.scrollTo({top: 0, behavior: 'smooth'});
   }, [saveStepToStorage]);
 
+  // Kept for programmatic jumps (e.g. deep-link from review) — not used by the new edit dialogs which stay in-place
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleJumpToStep = useCallback(
     (targetIndex: number) => {
       setStepError(null);
@@ -1123,8 +1308,60 @@ export function ApplyWizard() {
     );
   }
 
+  const recoveryAge = recoveryInfo ? Date.now() - recoveryInfo.ts : 0;
+  const recoveryLabel = recoveryInfo
+    ? recoveryAge < 60_000
+      ? t('recoveryJustNow')
+      : recoveryAge < 3600_000
+        ? t('recoveryMinutes', {count: Math.floor(recoveryAge / 60000)})
+        : recoveryAge < 86400_000
+          ? t('recoveryHours', {count: Math.floor(recoveryAge / 3600000)})
+          : t('recoveryDays', {count: Math.floor(recoveryAge / 86400000)})
+    : null;
+
   return (
     <div className="flex flex-col gap-6">
+      {/* Recovery banner — appears when we restored from local persistence after refresh/close */}
+      {recoveryInfo && phase === 'ready' && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex flex-col gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900 shadow-sm dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-100 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div className="flex items-start gap-2.5">
+            <span aria-hidden="true" className="mt-0.5 text-base">
+              ↺
+            </span>
+            <div className="flex flex-col gap-1">
+              <p className="font-semibold leading-tight">{t('recoveryTitle')}</p>
+              <p className="text-xs leading-relaxed opacity-80">
+                {t('recoveryBody', {time: recoveryLabel || ''})} {t('recoveryHint')}
+              </p>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2 self-stretch sm:self-auto">
+            <Button variant="secondary" size="sm" onClick={() => setRecoveryInfo(null)}>
+              {t('recoveryDismiss')}
+            </Button>
+            <Button
+              variant="tertiary"
+              size="sm"
+              onClick={() => {
+                clearStoredWizard();
+                setDraft(INITIAL_WIZARD_DRAFT);
+                setStepIndex(0);
+                setPendingMeta({...EMPTY_META});
+                setRecoveryInfo(null);
+                setDirty(false);
+                toast.notify({title: t('recoveryRestarted'), tone: 'info'});
+              }}
+            >
+              {t('recoveryStartOver')}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Progress Stepper */}
       <Stepper steps={STEP_DEFS} current={stepIndex} />
 
@@ -1220,7 +1457,7 @@ export function ApplyWizard() {
         />
       )}
 
-      {/* Step 6: Scannable Review */}
+      {/* Step 6: Scannable Review — per-section edit dialogs with strong validation + AI breakdown */}
       {stepIndex === 4 && (
         <ReviewStep
           draft={draft}
@@ -1228,7 +1465,101 @@ export function ApplyWizard() {
           classification={classification}
           applicationLetter={uploads.INTERNSHIP_APPLICATION}
           assignmentLetter={uploads.ASSIGNMENT_LETTER}
-          onJumpToStep={handleJumpToStep}
+          aiValidations={aiValidations}
+          aiValidating={aiValidating}
+          aiErrors={aiErrors}
+          fullName={fullNameForAi()}
+          slots={slots}
+          onUpdatePersonal={async (patch) => {
+            setStepError(null);
+            const nextPersonal = {...draft.personal, ...patch};
+            // Sync to backend profile if authenticated — keeps AI name check and final submission consistent
+            if (isAuthenticated) {
+              try {
+                await updateProfile({
+                  firstName: nextPersonal.firstName,
+                  lastName: nextPersonal.lastName,
+                  email: nextPersonal.email,
+                  nationalId: nextPersonal.nationalId,
+                  universityId: draft.education.universityId,
+                  phone: nextPersonal.phone,
+                  birthDate: nextPersonal.birthDate,
+                  diploma: draft.education.educationLevel,
+                  speciality: draft.education.speciality,
+                });
+                setProfile((prev) => (prev ? {...prev, ...nextPersonal} : prev));
+              } catch (err) {
+                const msg =
+                  err instanceof ApiError
+                    ? err.fieldErrors[0]?.message || err.message
+                    : err instanceof Error
+                      ? err.message
+                      : 'Update failed';
+                throw new Error(msg);
+              }
+            }
+            setDraft((prev) => {
+              const next = {...prev, personal: nextPersonal};
+              saveDraftToStorage(next);
+              return next;
+            });
+            setDirty(true);
+          }}
+          onUpdateEducation={async (patch) => {
+            setStepError(null);
+            const nextEducation = {...draft.education, ...patch};
+            if (isAuthenticated) {
+              try {
+                await updateProfile({
+                  firstName: draft.personal.firstName,
+                  lastName: draft.personal.lastName,
+                  email: draft.personal.email,
+                  nationalId: draft.personal.nationalId,
+                  universityId: nextEducation.universityId,
+                  phone: draft.personal.phone,
+                  birthDate: draft.personal.birthDate,
+                  diploma: nextEducation.educationLevel,
+                  speciality: nextEducation.speciality,
+                });
+                setProfile((prev) => (prev ? {...prev, universityId: nextEducation.universityId, speciality: nextEducation.speciality, diploma: nextEducation.educationLevel} as CandidateProfile : prev));
+              } catch (err) {
+                const msg =
+                  err instanceof ApiError
+                    ? err.fieldErrors[0]?.message || err.message
+                    : err instanceof Error
+                      ? err.message
+                      : 'Update failed';
+                throw new Error(msg);
+              }
+            }
+            setDraft((prev) => {
+              const next = {...prev, education: nextEducation};
+              saveDraftToStorage(next);
+              return next;
+            });
+            setDirty(true);
+          }}
+          onUpdateDates={async (start, end) => {
+            setStepError(null);
+            const nextDraft: WizardDraft = {...draft, dates: {desiredStartDate: start, desiredEndDate: end}};
+            setDraft((prev) => {
+              const next = {...prev, dates: {desiredStartDate: start, desiredEndDate: end}};
+              saveDraftToStorage(next);
+              return next;
+            });
+            setDirty(true);
+            if (isAuthenticated) {
+              await persistDraft(nextDraft);
+            }
+          }}
+          onSelectFiles={(kind, files) => {
+            setStepError(null);
+            if (files.length > 0) void startUpload(kind, files[0]);
+          }}
+          onCancel={(kind) => cancelUpload(kind)}
+          onRetry={(kind) => retryUpload(kind)}
+          onRemove={(kind) => removeUpload(kind)}
+          onRetryAi={(kind) => retryAiValidation(kind)}
           onToggleTerms={(val) => {
             setStepError(null);
             setDraft((prev) => {
@@ -1239,6 +1570,7 @@ export function ApplyWizard() {
             setDirty(true);
           }}
           onContinue={() => void goNext()}
+          saving={saving}
         />
       )}
 
