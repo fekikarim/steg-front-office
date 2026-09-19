@@ -71,6 +71,10 @@ export function EducationStep({
             value={data.speciality}
             onChange={(e) => onChange({speciality: e.target.value})}
             placeholder={t('specialityPlaceholder')}
+            required
+            minLength={2}
+            maxLength={100}
+            autoComplete="off"
           />
 
           {/* University Select */}

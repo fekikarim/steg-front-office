@@ -53,3 +53,15 @@ export function createProfile(body: CandidateProfileUpdate) {
 export function fetchUniversities() {
   return profileRequest<University[]>('/api/universities', {method: 'GET'});
 }
+
+/**
+ * Persist the active UI locale as the account preference (backend drives
+ * email language + future sessions from it). Anonymous callers resolve
+ * silently — fire-and-forget from the language switcher.
+ */
+export function setPreferredLocale(locale: string) {
+  return profileRequest<void>('/api/users/me/locale', {
+    method: 'PUT',
+    body: JSON.stringify({locale}),
+  });
+}

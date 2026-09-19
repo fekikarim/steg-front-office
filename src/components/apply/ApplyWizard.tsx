@@ -10,7 +10,10 @@ import {
   type ApplicationDocumentResponse,
   type ApplicationResponse,
   type ClassificationResult,
+  type DocumentAiValidation,
   type DocumentType,
+  validatePublicDocumentAi,
+  validateStoredDocumentAiBrowser,
 } from '@/lib/api/application';
 import {
   attachDocument,
@@ -48,6 +51,52 @@ type Phase = 'loading' | 'ready' | 'error' | 'alreadyApplied';
 
 const STEP_DEFS: StepDef[] = STEPS.map((id) => ({id, key: id}));
 const STORAGE_KEY = 'steg_apply_wizard_draft_v2';
+const STORAGE_STEP_KEY = 'steg_apply_wizard_step_v2';
+const STORAGE_FILES_KEY = 'steg_apply_wizard_files_v2';
+
+type PendingFileMeta = Record<UploadKind, {name: string; size: number} | null>;
+const EMPTY_META: PendingFileMeta = {INTERNSHIP_APPLICATION: null, ASSIGNMENT_LETTER: null};
+
+function readPendingMeta(): PendingFileMeta {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_FILES_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<Record<UploadKind, {name: string; size: number}>>;
+      return {
+        INTERNSHIP_APPLICATION: parsed.INTERNSHIP_APPLICATION ?? null,
+        ASSIGNMENT_LETTER: parsed.ASSIGNMENT_LETTER ?? null,
+      };
+    }
+  } catch {
+    /* ignore storage errors */
+  }
+  return {...EMPTY_META};
+}
+
+function writePendingMeta(meta: PendingFileMeta) {
+  try {
+    sessionStorage.setItem(STORAGE_FILES_KEY, JSON.stringify(meta));
+  } catch {
+    /* ignore storage errors */
+  }
+}
+
+/** File objects cannot survive reloads or locale navigations — only metadata. */
+function setPendingMetaKind(kind: UploadKind, value: {name: string; size: number} | null) {
+  const next = {...readPendingMeta(), [kind]: value};
+  writePendingMeta(next);
+  return next;
+}
+
+function clearWizardStorage() {
+  try {
+    sessionStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(STORAGE_STEP_KEY);
+    sessionStorage.removeItem(STORAGE_FILES_KEY);
+  } catch {
+    /* ignore storage errors */
+  }
+}
 
 function docsToUploads(docs: ApplicationDocumentResponse[]) {
   const next = {
@@ -90,6 +139,21 @@ export function ApplyWizard() {
 
   const [stepIndex, setStepIndex] = useState(0);
   const [draft, setDraft] = useState<WizardDraft>(INITIAL_WIZARD_DRAFT);
+  const [pendingMeta, setPendingMeta] = useState<PendingFileMeta>({...EMPTY_META});
+
+  /* AI validation per slot (wizard gate – not the same as backend verification) */
+  const [aiValidations, setAiValidations] = useState<Record<UploadKind, DocumentAiValidation | null>>({
+    INTERNSHIP_APPLICATION: null,
+    ASSIGNMENT_LETTER: null,
+  });
+  const [aiValidating, setAiValidating] = useState<Record<UploadKind, boolean>>({
+    INTERNSHIP_APPLICATION: false,
+    ASSIGNMENT_LETTER: false,
+  });
+  const [aiErrors, setAiErrors] = useState<Record<UploadKind, SlotError | null>>({
+    INTERNSHIP_APPLICATION: null,
+    ASSIGNMENT_LETTER: null,
+  });
 
   /* documents state */
   const [slots, setSlots] = useState<Record<UploadKind, SlotState>>({
@@ -151,16 +215,31 @@ export function ApplyWizard() {
 
   const classificationType = classification?.type ?? null;
 
-  /* ----- Draft Local Storage Persistence ----- */
+  /* ----- Draft + step + file-meta persistence (survives locale switches) ----- */
   useEffect(() => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as WizardDraft;
+      const storedStep = sessionStorage.getItem(STORAGE_STEP_KEY);
+      const meta = readPendingMeta();
+      if (stored || storedStep !== null) {
+        const parsed = stored ? (JSON.parse(stored) as WizardDraft) : null;
+        const step = storedStep !== null ? Number.parseInt(storedStep, 10) : Number.NaN;
         setTimeout(() => {
-          setDraft(parsed);
+          if (parsed) setDraft(parsed);
+          if (Number.isInteger(step)) {
+            setStepIndex(Math.min(Math.max(step, 0), STEPS.length - 1));
+          }
+          setPendingMeta(meta);
         }, 0);
       }
+    } catch {
+      /* ignore storage errors */
+    }
+  }, []);
+
+  const saveStepToStorage = useCallback((index: number) => {
+    try {
+      sessionStorage.setItem(STORAGE_STEP_KEY, String(index));
     } catch {
       /* ignore storage errors */
     }
@@ -407,6 +486,90 @@ export function ApplyWizard() {
     [td],
   );
 
+  const fullNameForAi = useCallback(() => {
+    const f = draft.personal.firstName.trim();
+    const l = draft.personal.lastName.trim();
+    if (!f || !l) return null;
+    return `${f} ${l}`;
+  }, [draft.personal.firstName, draft.personal.lastName]);
+
+  const aiErrorFor = useCallback(
+    (err: unknown): SlotError => {
+      const traceId = err instanceof ApiError ? err.traceId ?? null : null;
+      const fail = (message: string, retryable: boolean): SlotError => ({message, traceId, retryable});
+      if (err instanceof ApiError) {
+        if (err.code === 'AI_UNAVAILABLE' || err.code === 'AI_TEMPORARILY_UNAVAILABLE' || err.status === 503) {
+          return fail(td('aiErrorUnavailable'), true);
+        }
+        if (err.code === 'UPLOAD_CANCELLED') return fail(td('errorCancelled'), true);
+        if (err.status === 429) return fail(td('errorRateLimited'), true);
+        if (err.status === 401) return fail(td('errorAuth'), false);
+        return fail(err.message || td('aiErrorGeneric'), err.status === 0 || err.status >= 500);
+      }
+      return fail(td('aiErrorGeneric'), true);
+    },
+    [td],
+  );
+
+  const runAiValidation = useCallback(
+    async (kind: UploadKind, fileForPublic: File | null, storedDocumentId: string | null) => {
+      const fullName = fullNameForAi();
+      if (!fullName) {
+        setAiErrors((prev) => ({
+          ...prev,
+          [kind]: {message: td('aiErrorNeedName'), traceId: null, retryable: false},
+        }));
+        return;
+      }
+      setAiValidating((prev) => ({...prev, [kind]: true}));
+      setAiErrors((prev) => ({...prev, [kind]: null}));
+      try {
+        let result: DocumentAiValidation;
+        if (storedDocumentId) {
+          result = await validateStoredDocumentAiBrowser(storedDocumentId, {
+            expectedType: kind,
+            fullName,
+          });
+        } else if (fileForPublic) {
+          result = await validatePublicDocumentAi(fileForPublic, kind as never, fullName);
+        } else {
+          throw new Error('No document to validate');
+        }
+        setAiValidations((prev) => ({...prev, [kind]: result}));
+        setAiErrors((prev) => ({...prev, [kind]: null}));
+      } catch (err) {
+        setAiValidations((prev) => ({...prev, [kind]: null}));
+        setAiErrors((prev) => ({...prev, [kind]: aiErrorFor(err)}));
+      } finally {
+        setAiValidating((prev) => ({...prev, [kind]: false}));
+      }
+    },
+    [aiErrorFor, fullNameForAi, td],
+  );
+
+  // Name changed after a document was already AI-validated → that validation is stale.
+  useEffect(() => {
+    // Invalidate so the wizard forces re-validation with the current full name.
+    setAiValidations({INTERNSHIP_APPLICATION: null, ASSIGNMENT_LETTER: null});
+    setAiErrors({INTERNSHIP_APPLICATION: null, ASSIGNMENT_LETTER: null});
+    // Do not clear validating flag – an in-flight call will finish and be discarded.
+  }, [draft.personal.firstName, draft.personal.lastName]);
+
+  // Hydrated stored documents (e.g. draft resume) that have attachments but no
+  // AI result yet: trigger the gate so Continue stays blocked until verified.
+  useEffect(() => {
+    if (phase !== 'ready') return;
+    const kinds: UploadKind[] = ['INTERNSHIP_APPLICATION', 'ASSIGNMENT_LETTER'];
+    for (const k of kinds) {
+      const att = slots[k].attachment;
+      if (!att || att.id.startsWith('temp-')) continue;
+      if (aiValidations[k] || aiValidating[k] || aiErrors[k]) continue;
+      const name = fullNameForAi();
+      if (!name) continue;
+      void runAiValidation(k, null, att.document.id);
+    }
+  }, [phase, slots, aiValidations, aiValidating, aiErrors, fullNameForAi, runAiValidation]);
+
   const ensureDraft = useCallback(async (): Promise<ApplicationResponse> => {
     if (appRef.current) return appRef.current;
     if (!draftPromise.current) {
@@ -432,9 +595,16 @@ export function ApplyWizard() {
       const controller = new AbortController();
       aborters.current[kind] = controller;
       pendingFiles.current[kind] = file;
+      // File objects die on reload/locale navigation — keep metadata so the
+      // UI can honestly ask for re-selection instead of failing silently.
+      setPendingMeta(setPendingMetaKind(kind, {name: file.name, size: file.size}));
 
-      // If user is anonymous, queue the file locally with an optimistic attachment
+      // If user is anonymous, queue the file locally then run AI validation
+      // against the in-memory bytes (Spring Boot → Python, no persistence yet).
       if (!isAuthenticated) {
+        // Clear previous AI state before starting a new validation.
+        setAiValidations((prev) => ({...prev, [kind]: null}));
+        setAiErrors((prev) => ({...prev, [kind]: null}));
         setSlot(kind, {
           phase: 'idle',
           progress: null,
@@ -456,6 +626,15 @@ export function ApplyWizard() {
           } as unknown as ApplicationDocumentResponse,
         });
         setDirty(true);
+        // Kick off AI validation (non-blocking but gates the Continue button).
+        if (!fullNameForAi()) {
+          setAiErrors((prev) => ({
+            ...prev,
+            [kind]: {message: td('aiErrorNeedName'), traceId: null, retryable: false},
+          }));
+        } else {
+          void runAiValidation(kind, file, null);
+        }
         return;
       }
 
@@ -498,6 +677,10 @@ export function ApplyWizard() {
         }
         stage = 'attach';
         setSlot(kind, {phase: 'attaching'});
+        // Reset AI state for this new file; the Continue button stays disabled
+        // until the gate passes (loading spinner is shown instead).
+        setAiValidations((prev) => ({...prev, [kind]: null}));
+        setAiErrors((prev) => ({...prev, [kind]: null}));
         try {
           const attached = await attachDocument(d.id, {
             documentId: doc.id,
@@ -512,6 +695,9 @@ export function ApplyWizard() {
             attachment: attached,
           });
           pendingFiles.current[kind] = null;
+          setPendingMeta(setPendingMetaKind(kind, null));
+          setDirty(true);
+          void runAiValidation(kind, null, attached.document.id);
         } catch (attachErr) {
           if (attachErr instanceof ApiError && attachErr.status === 409) {
             const docs = await getApplicationDocuments(d.id);
@@ -526,12 +712,14 @@ export function ApplyWizard() {
                 attachment: latest,
               });
               pendingFiles.current[kind] = null;
+              setPendingMeta(setPendingMetaKind(kind, null));
+              setDirty(true);
+              void runAiValidation(kind, null, latest.document.id);
               return;
             }
           }
           throw attachErr;
         }
-        setDirty(true);
       } catch (err) {
         if (controller.signal.aborted) {
           setSlots((prev) => ({...prev, [kind]: cancelledState()}));
@@ -542,11 +730,13 @@ export function ApplyWizard() {
         if (aborters.current[kind] === controller) aborters.current[kind] = null;
       }
     },
-    [ensureDraft, isAuthenticated, setSlot, slotErrorFor, slots, td],
+    [ensureDraft, fullNameForAi, isAuthenticated, runAiValidation, setSlot, slotErrorFor, slots, td],
   );
 
   const cancelUpload = useCallback((kind: UploadKind) => {
     aborters.current[kind]?.abort();
+    // Cancelling upload also cancels any in-flight AI gate for this slot.
+    setAiValidating((prev) => ({...prev, [kind]: false}));
   }, []);
 
   const retryUpload = useCallback(
@@ -557,14 +747,46 @@ export function ApplyWizard() {
     [startUpload],
   );
 
+  const retryAiValidation = useCallback(
+    (kind: UploadKind) => {
+      const attachment = slots[kind].attachment;
+      const file = pendingFiles.current[kind];
+      if (attachment && !attachment.id.startsWith('temp-')) {
+        void runAiValidation(kind, null, attachment.document.id);
+      } else if (file) {
+        void runAiValidation(kind, file, null);
+      } else if (attachment) {
+        // Anonymous slot without bytes left (e.g. after reload). User must re-select.
+        setAiErrors((prev) => ({
+          ...prev,
+          [kind]: {message: td('aiErrorNeedReselect'), traceId: null, retryable: false},
+        }));
+      }
+    },
+    [runAiValidation, slots, td],
+  );
+
   const removeUpload = useCallback(
     (kind: UploadKind) => {
       aborters.current[kind]?.abort();
       pendingFiles.current[kind] = null;
       setSlot(kind, idleSlot());
+      setPendingMeta(setPendingMetaKind(kind, null));
+      setAiValidations((prev) => ({...prev, [kind]: null}));
+      setAiErrors((prev) => ({...prev, [kind]: null}));
+      setAiValidating((prev) => ({...prev, [kind]: false}));
       setDirty(true);
     },
     [setSlot],
+  );
+
+  /* Files queued but never attached (reload / locale switch): ask to re-select. */
+  const staleUploads = useMemo(
+    () =>
+      (Object.keys(EMPTY_META) as UploadKind[])
+        .filter((k) => pendingMeta[k] && !slots[k].attachment)
+        .map((k) => pendingMeta[k]?.name ?? k),
+    [pendingMeta, slots],
   );
 
   /* ----- Step Navigation ----- */
@@ -576,10 +798,14 @@ export function ApplyWizard() {
       classificationType,
       uploads,
       uploadingStates,
+      aiValidations,
+      aiValidating,
     );
 
     if (validationKey) {
-      setStepError(t(validationKey as never));
+      // Guarded lookup: never surface a raw MISSING_MESSAGE key to users.
+      const key = validationKey as never;
+      setStepError(t.has(key) ? t(key) : t('loadErrorHint'));
       return;
     }
 
@@ -594,9 +820,13 @@ export function ApplyWizard() {
       }
     }
 
-    setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
+    const nextIndex = Math.min(stepIndex + 1, STEPS.length - 1);
+    setStepIndex(nextIndex);
+    saveStepToStorage(nextIndex);
     window.scrollTo({top: 0, behavior: 'smooth'});
   }, [
+    aiValidations,
+    aiValidating,
     stepIndex,
     draft,
     classificationType,
@@ -604,20 +834,30 @@ export function ApplyWizard() {
     uploadingStates,
     isAuthenticated,
     persistDraft,
+    saveStepToStorage,
     t,
   ]);
 
   const goBack = useCallback(() => {
     setStepError(null);
-    setStepIndex((i) => Math.max(i - 1, 0));
+    setStepIndex((i) => {
+      const next = Math.max(i - 1, 0);
+      saveStepToStorage(next);
+      return next;
+    });
     window.scrollTo({top: 0, behavior: 'smooth'});
-  }, []);
+  }, [saveStepToStorage]);
 
-  const handleJumpToStep = useCallback((targetIndex: number) => {
-    setStepError(null);
-    setStepIndex(targetIndex);
-    window.scrollTo({top: 0, behavior: 'smooth'});
-  }, []);
+  const handleJumpToStep = useCallback(
+    (targetIndex: number) => {
+      setStepError(null);
+      const next = Math.min(Math.max(targetIndex, 0), STEPS.length - 1);
+      setStepIndex(next);
+      saveStepToStorage(next);
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    },
+    [saveStepToStorage],
+  );
 
   /* ----- Final Submissions ----- */
   const handleSubmit = useCallback(async () => {
@@ -640,11 +880,7 @@ export function ApplyWizard() {
       setApp(updated);
       setSubmittedReference(updated.reference);
       setDirty(false);
-      try {
-        sessionStorage.removeItem(STORAGE_KEY);
-      } catch {
-        /* ignore */
-      }
+      clearWizardStorage();
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : t('loadErrorHint');
       setSubmitError(tError('submitError', {message: msg}));
@@ -751,11 +987,7 @@ export function ApplyWizard() {
       setSubmittedReference(finalApp.reference);
       setTrackingToken(null);
       setDirty(false);
-      try {
-        sessionStorage.removeItem(STORAGE_KEY);
-      } catch {
-        /* ignore */
-      }
+      clearWizardStorage();
     },
     [draft],
   );
@@ -798,11 +1030,7 @@ export function ApplyWizard() {
       setSubmittedReference(result.reference);
       setTrackingToken(result.trackingToken);
       setDirty(false);
-      try {
-        sessionStorage.removeItem(STORAGE_KEY);
-      } catch {
-        /* ignore */
-      }
+      clearWizardStorage();
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('loadErrorHint');
       setSubmitError(tError('submitError', {message: msg}));
@@ -916,6 +1144,7 @@ export function ApplyWizard() {
           data={draft.personal}
           isPrefilled={isPrefilled}
           onChange={(patch) => {
+            setStepError(null);
             setDraft((prev) => {
               const next = {...prev, personal: {...prev.personal, ...patch}};
               saveDraftToStorage(next);
@@ -934,6 +1163,7 @@ export function ApplyWizard() {
           data={draft.education}
           universities={universities}
           onChange={(patch) => {
+            setStepError(null);
             setDraft((prev) => {
               const next = {...prev, education: {...prev.education, ...patch}};
               saveDraftToStorage(next);
@@ -953,6 +1183,7 @@ export function ApplyWizard() {
           endDate={draft.dates.desiredEndDate}
           classification={classification}
           onChange={(s, e) => {
+            setStepError(null);
             setDraft((prev) => {
               const next = {...prev, dates: {desiredStartDate: s, desiredEndDate: e}};
               saveDraftToStorage(next);
@@ -965,13 +1196,20 @@ export function ApplyWizard() {
         />
       )}
 
-      {/* Step 5: Required Documents */}
+      {/* Step 5: Required Documents – gated by AI doc-intel (type + name) */}
       {stepIndex === 3 && (
         <DocumentsStep
           application={slots.INTERNSHIP_APPLICATION}
           assignment={slots.ASSIGNMENT_LETTER}
           disabled={saving}
+          staleFileNames={staleUploads}
+          aiValidations={aiValidations}
+          aiValidating={aiValidating}
+          aiErrors={aiErrors}
+          fullName={fullNameForAi()}
+          onRetryAi={retryAiValidation}
           onSelectFiles={(kind, files) => {
+            setStepError(null);
             if (files.length > 0) void startUpload(kind, files[0]);
           }}
           onCancel={(kind) => cancelUpload(kind)}
@@ -992,6 +1230,7 @@ export function ApplyWizard() {
           assignmentLetter={uploads.ASSIGNMENT_LETTER}
           onJumpToStep={handleJumpToStep}
           onToggleTerms={(val) => {
+            setStepError(null);
             setDraft((prev) => {
               const next = {...prev, confirmedTerms: val};
               saveDraftToStorage(next);

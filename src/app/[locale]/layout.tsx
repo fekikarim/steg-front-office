@@ -2,6 +2,7 @@ import {IBM_Plex_Mono, IBM_Plex_Sans_Arabic} from 'next/font/google';
 import {NextIntlClientProvider, hasLocale} from 'next-intl';
 import {notFound} from 'next/navigation';
 import {getTranslations, setRequestLocale} from 'next-intl/server';
+import Script from 'next/script';
 import type {Metadata} from 'next';
 import type {ReactNode} from 'react';
 import {routing, directionOf, type AppLocale} from '@/i18n/routing';
@@ -57,14 +58,20 @@ export default async function LocaleLayout({
       suppressHydrationWarning
       className={`${sans.variable} ${mono.variable} h-full antialiased`}
     >
-      <head>
-        <script
-          id="theme-init"
-          dangerouslySetInnerHTML={{__html: THEME_INIT_SCRIPT}}
-          suppressHydrationWarning
-        />
-      </head>
+      {/*
+        Blocking theme script as the first body node (Next docs pattern for
+        root layouts). `beforeInteractive` inlines it into the initial HTML
+        <head> pre-hydration (no theme flash). It intentionally lives outside
+        <head>: React 19 warns (dev-only) for script elements rendered inside
+        <head> on client navigations such as locale switches, while a
+        body-placed beforeInteractive script loads exactly once.
+      */}
       <body className="flex min-h-full flex-col bg-white font-sans text-zinc-900 dark:bg-navy-950 dark:text-zinc-100">
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{__html: THEME_INIT_SCRIPT}}
+        />
         <ThemeProvider>
           <NextIntlClientProvider>
             <AuthProvider>

@@ -36,6 +36,11 @@ export function DatesStep({
   const ta = useTranslations('apply');
   const tn = useTranslations('apply.nav');
 
+  const todayStr = useMemo(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  }, []);
+
   const startInvalid = Boolean(startDate && endDate && endDate < startDate);
 
   const isBoundaryWarning = useMemo(() => {
@@ -93,6 +98,8 @@ export function DatesStep({
             label={t('startDate')}
             hint={t('startHint')}
             value={startDate}
+            min={todayStr}
+            required
             onChange={(e) => onChange(e.target.value, endDate)}
           />
           <DatePicker

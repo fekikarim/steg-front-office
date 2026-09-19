@@ -38,6 +38,8 @@ export const idleSlot = (attachment: ApplicationDocumentResponse | null = null):
   attachment,
 });
 
+import type {DocumentAiValidation} from '@/lib/api/application';
+
 interface DocumentSlotProps {
   kind: UploadKind;
   title: string;
@@ -46,10 +48,16 @@ interface DocumentSlotProps {
   state: SlotState;
   /** Whole-wizard busy flag (e.g. draft saving). */
   disabled?: boolean;
+  aiValidation?: DocumentAiValidation | null;
+  aiValidating?: boolean;
+  aiError?: SlotError | null;
+  /** Current full name for transparency (first + last) */
+  fullName?: string | null;
   onSelect: (kind: UploadKind, files: File[]) => void;
   onCancel: (kind: UploadKind) => void;
   onRetry: (kind: UploadKind) => void;
   onRemove: (kind: UploadKind) => void;
+  onRetryAi?: (kind: UploadKind) => void;
 }
 
 /**
@@ -67,10 +75,15 @@ export function DocumentSlot({
   rule,
   state,
   disabled = false,
+  aiValidation = null,
+  aiValidating = false,
+  aiError = null,
+  fullName = null,
   onSelect,
   onCancel,
   onRetry,
   onRemove,
+  onRetryAi,
 }: DocumentSlotProps) {
   const t = useTranslations('apply.documents');
   const locale = useLocale();
@@ -225,13 +238,141 @@ export function DocumentSlot({
             </p>
           )}
           <div className="flex flex-wrap gap-2 pt-1">
-            <Button variant="tertiary" size="sm" onClick={() => pickerRef.current?.click()} disabled={disabled || busy}>
+            <Button variant="tertiary" size="sm" onClick={() => pickerRef.current?.click()} disabled={disabled || busy || aiValidating}>
               {t('replace')}
             </Button>
-            <Button variant="tertiary" size="sm" onClick={() => onRemove(kind)} disabled={disabled || busy}>
+            <Button variant="tertiary" size="sm" onClick={() => onRemove(kind)} disabled={disabled || busy || aiValidating}>
               {t('remove')}
             </Button>
           </div>
+        </div>
+      )}
+
+      {/* AI Document Intelligence gate – must pass before Continue */}
+      {attachment && aiValidating && (
+        <div role="status" aria-live="polite" className="flex items-center gap-3 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2.5 text-xs text-sky-900 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-100">
+          <span aria-hidden="true" className="inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-sky-600 border-t-transparent motion-reduce:animate-none" />
+          <span className="font-medium">{t('aiValidating')}</span>
+        </div>
+      )}
+
+      {attachment && !aiValidating && aiError && (
+        <div role="alert" className="flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+          <p className="font-medium">{aiError.message}</p>
+          {aiError.traceId && (
+            <p className="font-mono opacity-80" dir="ltr">traceId: {aiError.traceId}</p>
+          )}
+          {aiError.retryable && onRetryAi && (
+            <div>
+              <Button variant="secondary" size="sm" onClick={() => onRetryAi(kind)}>
+                {t('aiRetry')}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {attachment && !aiValidating && !aiError && aiValidation && (
+        <div
+          role={aiValidation.valid ? 'status' : 'alert'}
+          aria-live="polite"
+          className={cx(
+            'flex flex-col gap-3 rounded-lg border px-3 py-3 text-xs',
+            aiValidation.valid
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100'
+              : 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100',
+          )}
+        >
+          <div className="flex items-start gap-2.5">
+            <span
+              aria-hidden="true"
+              className={cx(
+                'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm font-bold leading-none',
+                aiValidation.valid
+                  ? 'bg-emerald-600 text-white dark:bg-emerald-500'
+                  : 'bg-amber-500 text-white dark:bg-amber-500',
+              )}
+            >
+              {aiValidation.valid ? '✓' : '⚠'}
+            </span>
+            <div className="flex flex-1 flex-col gap-1.5">
+              <p className="font-semibold leading-relaxed text-[13px]">
+                {aiValidation.valid ? t('aiValid') : t('aiInvalid')}
+                <span className="ms-1.5 rounded bg-black/5 px-1.5 py-0.5 font-mono text-[11px] opacity-80 dark:bg-white/10">
+                  {Math.round(aiValidation.confidence * 100)}%
+                </span>
+              </p>
+              <p className="leading-relaxed opacity-90" dir="auto">
+                {aiValidation.reason}
+              </p>
+            </div>
+          </div>
+
+          {/* Structured breakdown — professional transparency */}
+          {(() => {
+            const expectedLabel =
+              kind === 'INTERNSHIP_APPLICATION' ? t('aiExpectedInternship') : t('aiExpectedAssignment');
+            const displayName = (fullName || '').trim();
+            const toks = displayName ? displayName.split(/\s+/).filter(Boolean) : [];
+            const reversed =
+              toks.length >= 2 ? `${toks.slice(1).join(' ')} ${toks[0]}` : displayName ? [...toks].reverse().join(' ') : '';
+            // For multi-word last names like "Ben Ali", show the proper last+first (toks[1:]+toks[0])
+            const alt = toks.length > 2 ? `${toks.slice(1).join(' ')} ${toks[0]}` : reversed;
+            return (
+              <div className="grid gap-2 rounded-lg bg-white/60 p-2.5 dark:bg-black/10">
+                <div className="flex items-start gap-2">
+                  <span aria-hidden="true" className={cx('mt-0.5 text-sm', aiValidation.documentTypeValid ? 'text-emerald-600' : 'text-amber-600')}>
+                    {aiValidation.documentTypeValid ? '✓' : '✗'}
+                  </span>
+                  <div className="flex-1 leading-relaxed">
+                    <span className="font-semibold">{t('aiCheckType')} </span>
+                    <span dir="auto" className="opacity-90">
+                      {aiValidation.documentTypeValid ? (
+                        <>{t('aiTypeFound', {expected: expectedLabel})}</>
+                      ) : (
+                        <>{t('aiTypeNotFound', {expected: expectedLabel})}</>
+                      )}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span aria-hidden="true" className={cx('mt-0.5 text-sm', aiValidation.candidateNameValid ? 'text-emerald-600' : 'text-amber-600')}>
+                    {aiValidation.candidateNameValid ? '✓' : '✗'}
+                  </span>
+                  <div className="flex-1 leading-relaxed">
+                    <span className="font-semibold">{t('aiCheckName')} </span>
+                    <span dir="auto" className="opacity-90">
+                      {displayName ? (
+                        aiValidation.candidateNameValid ? (
+                          <>{t('aiNameFound', {fullName: displayName, alt})}</>
+                        ) : (
+                          <>{t('aiNameNotFound', {fullName: displayName, alt})}</>
+                        )
+                      ) : (
+                        <>{t('aiNameMissing')}</>
+                      )}
+                    </span>
+                  </div>
+                </div>
+                {!aiValidation.valid && (
+                  <p className="rounded bg-amber-100/70 px-2.5 py-2 font-medium leading-relaxed text-amber-900 dark:bg-amber-500/20 dark:text-amber-100">
+                    {t('aiReplaceGuidance')}
+                  </p>
+                )}
+              </div>
+            );
+          })()}
+
+          {!aiValidation.valid && onRetryAi && (
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" size="sm" onClick={() => onRetryAi(kind)}>
+                {t('aiRetry')}
+              </Button>
+              <Button variant="tertiary" size="sm" onClick={() => pickerRef.current?.click()} disabled={disabled || busy}>
+                {t('replace')}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -323,6 +323,101 @@ export async function uploadDocument(
 }
 
 /* ------------------------------------------------------------------ */
+/*  AI validation                                                       */
+/* ------------------------------------------------------------------ */
+
+export interface DocumentAiValidation {
+  documentId: string | null;
+  valid: boolean;
+  documentTypeValid: boolean;
+  candidateNameValid: boolean;
+  confidence: number;
+  reason: string;
+  version: string;
+}
+
+export function validateStoredDocumentAi(
+  token: string,
+  documentId: string,
+  body: {expectedType?: string; fullName?: string},
+): Promise<DocumentAiValidation> {
+  return backendFetch<DocumentAiValidation>(`/api/documents/${documentId}/validation`, {
+    method: 'POST',
+    token,
+    body,
+  });
+}
+
+/** Anonymous / pre-account file validation: Next.js proxy forwards multipart to backend public endpoint. */
+export async function validatePublicDocumentAi(
+  file: File,
+  type: DocumentType,
+  fullName: string | null,
+): Promise<DocumentAiValidation> {
+  const baseUrl = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+  // When running in the Next.js proxy we go through our own route so the
+  // server can attach httpOnly auth when present; for public we also proxy.
+  // Detect browser vs server: if window exists, use same-origin proxy.
+  if (typeof window !== 'undefined') {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('type', type);
+    if (fullName) form.append('fullName', fullName);
+    const res = await fetch('/api/public/documents/validation', {method: 'POST', body: form, cache: 'no-store'});
+    const text = await res.text();
+    const data: unknown = text ? (JSON.parse(text) as unknown) : null;
+    if (!res.ok) {
+      const env = data && typeof data === 'object' ? (data as ErrorEnvelope) : null;
+      throw new ApiError(res.status, env, env?.message ?? 'AI validation failed.');
+    }
+    return data as DocumentAiValidation;
+  }
+  // Server-side direct call (used by route handler): forward to Spring Boot.
+  const form = new FormData();
+  form.append('file', file);
+  form.append('type', type);
+  if (fullName) form.append('fullName', fullName);
+  const res = await fetch(`${baseUrl}/api/public/documents/validation`, {
+    method: 'POST',
+    body: form,
+  });
+  const t = await res.text();
+  const d: unknown = t ? (JSON.parse(t) as unknown) : null;
+  if (!res.ok) {
+    // Backend returns envelope with message/traceId; surface it
+    let envelope: ErrorEnvelope | null = null;
+    try {
+      envelope = d && typeof d === 'object' ? (d as ErrorEnvelope) : null;
+    } catch {
+      envelope = null;
+    }
+    const msg = (envelope as unknown as {message?: string})?.message ?? 'AI validation failed.';
+    throw new ApiError(res.status, envelope, msg);
+  }
+  return d as DocumentAiValidation;
+}
+
+/** Browser helper: re-validate a stored document via the same-origin proxy. */
+export async function validateStoredDocumentAiBrowser(
+  documentId: string,
+  body: {expectedType?: string; fullName?: string},
+): Promise<DocumentAiValidation> {
+  const res = await fetch(`/api/documents/${documentId}/validation`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body),
+    cache: 'no-store',
+  });
+  const text = await res.text();
+  const data: unknown = text ? (JSON.parse(text) as unknown) : null;
+  if (!res.ok) {
+    const env = data && typeof data === 'object' ? (data as ErrorEnvelope) : null;
+    throw new ApiError(res.status, env, env?.message ?? 'AI validation failed.');
+  }
+  return data as DocumentAiValidation;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Client-side classification (mirrors backend logic)                  */
 /* ------------------------------------------------------------------ */
 

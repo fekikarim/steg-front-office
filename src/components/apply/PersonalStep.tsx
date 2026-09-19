@@ -32,6 +32,10 @@ export function PersonalStep({
   const ta = useTranslations('apply');
   const tn = useTranslations('apply.nav');
 
+  const today = new Date();
+  const maxBirth = `${today.getFullYear() - 15}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const minBirth = `${today.getFullYear() - 80}-01-01`;
+
   return (
     <StepShell eyebrow={t('eyebrow')} title={t('title')} intro={t('intro')}>
       {isPrefilled && (
@@ -56,6 +60,8 @@ export function PersonalStep({
             placeholder={t('firstNamePlaceholder')}
             autoComplete="given-name"
             required
+            minLength={2}
+            maxLength={100}
           />
 
           {/* Last Name */}
@@ -68,6 +74,8 @@ export function PersonalStep({
             placeholder={t('lastNamePlaceholder')}
             autoComplete="family-name"
             required
+            minLength={2}
+            maxLength={100}
           />
 
           {/* CIN / National ID */}
@@ -79,6 +87,9 @@ export function PersonalStep({
             onChange={(e) => onChange({nationalId: e.target.value})}
             placeholder={t('cinPlaceholder')}
             required
+            minLength={5}
+            maxLength={20}
+            autoComplete="off"
           />
 
           {/* Phone Number */}
@@ -90,7 +101,10 @@ export function PersonalStep({
             onChange={(e) => onChange({phone: e.target.value})}
             placeholder={t('phonePlaceholder')}
             autoComplete="tel"
+            inputMode="tel"
             required
+            minLength={8}
+            maxLength={16}
           />
 
           {/* Email Address */}
@@ -104,6 +118,7 @@ export function PersonalStep({
               placeholder={t('emailPlaceholder')}
               autoComplete="email"
               required
+              maxLength={254}
             />
           </div>
 
@@ -116,6 +131,8 @@ export function PersonalStep({
             onChange={(e) => onChange({birthDate: e.target.value})}
             autoComplete="bday"
             required
+            min={minBirth}
+            max={maxBirth}
           />
         </div>
 

@@ -1,5 +1,6 @@
 import type {
   ApplicationDocumentResponse,
+  DocumentAiValidation,
   InternshipType,
 } from '@/lib/api/application';
 
@@ -75,9 +76,39 @@ export const INITIAL_WIZARD_DRAFT: WizardDraft = {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/** Letters (Latin + Arabic), spaces, hyphens, apostrophes. */
+const NAME_RE = /^[A-Za-zÀ-ÖØ-öø-ÿĀ-žƤ-ʓЀ-џ؀-ۿݐ-ݿ‐-―'’\- ]+$/u;
+
+const CIN_RE = /^[A-Za-z0-9][A-Za-z0-9\- ]*$/;
+
+const EDUCATION_LEVELS = new Set(['LICENCE', 'MASTER', 'INGENIEUR', 'DOCTORAT', 'AUTRE']);
+
+/** Tunisian mobile/landline (with or without +216) or generic international. */
+function isValidPhone(raw: string): boolean {
+  const compact = raw.replace(/[\s.\-()]/g, '');
+  if (/^\+216[24579]\d{7}$/.test(compact)) return true;
+  if (/^[24579]\d{7}$/.test(compact)) return true;
+  if (/^\+?\d{8,15}$/.test(compact)) return true;
+  return false;
+}
+
+function birthDateError(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return true;
+  const d = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return true;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (d > today) return true;
+  let age = today.getFullYear() - d.getFullYear();
+  const m = today.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age -= 1;
+  return age < 15 || age > 80;
+}
+
 /**
  * Validate each step in the wizard.
- * Returns null if valid, or a localized message key for UI display.
+ * Returns null if valid, or a message key RELATIVE to the `apply`
+ * next-intl namespace (caller uses `useTranslations('apply')`).
  */
 export function validateStep(
   step: StepId,
@@ -85,38 +116,75 @@ export function validateStep(
   classificationType: InternshipType | null,
   uploads: Record<UploadKind, ApplicationDocumentResponse | null>,
   uploadingStates: Record<UploadKind, boolean>,
+  aiValidations?: Record<UploadKind, DocumentAiValidation | null>,
+  aiValidating?: Record<UploadKind, boolean>,
 ): string | null {
   switch (step) {
     case 'personal': {
       const p = draft.personal;
-      if (!p.firstName.trim() || !p.lastName.trim()) return 'apply.personal.nameRequired';
-      if (!p.nationalId.trim() || p.nationalId.trim().length < 5) return 'apply.personal.cinRequired';
-      if (!p.email.trim() || !EMAIL_RE.test(p.email.trim())) return 'apply.personal.emailInvalid';
-      if (!p.phone.trim()) return 'apply.personal.phoneRequired';
-      if (!p.birthDate) return 'apply.personal.birthDateRequired';
+      const first = p.firstName.trim();
+      const last = p.lastName.trim();
+      if (!first || !last) return 'personal.nameRequired';
+      if (
+        first.length < 2 ||
+        last.length < 2 ||
+        first.length > 100 ||
+        last.length > 100 ||
+        !NAME_RE.test(first) ||
+        !NAME_RE.test(last)
+      )
+        return 'personal.nameInvalid';
+      const cin = p.nationalId.trim();
+      if (!cin || cin.length < 5 || cin.length > 20 || !CIN_RE.test(cin))
+        return 'personal.cinRequired';
+      const email = p.email.trim();
+      if (!email || email.length > 254 || !EMAIL_RE.test(email))
+        return 'personal.emailInvalid';
+      const phone = p.phone.trim();
+      if (!phone) return 'personal.phoneRequired';
+      if (!isValidPhone(phone)) return 'personal.phoneInvalid';
+      if (!p.birthDate) return 'personal.birthDateRequired';
+      if (birthDateError(p.birthDate)) return 'personal.birthDateInvalid';
       return null;
     }
     case 'education': {
       const e = draft.education;
-      if (!e.universityId) return 'apply.education.universityRequired';
+      if (!EDUCATION_LEVELS.has(e.educationLevel)) return 'education.universityRequired';
+      if (!e.speciality.trim() || e.speciality.trim().length < 2)
+        return 'education.specialityRequired';
+      if (!e.universityId) return 'education.universityRequired';
       return null;
     }
     case 'dates': {
       const d = draft.dates;
-      if (!d.desiredStartDate || !d.desiredEndDate) return 'apply.dates.errorBothRequired';
-      if (d.desiredEndDate < d.desiredStartDate) return 'apply.dates.errorEndBeforeStart';
+      if (!d.desiredStartDate || !d.desiredEndDate) return 'dates.errorBothRequired';
+      if (d.desiredEndDate < d.desiredStartDate) return 'dates.errorEndBeforeStart';
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      if (d.desiredStartDate < `${yyyy}-${mm}-${dd}`) return 'dates.errorStartInPast';
       return null;
     }
     case 'documents': {
       const requiredKinds: UploadKind[] = ['INTERNSHIP_APPLICATION', 'ASSIGNMENT_LETTER'];
       for (const k of requiredKinds) {
-        if (!uploads[k]) return 'apply.documents.allRequired';
-        if (uploadingStates[k]) return 'apply.documents.allRequired';
+        if (!uploads[k]) return 'documents.allRequired';
+        if (uploadingStates[k]) return 'documents.allRequired';
+        if (aiValidating?.[k]) return 'documents.aiValidating';
+        const v = aiValidations?.[k] ?? null;
+        if (!v) return 'documents.aiNotValidated';
+        if (!v.valid) {
+          if (!v.documentTypeValid && !v.candidateNameValid) return 'documents.aiInvalidTypeAndName';
+          if (!v.documentTypeValid) return 'documents.aiInvalidType';
+          if (!v.candidateNameValid) return 'documents.aiInvalidName';
+          return 'documents.aiInvalid';
+        }
       }
       return null;
     }
     case 'review': {
-      if (!draft.confirmedTerms) return 'apply.reviewAgreeTerms';
+      if (!draft.confirmedTerms) return 'reviewAgreeTerms';
       return null;
     }
     case 'result':
