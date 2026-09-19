@@ -74,3 +74,55 @@ export function createMyCandidate(token: string, body: CandidateProfileUpdate) {
 export function listUniversities() {
   return backendFetch<University[]>('/api/universities', {method: 'GET'});
 }
+
+export interface IdentifierValidationRequest {
+  email?: string | null;
+  nationalId?: string | null;
+  phone?: string | null;
+}
+
+export interface IdentifierValidationResponse {
+  valid: boolean;
+  duplicateFields: string[];
+  message: string;
+}
+
+export function validateIdentifiers(token: string | null, body: IdentifierValidationRequest) {
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return backendFetch<IdentifierValidationResponse>('/api/public/applications/validate-identifiers', {
+    method: 'POST',
+    token: token ?? undefined,
+    body,
+  });
+}
+
+/** Browser-side: calls the Next.js proxy which forwards to backend (handles both anon and auth via cookies) */
+export async function validateIdentifiersClient(body: IdentifierValidationRequest): Promise<IdentifierValidationResponse> {
+  const res = await fetch('/api/public/applications/validate-identifiers', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body),
+    cache: 'no-store',
+  });
+  const text = await res.text();
+  const data: unknown = text ? (JSON.parse(text) as unknown) : null;
+  if (!res.ok) {
+    const message =
+      typeof data === 'object' && data !== null && 'message' in data
+        ? String((data as {message: unknown}).message)
+        : 'Validation failed.';
+    // Try to preserve duplicateFields if backend returned it even on error
+    const duplicateFields =
+      typeof data === 'object' && data !== null && 'duplicateFields' in data && Array.isArray((data as {duplicateFields: unknown}).duplicateFields)
+        ? ((data as {duplicateFields: string[]}).duplicateFields as string[])
+        : [];
+    // If backend returned 422 with valid=false, we still want to surface it as a successful validation response
+    // so the UI can show the warning dialog instead of a generic error.
+    if (data && typeof data === 'object' && 'valid' in data && typeof (data as {valid: unknown}).valid === 'boolean') {
+      return data as IdentifierValidationResponse;
+    }
+    throw new Error(message);
+  }
+  return data as IdentifierValidationResponse;
+}

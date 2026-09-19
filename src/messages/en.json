@@ -725,7 +725,8 @@
       "lastNamePlaceholder": "Ben Ali",
       "cinPlaceholder": "09876543",
       "phonePlaceholder": "+216 98 123 456",
-      "emailPlaceholder": "mohamed.benali@esprit.tn"
+      "emailPlaceholder": "mohamed.benali@esprit.tn",
+      "validating": "Checking…"
     },
     "dates": {
       "title": "Internship dates",
@@ -919,6 +920,16 @@
     "recoveryMinutes": "{count} min ago",
     "recoveryHours": "{count} h ago",
     "recoveryDays": "{count} d ago",
+    "duplicateDialogTitle": "Application already exists",
+    "duplicateDialogBody": "An application already exists for this candidate. Please use your existing account.",
+    "duplicateDialogClose": "Close",
+    "duplicateDialogLogin": "Sign in",
+    "duplicateDialogHintTitle": "What to do?",
+    "duplicateDialogHintBody": "You have already submitted an application with one of these identifiers. It is not possible to create a new application with the same information.",
+    "duplicateFieldEmail": "Email address",
+    "duplicateFieldCin": "ID card number (CIN)",
+    "duplicateFieldPhone": "Phone number",
+    "duplicateDialogFooter": "If you forgot your password, use the reset function or contact support.",
     "nav": {
       "back": "Back",
       "continue": "Continue",

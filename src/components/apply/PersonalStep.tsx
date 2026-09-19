@@ -14,6 +14,7 @@ interface PersonalStepProps {
   isPrefilled: boolean;
   errorKey: string | null;
   onContinue: () => void;
+  isValidating?: boolean;
 }
 
 /**
@@ -27,6 +28,7 @@ export function PersonalStep({
   isPrefilled,
   errorKey,
   onContinue,
+  isValidating = false,
 }: PersonalStepProps) {
   const t = useTranslations('apply.personal');
   const ta = useTranslations('apply');
@@ -139,8 +141,15 @@ export function PersonalStep({
         {errorKey && <FieldError message={errorKey} />}
 
         <div className="mt-4 flex justify-end">
-          <Button size="md" onClick={onContinue}>
-            {tn('continue')}
+          <Button size="md" onClick={onContinue} disabled={isValidating}>
+            {isValidating ? (
+              <span className="inline-flex items-center gap-2">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden="true" />
+                {t('validating')}
+              </span>
+            ) : (
+              tn('continue')
+            )}
           </Button>
         </div>
       </Card>

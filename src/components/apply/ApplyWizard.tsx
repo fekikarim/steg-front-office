@@ -24,6 +24,7 @@ import {
   uploadFileWithProgress,
 } from '@/lib/api/application-client';
 import {createProfile, fetchUniversities, getProfile, updateProfile} from '@/lib/api/profile-client';
+import {validateIdentifiersClient} from '@/lib/api/candidate';
 import {extensionsLabel, formatBytes} from '@/lib/files';
 import {useToast} from '@/components/ui/Toast';
 import {Button} from '@/components/ui/Button';
@@ -37,6 +38,7 @@ import {DatesStep} from './DatesStep';
 import {DocumentsStep} from './DocumentsStep';
 import {ReviewStep} from './ReviewStep';
 import {SubmitStep} from './SubmitStep';
+import {Modal} from '@/components/ui/Modal';
 import {
   INITIAL_WIZARD_DRAFT,
   STEPS,
@@ -306,6 +308,9 @@ export function ApplyWizard() {
   const [submittedReference, setSubmittedReference] = useState<string | null>(null);
   const [trackingToken, setTrackingToken] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [isValidatingIdentifiers, setIsValidatingIdentifiers] = useState(false);
+  const [duplicateInfo, setDuplicateInfo] = useState<{duplicateFields: string[]; message: string} | null>(null);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
 
   const bootstrapDone = useRef(false);
 
@@ -992,6 +997,31 @@ export function ApplyWizard() {
       return;
     }
 
+    // Step 1 (personal) — server-side uniqueness check for email/CIN/phone before proceeding to Step 2
+    if (currentStepId === 'personal') {
+      setIsValidatingIdentifiers(true);
+      setStepError(null);
+      try {
+        const result = await validateIdentifiersClient({
+          email: draft.personal.email.trim() || null,
+          nationalId: draft.personal.nationalId.trim() || null,
+          phone: draft.personal.phone.trim() || null,
+        });
+        if (!result.valid) {
+          setDuplicateInfo({duplicateFields: result.duplicateFields, message: result.message});
+          setShowDuplicateDialog(true);
+          return;
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : t('loadErrorHint');
+        setStepError(message);
+        toast.notify({title: message, tone: 'error'});
+        return;
+      } finally {
+        setIsValidatingIdentifiers(false);
+      }
+    }
+
     setStepError(null);
 
     // If authenticated, persist draft checkpoint to backend when leaving dates or details
@@ -1019,6 +1049,7 @@ export function ApplyWizard() {
     persistDraft,
     saveStepToStorage,
     t,
+    toast,
   ]);
 
   const goBack = useCallback(() => {
@@ -1375,6 +1406,71 @@ export function ApplyWizard() {
         </div>
       )}
 
+      {/* Duplicate identifier warning dialog — shown when email/CIN/phone already has an application */}
+      <Modal
+        open={showDuplicateDialog}
+        onClose={() => {
+          setShowDuplicateDialog(false);
+          setDuplicateInfo(null);
+        }}
+        title={t('duplicateDialogTitle')}
+        description={duplicateInfo?.message || t('duplicateDialogBody')}
+        closeLabel={t('duplicateDialogClose')}
+        size="md"
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={() => {
+                setShowDuplicateDialog(false);
+                setDuplicateInfo(null);
+              }}
+            >
+              {t('duplicateDialogClose')}
+            </Button>
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+              onClick={() => {
+                setShowDuplicateDialog(false);
+                setDuplicateInfo(null);
+              }}
+            >
+              {t('duplicateDialogLogin')}
+            </Link>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-3">
+          <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100">
+            <span className="text-lg" aria-hidden="true">
+              ⚠️
+            </span>
+            <div className="flex flex-col gap-1">
+              <p className="font-semibold">{t('duplicateDialogHintTitle')}</p>
+              <p className="text-xs leading-relaxed opacity-90">{t('duplicateDialogHintBody')}</p>
+              {duplicateInfo?.duplicateFields && duplicateInfo.duplicateFields.length > 0 && (
+                <ul className="mt-1 list-disc pl-4 text-xs opacity-90">
+                  {duplicateInfo.duplicateFields.map((field) => (
+                    <li key={field}>
+                      {field === 'email'
+                        ? t('duplicateFieldEmail')
+                        : field === 'nationalId'
+                          ? t('duplicateFieldCin')
+                          : field === 'phone'
+                            ? t('duplicateFieldPhone')
+                            : field}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+          <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">{t('duplicateDialogFooter')}</p>
+        </div>
+      </Modal>
+
       {/* Step 1: Personal Information */}
       {stepIndex === 0 && (
         <PersonalStep
@@ -1390,6 +1486,7 @@ export function ApplyWizard() {
             setDirty(true);
           }}
           errorKey={stepError}
+          isValidating={isValidatingIdentifiers}
           onContinue={() => void goNext()}
         />
       )}

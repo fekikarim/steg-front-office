@@ -725,7 +725,8 @@
       "lastNamePlaceholder": "بن علي",
       "cinPlaceholder": "09876543",
       "phonePlaceholder": "+216 98 123 456",
-      "emailPlaceholder": "ahmed.benali@esprit.tn"
+      "emailPlaceholder": "ahmed.benali@esprit.tn",
+      "validating": "جاري التحقق…"
     },
     "dates": {
       "title": "تواريخ التربص",
@@ -919,6 +920,16 @@
     "recoveryMinutes": "منذ {count} د",
     "recoveryHours": "منذ {count} س",
     "recoveryDays": "منذ {count} ي",
+    "duplicateDialogTitle": "الترشح موجود مسبقاً",
+    "duplicateDialogBody": "يوجد ترشح بالفعل لهذا المترشح. يرجى استخدام حسابك الحالي.",
+    "duplicateDialogClose": "إغلاق",
+    "duplicateDialogLogin": "تسجيل الدخول",
+    "duplicateDialogHintTitle": "ماذا أفعل؟",
+    "duplicateDialogHintBody": "لقد قدمت بالفعل ترشحاً بأحد هذه المعرفات. لا يمكن إنشاء ترشح جديد بنفس المعلومات.",
+    "duplicateFieldEmail": "البريد الإلكتروني",
+    "duplicateFieldCin": "رقم بطاقة التعريف",
+    "duplicateFieldPhone": "رقم الهاتف",
+    "duplicateDialogFooter": "إذا نسيت كلمة المرور، استخدم إعادة التعيين أو اتصل بالدعم.",
     "nav": {
       "back": "رجوع",
       "continue": "متابعة",

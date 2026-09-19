@@ -725,7 +725,8 @@
       "lastNamePlaceholder": "Ben Ali",
       "cinPlaceholder": "09876543",
       "phonePlaceholder": "+216 98 123 456",
-      "emailPlaceholder": "mohamed.benali@esprit.tn"
+      "emailPlaceholder": "mohamed.benali@esprit.tn",
+      "validating": "Vérification en cours…"
     },
     "dates": {
       "title": "Dates du stage",
@@ -919,6 +920,16 @@
     "recoveryMinutes": "il y a {count} min",
     "recoveryHours": "il y a {count} h",
     "recoveryDays": "il y a {count} j",
+    "duplicateDialogTitle": "Candidature déjà existante",
+    "duplicateDialogBody": "Une candidature existe déjà pour ce candidat. Veuillez utiliser votre compte existant.",
+    "duplicateDialogClose": "Fermer",
+    "duplicateDialogLogin": "Se connecter",
+    "duplicateDialogHintTitle": "Que faire ?",
+    "duplicateDialogHintBody": "Vous avez déjà soumis une candidature avec l'un de ces identifiants. Il n'est pas possible de créer une nouvelle candidature avec les mêmes informations.",
+    "duplicateFieldEmail": "Adresse e-mail",
+    "duplicateFieldCin": "Numéro CIN",
+    "duplicateFieldPhone": "Numéro de téléphone",
+    "duplicateDialogFooter": "Si vous avez oublié votre mot de passe, utilisez la fonction de réinitialisation ou contactez le support.",
     "nav": {
       "back": "Retour",
       "continue": "Continuer",
