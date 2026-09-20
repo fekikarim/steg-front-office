@@ -223,10 +223,18 @@ export function updateApplication(token: string, id: string, body: ApplicationUp
   });
 }
 
-export function submitApplication(token: string, id: string) {
+export function submitApplication(
+  token: string,
+  id: string,
+  opts: {timeoutMs?: number; idempotencyKey?: string} = {},
+) {
   return backendFetch<ApplicationResponse>(`/api/applications/${id}/submit`, {
     method: 'POST',
     token,
+    // Submit fans out to notifications + Resend email server-side; allow a
+    // generous budget (email timeout is bounded server-side, worst case ~15s).
+    timeoutMs: opts.timeoutMs ?? 45_000,
+    headers: opts.idempotencyKey ? {'X-Idempotency-Key': opts.idempotencyKey} : undefined,
   });
 }
 
@@ -336,6 +344,29 @@ export interface DocumentAiValidation {
   version: string;
 }
 
+/**
+ * AI validation budget: Spring Boot allows up to ~30s for Python
+ * (15s timeout x 2 attempts + backoff). The Next.js proxy must wait longer
+ * than that, otherwise it aborts healthy-but-slow validations and the UI
+ * shows a false "service unavailable". 45s covers p99 + headroom.
+ */
+const AI_VALIDATION_TIMEOUT_MS = 45_000;
+
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, {...init, signal: controller.signal});
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new ApiError(0, {error: 'AI_TIMEOUT', message: 'AI verification timed out.'}, 'AI verification timed out.');
+    }
+    throw new ApiError(0, null, 'Cannot reach the server.');
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export function validateStoredDocumentAi(
   token: string,
   documentId: string,
@@ -345,6 +376,7 @@ export function validateStoredDocumentAi(
     method: 'POST',
     token,
     body,
+    timeoutMs: AI_VALIDATION_TIMEOUT_MS,
   });
 }
 
@@ -363,7 +395,11 @@ export async function validatePublicDocumentAi(
     form.append('file', file);
     form.append('type', type);
     if (fullName) form.append('fullName', fullName);
-    const res = await fetch('/api/public/documents/validation', {method: 'POST', body: form, cache: 'no-store'});
+    const res = await fetchWithTimeout(
+      '/api/public/documents/validation',
+      {method: 'POST', body: form, cache: 'no-store'},
+      AI_VALIDATION_TIMEOUT_MS,
+    );
     const text = await res.text();
     const data: unknown = text ? (JSON.parse(text) as unknown) : null;
     if (!res.ok) {
@@ -377,10 +413,23 @@ export async function validatePublicDocumentAi(
   form.append('file', file);
   form.append('type', type);
   if (fullName) form.append('fullName', fullName);
-  const res = await fetch(`${baseUrl}/api/public/documents/validation`, {
-    method: 'POST',
-    body: form,
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AI_VALIDATION_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${baseUrl}/api/public/documents/validation`, {
+      method: 'POST',
+      body: form,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new ApiError(504, {error: 'UPSTREAM_TIMEOUT', message: 'Document validation timed out.'}, 'Document validation timed out.');
+    }
+    throw new ApiError(502, {error: 'UPSTREAM_UNREACHABLE', message: 'Cannot reach the server.'}, 'Document validation failed.');
+  } finally {
+    clearTimeout(timer);
+  }
   const t = await res.text();
   const d: unknown = t ? (JSON.parse(t) as unknown) : null;
   if (!res.ok) {
@@ -402,12 +451,16 @@ export async function validateStoredDocumentAiBrowser(
   documentId: string,
   body: {expectedType?: string; fullName?: string},
 ): Promise<DocumentAiValidation> {
-  const res = await fetch(`/api/documents/${documentId}/validation`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(body),
-    cache: 'no-store',
-  });
+  const res = await fetchWithTimeout(
+    `/api/documents/${documentId}/validation`,
+    {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body),
+      cache: 'no-store',
+    },
+    AI_VALIDATION_TIMEOUT_MS,
+  );
   const text = await res.text();
   const data: unknown = text ? (JSON.parse(text) as unknown) : null;
   if (!res.ok) {
@@ -422,20 +475,30 @@ export async function validateStoredDocumentAiBrowser(
 /* ------------------------------------------------------------------ */
 
 function daysBetween(start: string, end: string): number {
-  const s = new Date(start + 'T00:00:00Z');
-  const e = new Date(end + 'T00:00:00Z');
-  return Math.floor((e.getTime() - s.getTime()) / 86_400_000) + 1;
+  const [sy, sm, sd] = start.split('-').map(Number);
+  const [ey, em, ed] = end.split('-').map(Number);
+  const s = Date.UTC(sy, sm - 1, sd);
+  const e = Date.UTC(ey, em - 1, ed);
+  return Math.floor((e - s) / 86_400_000) + 1;
 }
 
-function monthsBetween(start: string, end: string): {months: number; days: number} {
-  const s = new Date(start + 'T00:00:00Z');
-  const e = new Date(end + 'T00:00:00Z');
-  let months = e.getUTCMonth() - s.getUTCMonth() + (e.getUTCFullYear() - s.getUTCFullYear()) * 12;
-  const days = e.getUTCDate() - s.getUTCDate();
+function periodBetween(start: string, end: string): {years: number; months: number; days: number} {
+  const [sy, sm, sd] = start.split('-').map(Number);
+  const [ey, em, ed] = end.split('-').map(Number);
+  let years = ey - sy;
+  let months = em - sm;
+  let days = ed - sd;
   if (days < 0) {
-    months--;
+    months -= 1;
+    // days in month preceding end date
+    const prevMonthDays = new Date(Date.UTC(ey, em - 1, 0)).getUTCDate();
+    days += prevMonthDays;
   }
-  return {months, days: days < 0 ? days + 30 : days};
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+  return {years, months, days};
 }
 
 /**
@@ -444,7 +507,21 @@ function monthsBetween(start: string, end: string): {months: number; days: numbe
  * the candidate is selecting dates.
  */
 export function classifyInternship(startDate: string, endDate: string): ClassificationResult {
-  if (endDate < startDate) {
+  // Robust validation: reject invalid ISO or end before start before computing
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+    return {
+      type: 'OBSERVATION',
+      requirement: 'OPTIONAL',
+      paymentEligible: false,
+      durationInDays: 0,
+      appliedRuleDescription: 'Invalid date range.',
+    };
+  }
+  const [sy, sm, sd] = startDate.split('-').map(Number);
+  const [ey, em, ed] = endDate.split('-').map(Number);
+  const startMs = Date.UTC(sy, sm - 1, sd);
+  const endMs = Date.UTC(ey, em - 1, ed);
+  if (Number.isNaN(startMs) || Number.isNaN(endMs) || endMs < startMs) {
     return {
       type: 'OBSERVATION',
       requirement: 'OPTIONAL',
@@ -455,7 +532,8 @@ export function classifyInternship(startDate: string, endDate: string): Classifi
   }
 
   const durationInDays = daysBetween(startDate, endDate);
-  const period = monthsBetween(startDate, endDate);
+  const period = periodBetween(startDate, endDate);
+  const isGreaterThan3Months = period.years > 0 || period.months > 3 || (period.months === 3 && period.days > 0);
 
   if (durationInDays < 42) {
     return {
@@ -467,7 +545,7 @@ export function classifyInternship(startDate: string, endDate: string): Classifi
     };
   }
 
-  if (period.months < 3 || (period.months === 3 && period.days === 0)) {
+  if (!isGreaterThan3Months) {
     return {
       type: 'PERFECTIONNEMENT',
       requirement: 'OBLIGATOIRE',
@@ -482,17 +560,23 @@ export function classifyInternship(startDate: string, endDate: string): Classifi
     requirement: 'OBLIGATOIRE',
     paymentEligible: true,
     durationInDays,
-    appliedRuleDescription: `Duration is ${period.months} month${period.months === 1 ? '' : 's'} and ${period.days} day${period.days === 1 ? '' : 's'} (> 3 months).`,
+    appliedRuleDescription: `Duration is ${period.years > 0 ? period.years * 12 + period.months : period.months} month${(period.years > 0 ? period.years * 12 + period.months : period.months) === 1 ? '' : 's'} and ${period.days} day${period.days === 1 ? '' : 's'} (> 3 months).`,
   };
 }
 
 /**
  * Check whether a date range falls in the "gap" between Observation and
  * Perfectionnement (exactly 42 days is Perfectionnement, so no gap exists
- * for valid ranges). Also validates that end >= start.
+ * for valid ranges). Also validates that end >= start with proper ISO parsing.
  */
 export function validateDateRange(startDate: string, endDate: string): string | null {
   if (!startDate || !endDate) return null;
-  if (endDate < startDate) return 'apply.wizard.dates.errorEndBeforeStart';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) return null;
+  const [sy, sm, sd] = startDate.split('-').map(Number);
+  const [ey, em, ed] = endDate.split('-').map(Number);
+  const s = Date.UTC(sy, sm - 1, sd);
+  const e = Date.UTC(ey, em - 1, ed);
+  if (Number.isNaN(s) || Number.isNaN(e)) return null;
+  if (e < s) return 'apply.wizard.dates.errorEndBeforeStart';
   return null;
 }

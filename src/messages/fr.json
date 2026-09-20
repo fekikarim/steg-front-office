@@ -739,6 +739,7 @@
       "errorEndBeforeStart": "La date de fin doit être après la date de début.",
       "errorBothRequired": "Veuillez choisir à la fois une date de début et de fin.",
       "errorStartInPast": "La date de début ne peut pas être dans le passé.",
+      "errorInvalidDate": "La date sélectionnée n'est pas valide.",
       "classificationTitle": "Classification automatique",
       "classificationHint": "Déterminée selon la durée choisie.",
       "requirementLabel": "Exigence",
@@ -894,7 +895,8 @@
       "bridgeEmailLabel": "Adresse e-mail",
       "bridgePasswordLabel": "Mot de passe",
       "alreadySubmittedTitle": "Déjà soumise",
-      "alreadySubmittedBody": "Cette candidature a déjà été soumise."
+      "alreadySubmittedBody": "Cette candidature a déjà été soumise.",
+      "submitRecovered": "Votre candidature a bien été soumise."
     },
     "stepper": {
       "step": "Étape",

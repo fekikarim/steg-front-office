@@ -92,16 +92,38 @@ function isValidPhone(raw: string): boolean {
   return false;
 }
 
+function isValidIsoDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [y, m, d] = value.split('-').map(Number);
+  if (m < 1 || m > 12 || d < 1 || d > 31) return false;
+  const utc = Date.UTC(y, m - 1, d);
+  const dt = new Date(utc);
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+}
+
+function isoToUtcMs(value: string): number {
+  const [y, m, d] = value.split('-').map(Number);
+  return Date.UTC(y, m - 1, d);
+}
+
+function todayIsoLocal(): string {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function birthDateError(value: string): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return true;
-  const d = new Date(`${value}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return true;
+  if (!isValidIsoDate(value)) return true;
+  const dMs = isoToUtcMs(value);
+  const todayMs = isoToUtcMs(todayIsoLocal());
+  if (dMs > todayMs) return true;
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  if (d > today) return true;
-  let age = today.getFullYear() - d.getFullYear();
-  const m = today.getMonth() - d.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age -= 1;
+  const d = new Date(dMs);
+  let age = today.getFullYear() - d.getUTCFullYear();
+  const m = today.getMonth() - d.getUTCMonth();
+  if (m < 0 || (m === 0 && today.getDate() < d.getUTCDate())) age -= 1;
   return age < 15 || age > 80;
 }
 
@@ -158,12 +180,12 @@ export function validateStep(
     case 'dates': {
       const d = draft.dates;
       if (!d.desiredStartDate || !d.desiredEndDate) return 'dates.errorBothRequired';
-      if (d.desiredEndDate < d.desiredStartDate) return 'dates.errorEndBeforeStart';
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      if (d.desiredStartDate < `${yyyy}-${mm}-${dd}`) return 'dates.errorStartInPast';
+      if (!isValidIsoDate(d.desiredStartDate) || !isValidIsoDate(d.desiredEndDate)) return 'dates.errorInvalidDate';
+      const startMs = isoToUtcMs(d.desiredStartDate);
+      const endMs = isoToUtcMs(d.desiredEndDate);
+      if (endMs < startMs) return 'dates.errorEndBeforeStart';
+      const todayMs = isoToUtcMs(todayIsoLocal());
+      if (startMs < todayMs) return 'dates.errorStartInPast';
       return null;
     }
     case 'documents': {

@@ -18,6 +18,7 @@ import {
 import {
   attachDocument,
   createDraft,
+  getApplication,
   getApplicationDocuments,
   updateDraft,
   submit,
@@ -318,7 +319,17 @@ export function ApplyWizard() {
   const classification: ClassificationResult | null = useMemo(() => {
     const s = draft.dates.desiredStartDate;
     const e = draft.dates.desiredEndDate;
-    if (!s || !e || e < s) return null;
+    if (!s || !e) return null;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(s) || !/^\d{4}-\d{2}-\d{2}$/.test(e)) return null;
+    const [sy, sm, sd] = s.split('-').map(Number);
+    const [ey, em, ed] = e.split('-').map(Number);
+    const sMs = Date.UTC(sy, sm - 1, sd);
+    const eMs = Date.UTC(ey, em - 1, ed);
+    if (Number.isNaN(sMs) || Number.isNaN(eMs) || eMs < sMs) return null;
+    const dtS = new Date(sMs);
+    const dtE = new Date(eMs);
+    if (dtS.getUTCFullYear() !== sy || dtS.getUTCMonth() !== sm - 1 || dtS.getUTCDate() !== sd) return null;
+    if (dtE.getUTCFullYear() !== ey || dtE.getUTCMonth() !== em - 1 || dtE.getUTCDate() !== ed) return null;
     return classifyInternship(s, e);
   }, [draft.dates.desiredStartDate, draft.dates.desiredEndDate]);
 
@@ -464,14 +475,16 @@ export function ApplyWizard() {
       return;
     }
 
-    // If authenticated, check for any existing application (one application only)
+    // If authenticated, check for any existing *active* application (WITHDRAWN does not block new submission)
     if (prof) {
       try {
         const {listApplications} = await import('@/lib/api/application-client');
         const list = await listApplications();
-        if (list.length > 0) {
-          const a = list[0];
-          setAlreadyAppliedRef(a.reference);
+        const active = list.filter((a) => a.status !== 'WITHDRAWN');
+        if (active.length > 0) {
+          // Show the most recent active application as blocking (e.g. SUBMITTED, UNDER_REVIEW, etc.)
+          const blocking = [...active].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
+          setAlreadyAppliedRef(blocking.reference);
           setPhase('alreadyApplied');
           return;
         }
@@ -486,6 +499,21 @@ export function ApplyWizard() {
         const drafts = list
           .filter((a) => a.status === 'DRAFT')
           .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
+        // If re-applying after WITHDRAWN (no active, no draft, but history has WITHDRAWN), resume at Documents (index 3)
+        const hasWithdrawnHistory = list.some((a) => a.status === 'WITHDRAWN');
+        if (hasWithdrawnHistory && drafts.length === 0) {
+          const storedForWithdraw = readStoredWizard();
+          const shouldResumeAtDocuments = storedForWithdraw ? storedForWithdraw.stepIndex >= 3 : true;
+          if (shouldResumeAtDocuments) {
+            appRef.current = null;
+            setApp(null);
+            setStepIndex(3);
+            // Persist the reset so refresh keeps it at Documents, not at stale Result
+            const currentDraft = storedForWithdraw?.draft || INITIAL_WIZARD_DRAFT;
+            writeStoredWizard(currentDraft, 3, storedForWithdraw?.pendingMeta || {...EMPTY_META}, null, true);
+          }
+        }
 
         if (drafts.length > 0) {
           const a = drafts[0];
@@ -686,13 +714,31 @@ export function ApplyWizard() {
       const traceId = err instanceof ApiError ? err.traceId ?? null : null;
       const fail = (message: string, retryable: boolean): SlotError => ({message, traceId, retryable});
       if (err instanceof ApiError) {
+        // Genuine service outage only: backend 503 with AI_* codes (Python down,
+        // circuit open, or token misconfigured). Everything else is either a
+        // document problem (422/413/FILE_TOO_LARGE/INVALID_DOCUMENT) or a
+        // transport timeout — never report those as "service unavailable".
         if (err.code === 'AI_UNAVAILABLE' || err.code === 'AI_TEMPORARILY_UNAVAILABLE' || err.status === 503) {
           return fail(td('aiErrorUnavailable'), true);
         }
         if (err.code === 'UPLOAD_CANCELLED') return fail(td('errorCancelled'), true);
+        // Timeout (client abort after 45s or upstream 504): the service may be
+        // slow on a large/scanned PDF — retryable, but NOT an outage.
+        if (err.code === 'AI_TIMEOUT' || err.code === 'UPSTREAM_TIMEOUT' || err.code === 'UPLOAD_TIMEOUT' || err.status === 504) {
+          return fail(td('errorTimeout'), true);
+        }
+        if (err.code === 'UPSTREAM_UNREACHABLE' || err.status === 502) {
+          return fail(td('errorNetwork'), true);
+        }
+        // Document problems: user must replace the file — show the precise
+        // backend message, never the generic "unavailable".
+        if (err.code === 'FILE_TOO_LARGE' || err.code === 'INVALID_DOCUMENT' || err.code === 'EMPTY_FILE' || err.status === 413 || err.status === 422) {
+          return fail(err.message || td('aiErrorGeneric'), false);
+        }
         if (err.status === 429) return fail(td('errorRateLimited'), true);
         if (err.status === 401) return fail(td('errorAuth'), false);
-        return fail(err.message || td('aiErrorGeneric'), err.status === 0 || err.status >= 500);
+        if (err.status === 0) return fail(td('errorNetwork'), true);
+        return fail(err.message || td('aiErrorGeneric'), err.status >= 500);
       }
       return fail(td('aiErrorGeneric'), true);
     },
@@ -1076,6 +1122,31 @@ export function ApplyWizard() {
   );
 
   /* ----- Final Submissions ----- */
+  // Idempotency key per application: generated once, reused across double-clicks,
+  // refreshes and retries so the backend replays one stored submit response.
+  const submitKeyFor = useCallback((appId: string) => {
+    const storageKey = `steg_submit_key_${appId}`;
+    try {
+      const existing = localStorage.getItem(storageKey);
+      if (existing) return existing;
+      const fresh = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem(storageKey, fresh);
+      return fresh;
+    } catch {
+      return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+  }, []);
+
+  const clearSubmitKey = useCallback((appId: string) => {
+    try {
+      localStorage.removeItem(`steg_submit_key_${appId}`);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const handleSubmit = useCallback(async () => {
     if (!app) return;
     setSubmitting(true);
@@ -1091,19 +1162,41 @@ export function ApplyWizard() {
         toast.notify({title: msg, tone: 'error'});
         return;
       }
-      const updated = await submit(app.id);
+      const updated = await submit(app.id, submitKeyFor(app.id));
       appRef.current = updated;
       setApp(updated);
       setSubmittedReference(updated.reference);
       setDirty(false);
+      clearSubmitKey(app.id);
       clearWizardStorage();
     } catch (err) {
+      // Transport failure (timeout/unreachable) is ambiguous: the backend may
+      // have committed the SUBMITTED state while the response was lost.
+      // Reconcile with server truth — if the dossier is no longer DRAFT, the
+      // candidate's intent is satisfied: render success, not failure.
+      if (err instanceof ApiError && (err.status === 0 || err.status === 502 || err.status === 504)) {
+        try {
+          const current = await getApplication(app.id);
+          if (current.status !== 'DRAFT') {
+            appRef.current = current;
+            setApp(current);
+            setSubmittedReference(current.reference);
+            setDirty(false);
+            clearSubmitKey(app.id);
+            clearWizardStorage();
+            toast.notify({title: tError('submitRecovered'), tone: 'success'});
+            return;
+          }
+        } catch {
+          /* reconciliation itself failed — fall through to the error below */
+        }
+      }
       const msg = err instanceof ApiError ? err.message : t('loadErrorHint');
       setSubmitError(tError('submitError', {message: msg}));
     } finally {
       setSubmitting(false);
     }
-  }, [app, t, tError, td, toast, uploads]);
+  }, [app, t, tError, td, toast, uploads, submitKeyFor, clearSubmitKey]);
 
   /**
    * Anonymous candidate bridge: creates candidate account or signs in,
@@ -1567,9 +1660,34 @@ export function ApplyWizard() {
           aiErrors={aiErrors}
           fullName={fullNameForAi()}
           slots={slots}
+          isValidatingIdentifiers={isValidatingIdentifiers}
           onUpdatePersonal={async (patch) => {
             setStepError(null);
             const nextPersonal = {...draft.personal, ...patch};
+            // Shared backend validation — same as Step 1 wizard (email/CIN/phone vs existing applications)
+            // Ensures edit dialog and wizard use identical secure rules, allows keeping own values
+            setIsValidatingIdentifiers(true);
+            try {
+              const result = await validateIdentifiersClient({
+                email: nextPersonal.email.trim() || null,
+                nationalId: nextPersonal.nationalId.trim() || null,
+                phone: nextPersonal.phone.trim() || null,
+              });
+              if (!result.valid) {
+                setDuplicateInfo({duplicateFields: result.duplicateFields, message: result.message});
+                setShowDuplicateDialog(true);
+                throw new Error(result.message);
+              }
+            } catch (err) {
+              // If validation itself fails (network), surface as form error but don't block with duplicate dialog
+              if (err instanceof Error && err.message === (duplicateInfo?.message || '')) throw err;
+              const msg = err instanceof Error ? err.message : 'Validation failed';
+              // Only treat as duplicate if we already showed dialog; otherwise surface as generic error
+              if (duplicateInfo) throw err;
+              throw new Error(msg);
+            } finally {
+              setIsValidatingIdentifiers(false);
+            }
             // Sync to backend profile if authenticated — keeps AI name check and final submission consistent
             if (isAuthenticated) {
               try {

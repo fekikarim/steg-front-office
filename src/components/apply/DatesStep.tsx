@@ -41,7 +41,28 @@ export function DatesStep({
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   }, []);
 
-  const startInvalid = Boolean(startDate && endDate && endDate < startDate);
+  function isoToUtcMsLocal(iso: string): number {
+    const [y, m, d] = iso.split('-').map(Number);
+    return Date.UTC(y, m - 1, d);
+  }
+
+  function isValidIsoLocal(iso: string): boolean {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+    const [y, m, d] = iso.split('-').map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+  }
+
+  const startInvalid = useMemo(() => {
+    if (!startDate || !endDate) return false;
+    if (!isValidIsoLocal(startDate) || !isValidIsoLocal(endDate)) return false;
+    return isoToUtcMsLocal(endDate) < isoToUtcMsLocal(startDate);
+  }, [startDate, endDate]);
+
+  const startInPast = useMemo(() => {
+    if (!startDate || !isValidIsoLocal(startDate)) return false;
+    return isoToUtcMsLocal(startDate) < isoToUtcMsLocal(todayStr);
+  }, [startDate, todayStr]);
 
   const isBoundaryWarning = useMemo(() => {
     if (!classification) return false;
@@ -65,10 +86,30 @@ export function DatesStep({
     if (!classification) return null;
     const days = classification.durationInDays;
     if (days < 30) return t('durationDays', {count: days});
+    // Derive calendar months accurately for display (mirrors backend Period, not 30-day approximation)
+    // Use actual date difference to avoid 30-day drift
+    if (startDate && endDate && isValidIsoLocal(startDate) && isValidIsoLocal(endDate)) {
+      const [sy, sm, sd] = startDate.split('-').map(Number);
+      const [ey, em, ed] = endDate.split('-').map(Number);
+      let y = ey - sy;
+      let m = em - sm;
+      let d = ed - sd;
+      if (d < 0) {
+        m -= 1;
+        const prev = new Date(Date.UTC(ey, em - 1, 0)).getUTCDate();
+        d += prev;
+      }
+      if (m < 0) {
+        y -= 1;
+        m += 12;
+      }
+      const totalMonths = y * 12 + m;
+      return t('durationMonths', {months: totalMonths, days: d});
+    }
     const months = Math.floor(days / 30);
     const remDays = days % 30;
     return t('durationMonths', {months, days: remDays});
-  }, [classification, t]);
+  }, [classification, t, startDate, endDate]);
 
   const ruleDesc = useMemo(() => {
     if (!classification) return null;
@@ -100,6 +141,7 @@ export function DatesStep({
             value={startDate}
             min={todayStr}
             required
+            error={startInPast ? t('errorStartInPast') : undefined}
             onChange={(e) => onChange(e.target.value, endDate)}
           />
           <DatePicker
@@ -107,8 +149,8 @@ export function DatesStep({
             label={t('endDate')}
             hint={t('endHint')}
             value={endDate}
-            min={startDate}
-            error={startInvalid ? t('errorEndBeforeStart') : undefined}
+            min={startDate && isValidIsoLocal(startDate) ? startDate : todayStr}
+            error={startInvalid ? t('errorEndBeforeStart') : startInPast ? t('errorStartInPast') : undefined}
             onChange={(e) => onChange(startDate, e.target.value)}
           />
         </div>
@@ -167,7 +209,7 @@ export function DatesStep({
           variant="primary"
           size="md"
           onClick={onContinue}
-          disabled={!startDate || !endDate || startInvalid}
+          disabled={!startDate || !endDate || startInvalid || startInPast || !isValidIsoLocal(startDate) || !isValidIsoLocal(endDate)}
         >
           {tn('continue')}
         </Button>

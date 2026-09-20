@@ -739,6 +739,7 @@
       "errorEndBeforeStart": "The end date must be after the start date.",
       "errorBothRequired": "Please choose both a start and an end date.",
       "errorStartInPast": "The start date cannot be in the past.",
+      "errorInvalidDate": "The selected date is not valid.",
       "classificationTitle": "Automatic classification",
       "classificationHint": "Determined from your chosen duration.",
       "requirementLabel": "Requirement",
@@ -894,7 +895,8 @@
       "bridgeEmailLabel": "Email address",
       "bridgePasswordLabel": "Password",
       "alreadySubmittedTitle": "Already submitted",
-      "alreadySubmittedBody": "This application has already been submitted."
+      "alreadySubmittedBody": "This application has already been submitted.",
+      "submitRecovered": "Your application was submitted successfully."
     },
     "stepper": {
       "step": "Step",

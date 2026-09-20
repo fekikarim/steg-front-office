@@ -46,6 +46,7 @@ interface ReviewStepProps {
   onToggleTerms: (confirmed: boolean) => void;
   onContinue: () => void;
   saving?: boolean;
+  isValidatingIdentifiers?: boolean;
 }
 
 function Section({
@@ -246,6 +247,7 @@ export function ReviewStep({
   onToggleTerms,
   onContinue,
   saving = false,
+  isValidatingIdentifiers = false,
 }: ReviewStepProps) {
   const t = useTranslations('apply.review');
   const ta = useTranslations('apply');
@@ -353,9 +355,20 @@ export function ReviewStep({
 
   const validateDates = (start: string, end: string): Record<string, string | null> => {
     const errs: Record<string, string | null> = {};
+    const isValidIso = (v: string): boolean => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+      const [y, m, d] = v.split('-').map(Number);
+      const dt = new Date(Date.UTC(y, m - 1, d));
+      return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+    };
+    const toMs = (v: string): number => {
+      const [y, m, d] = v.split('-').map(Number);
+      return Date.UTC(y, m - 1, d);
+    };
     if (!start || !end) errs.dates = tdates('errorBothRequired');
-    else if (end < start) errs.dates = tdates('errorEndBeforeStart');
-    else if (start < todayStr) errs.dates = tdates('errorStartInPast');
+    else if (!isValidIso(start) || !isValidIso(end)) errs.dates = tdates('errorInvalidDate');
+    else if (toMs(end) < toMs(start)) errs.dates = tdates('errorEndBeforeStart');
+    else if (toMs(start) < toMs(todayStr)) errs.dates = tdates('errorStartInPast');
     return errs;
   };
 
@@ -540,7 +553,7 @@ export function ReviewStep({
         </Button>
       </div>
 
-      {/* Personal Edit Dialog */}
+      {/* Personal Edit Dialog — same secure validation as Step 1 wizard (shared backend) */}
       <Modal
         open={openPersonal}
         onClose={() => setOpenPersonal(false)}
@@ -550,11 +563,28 @@ export function ReviewStep({
         size="lg"
         footer={
           <>
-            <Button variant="secondary" size="md" onClick={() => setOpenPersonal(false)} disabled={pSaving}>
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={() => setOpenPersonal(false)}
+              disabled={pSaving || isValidatingIdentifiers}
+            >
               {tc('cancel')}
             </Button>
-            <Button variant="primary" size="md" onClick={handleSavePersonal} disabled={pSaving}>
-              {pSaving ? tc('loading') : tc('save')}
+            <Button
+              variant="primary"
+              size="md"
+              onClick={handleSavePersonal}
+              disabled={pSaving || isValidatingIdentifiers}
+            >
+              {pSaving || isValidatingIdentifiers ? (
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden="true" />
+                  {tp('validating')}
+                </span>
+              ) : (
+                tc('save')
+              )}
             </Button>
           </>
         }

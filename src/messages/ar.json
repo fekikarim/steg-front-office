@@ -739,6 +739,7 @@
       "errorEndBeforeStart": "يجب أن يكون تاريخ النهاية بعد تاريخ البداية.",
       "errorBothRequired": "يرجى اختيار تاريخي البداية والنهاية.",
       "errorStartInPast": "لا يمكن أن يكون تاريخ البداية في الماضي.",
+      "errorInvalidDate": "التاريخ المحدد غير صالح.",
       "classificationTitle": "التصنيف التلقائي",
       "classificationHint": "يُحدَّد حسب المدة التي اخترتها.",
       "requirementLabel": "الإلزامية",
@@ -894,7 +895,8 @@
       "bridgeEmailLabel": "البريد الإلكتروني",
       "bridgePasswordLabel": "كلمة المرور",
       "alreadySubmittedTitle": "تم تقديمه مسبقًا",
-      "alreadySubmittedBody": "تم تقديم هذا الطلب بالفعل."
+      "alreadySubmittedBody": "تم تقديم هذا الطلب بالفعل.",
+      "submitRecovered": "تم تقديم طلبك بنجاح."
     },
     "stepper": {
       "step": "الخطوة",

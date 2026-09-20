@@ -68,8 +68,11 @@ export function updateDraft(id: string, body: {desiredStartDate?: string | null;
   });
 }
 
-export function submit(id: string) {
-  return applicationRequest<ApplicationResponse>(`/api/applications/${id}/submit`, {method: 'POST'});
+export function submit(id: string, idempotencyKey?: string) {
+  return applicationRequest<ApplicationResponse>(`/api/applications/${id}/submit`, {
+    method: 'POST',
+    headers: idempotencyKey ? {'X-Idempotency-Key': idempotencyKey} : undefined,
+  });
 }
 
 export function withdrawApplication(id: string) {
