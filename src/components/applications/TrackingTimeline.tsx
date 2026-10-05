@@ -13,9 +13,9 @@ interface TimelineStage {
 
 const STAGE_PIPELINE: Array<{key: string; statuses: string[]; labelKey: string; descKey: string}> = [
   {key: 'draft',       statuses: ['DRAFT'],                     labelKey: 'timelineStateDraft',       descKey: 'timelineStateDraftDesc'},
-  {key: 'submitted',   statuses: ['SUBMITTED'],                 labelKey: 'timelineStateSubmitted',   descKey: 'timelineStateSubmittedDesc'},
-  {key: 'underReview', statuses: ['UNDER_REVIEW', 'NEEDS_CORRECTION'], labelKey: 'timelineStateUnderReview', descKey: 'timelineStateUnderReviewDesc'},
-  {key: 'decision',    statuses: ['ACCEPTED', 'REJECTED'],      labelKey: 'timelineStateAccepted',    descKey: 'timelineStateAcceptedDesc'},
+  {key: 'submitted',   statuses: ['SUBMITTED', 'RESUBMITTED'],   labelKey: 'timelineStateSubmitted',   descKey: 'timelineStateSubmittedDesc'},
+  {key: 'underReview', statuses: ['UNDER_REVIEW', 'MODIFICATION_REQUESTED'], labelKey: 'timelineStateUnderReview', descKey: 'timelineStateUnderReviewDesc'},
+  {key: 'decision',    statuses: ['APPROVED', 'REJECTED'],       labelKey: 'timelineStateAccepted',    descKey: 'timelineStateAcceptedDesc'},
   {key: 'preparation', statuses: [],                            labelKey: 'timelineStatePrep',        descKey: 'timelineStatePrepDesc'},
   {key: 'inProgress',  statuses: [],                            labelKey: 'timelineStateInProgress',  descKey: 'timelineStateInProgressDesc'},
   {key: 'completed',   statuses: [],                            labelKey: 'timelineStateCompleted',   descKey: 'timelineStateCompletedDesc'},
@@ -25,9 +25,10 @@ function buildFullTimeline(app: ApplicationResponse): TimelineStage[] {
   const statusToStageIndex: Record<string, number> = {
     DRAFT: 0,
     SUBMITTED: 1,
+    RESUBMITTED: 1,
     UNDER_REVIEW: 2,
-    NEEDS_CORRECTION: 2,
-    ACCEPTED: 3,
+    MODIFICATION_REQUESTED: 2,
+    APPROVED: 3,
     REJECTED: 3,
     WITHDRAWN: -1,
   };

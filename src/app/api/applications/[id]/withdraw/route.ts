@@ -5,7 +5,7 @@ import {withdrawApplication} from '@/lib/api/application';
 
 /**
  * Browser-facing proxy for `POST /api/applications/[id]/withdraw`.
- * The backend owns eligibility (refuses ACCEPTED / already-WITHDRAWN);
+ * The backend owns eligibility (refuses APPROVED / already-WITHDRAWN);
  * rejections surface with status + code + traceId for localized display.
  */
 

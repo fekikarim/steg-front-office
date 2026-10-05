@@ -14,12 +14,20 @@ import {ApiError, backendFetch, type ErrorEnvelope} from '../api-client';
 /*  Enums                                                              */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Explicit backend statuses (AGENTS.md §4). `UNDER_REVIEW` is kept for rows
+ * created before the two-step review was retired. The legacy `NEEDS_CORRECTION`
+ * and `ACCEPTED` statuses were migrated to `MODIFICATION_REQUESTED` and
+ * `APPROVED` (V39, re-asserted by V43) and REMOVED from the contract in S1b,
+ * so this union no longer accepts them.
+ */
 export type ApplicationStatus =
   | 'DRAFT'
   | 'SUBMITTED'
+  | 'MODIFICATION_REQUESTED'
+  | 'RESUBMITTED'
   | 'UNDER_REVIEW'
-  | 'NEEDS_CORRECTION'
-  | 'ACCEPTED'
+  | 'APPROVED'
   | 'REJECTED'
   | 'WITHDRAWN';
 
@@ -239,8 +247,8 @@ export function submitApplication(
 }
 
 /**
- * Withdraw an own application (→ WITHDRAWN). The backend refuses ACCEPTED
- * and already-WITHDRAWN dossiers; those rejections surface as ApiError.
+ * Withdraw an own application (→ WITHDRAWN). The backend refuses an APPROVED
+ * or already-WITHDRAWN dossier; those rejections surface as ApiError.
  */
 export function withdrawApplication(token: string, id: string) {
   return backendFetch<ApplicationResponse>(`/api/applications/${id}/withdraw`, {

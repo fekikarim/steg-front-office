@@ -1091,7 +1091,10 @@
       "NEEDS_CORRECTION": "STEG requested corrections. Please read the comment below carefully.",
       "ACCEPTED": "Your application was accepted. Watch your notifications for the next steps.",
       "REJECTED": "Your application was not retained. You may submit a new application.",
-      "WITHDRAWN": "You withdrew this application. The dossier is closed."
+      "WITHDRAWN": "You withdrew this application. The dossier is closed.",
+      "MODIFICATION_REQUESTED": "STEG requested corrections. Read the comment below, update your dossier and resubmit it.",
+      "RESUBMITTED": "Your corrected dossier was resubmitted and is waiting for a new decision.",
+      "APPROVED": "Your application was approved. Watch your notifications for the next steps (supervisor, mobile account)."
     },
     "timelineStateDraft": "Draft",
     "timelineStateDraftDesc": "Application dossier being compiled by the candidate.",

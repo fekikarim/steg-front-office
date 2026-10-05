@@ -86,7 +86,9 @@ export function ProfileWorkspace() {
         const active =
           sorted.find(
             (a) =>
-              a.status === 'ACCEPTED' ||
+              a.status === 'APPROVED' ||
+              a.status === 'MODIFICATION_REQUESTED' ||
+              a.status === 'RESUBMITTED' ||
               a.status === 'UNDER_REVIEW' ||
               a.status === 'SUBMITTED',
           ) ?? sorted[0];

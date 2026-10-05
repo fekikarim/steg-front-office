@@ -112,6 +112,14 @@ export function ProfileCreateForm({onCreated, onProfileExists}: ProfileCreateFor
         setFieldErrors({nationalId: t('errCinDuplicate')});
         setFormError(t('saveFailed'));
         if (err.traceId) setFormTrace(err.traceId);
+      } else if (err instanceof ApiError && err.code === 'CANDIDATE_NATIONAL_ID_REQUIRED') {
+        // The backend owns the rule (POST /api/candidates is self-service and
+        // requires a CIN); the form already blocks it, so reaching this branch
+        // means the value was cleared in another tab or an old draft. Show it
+        // on the field instead of leaking the raw backend message.
+        setFieldErrors({nationalId: t('errRequired')});
+        setFormError(t('saveFailed'));
+        if (err.traceId) setFormTrace(err.traceId);
       } else if (err instanceof ApiError && err.fieldErrors.length > 0) {
         const localized: Record<string, string> = {
           firstName: t('errRequired'),

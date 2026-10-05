@@ -58,7 +58,9 @@ export function ActiveSituationBanner({application}: ActiveSituationBannerProps)
     );
   }
 
-  const isAccepted = application.status === 'ACCEPTED';
+  // V39 migrated the legacy ACCEPTED status to APPROVED; V43 re-asserted it and S1b
+  // removed the value from the contract.
+  const isAccepted = application.status === 'APPROVED';
   const hasSupervisor = Boolean(application.reviewerId);
 
   return (

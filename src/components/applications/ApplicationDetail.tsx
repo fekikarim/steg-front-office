@@ -52,9 +52,9 @@ interface TimelineStage {
  */
 const STAGE_PIPELINE: Array<{key: string; statuses: string[]; labelKey: string; descKey: string}> = [
   {key: 'draft',       statuses: ['DRAFT'],                     labelKey: 'timelineStateDraft',       descKey: 'timelineStateDraftDesc'},
-  {key: 'submitted',   statuses: ['SUBMITTED'],                 labelKey: 'timelineStateSubmitted',   descKey: 'timelineStateSubmittedDesc'},
-  {key: 'underReview', statuses: ['UNDER_REVIEW', 'NEEDS_CORRECTION'], labelKey: 'timelineStateUnderReview', descKey: 'timelineStateUnderReviewDesc'},
-  {key: 'decision',    statuses: ['ACCEPTED', 'REJECTED'],      labelKey: 'timelineStateAccepted',    descKey: 'timelineStateAcceptedDesc'},
+  {key: 'submitted',   statuses: ['SUBMITTED', 'RESUBMITTED'],   labelKey: 'timelineStateSubmitted',   descKey: 'timelineStateSubmittedDesc'},
+  {key: 'underReview', statuses: ['UNDER_REVIEW', 'MODIFICATION_REQUESTED'], labelKey: 'timelineStateUnderReview', descKey: 'timelineStateUnderReviewDesc'},
+  {key: 'decision',    statuses: ['APPROVED', 'REJECTED'],       labelKey: 'timelineStateAccepted',    descKey: 'timelineStateAcceptedDesc'},
   {key: 'preparation', statuses: [],                            labelKey: 'timelineStatePrep',        descKey: 'timelineStatePrepDesc'},
   {key: 'inProgress',  statuses: [],                            labelKey: 'timelineStateInProgress',  descKey: 'timelineStateInProgressDesc'},
   {key: 'completed',   statuses: [],                            labelKey: 'timelineStateCompleted',   descKey: 'timelineStateCompletedDesc'},
@@ -65,9 +65,10 @@ function buildFullTimeline(app: ApplicationResponse, workflow: WorkflowInstanceR
   const statusToStageIndex: Record<string, number> = {
     DRAFT: 0,
     SUBMITTED: 1,
+    RESUBMITTED: 1,
     UNDER_REVIEW: 2,
-    NEEDS_CORRECTION: 2,
-    ACCEPTED: 3,
+    MODIFICATION_REQUESTED: 2,
+    APPROVED: 3,
     REJECTED: 3,
     WITHDRAWN: -1,
   };
@@ -202,7 +203,7 @@ export function ApplicationDetail({id}: {id: string}) {
       toast.notify({title: t('withdrawSuccess'), tone: 'success'});
       await load();
     } catch (err) {
-      // Backend owns eligibility: a lost race (e.g. just ACCEPTED) lands here;
+      // Backend owns eligibility: a lost race (e.g. just approved) lands here;
       // reload so the UI reflects the authoritative state either way.
       setConfirmOpen(false);
       setActionError({
@@ -256,7 +257,7 @@ export function ApplicationDetail({id}: {id: string}) {
     );
   }
 
-  const canWithdraw = app.status !== 'ACCEPTED' && app.status !== 'WITHDRAWN';
+  const canWithdraw = app.status !== 'APPROVED' && app.status !== 'WITHDRAWN';
   const stages = buildFullTimeline(app, workflow);
   const statusHelp = (t as (k: string) => string)(`statusHelp.${app.status}`);
 
@@ -342,7 +343,7 @@ export function ApplicationDetail({id}: {id: string}) {
           </p>
         </div>
       )}
-      {app.status === 'NEEDS_CORRECTION' && app.correctionComment && (
+      {app.status === 'MODIFICATION_REQUESTED' && app.correctionComment && (
         <div
           role="alert"
           className="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-500/30 dark:bg-amber-500/10"
@@ -541,7 +542,7 @@ export function ApplicationDetail({id}: {id: string}) {
             </Button>
           </div>
         ) : (
-          app.status === 'ACCEPTED' && (
+          app.status === 'APPROVED' && (
             <p className="text-sm text-zinc-500 dark:text-zinc-400">{t('withdrawClosedNote')}</p>
           )
         )}

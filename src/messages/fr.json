@@ -1091,7 +1091,10 @@
       "NEEDS_CORRECTION": "La STEG a demandé des corrections. Veuillez lire attentivement le commentaire ci-dessous.",
       "ACCEPTED": "Votre candidature a été acceptée. Surveillez vos notifications pour la suite.",
       "REJECTED": "Votre candidature n'a pas été retenue. Vous pouvez soumettre une nouvelle candidature.",
-      "WITHDRAWN": "Vous avez retiré cette candidature. Le dossier est clôturé."
+      "WITHDRAWN": "Vous avez retiré cette candidature. Le dossier est clôturé.",
+      "MODIFICATION_REQUESTED": "La STEG a demandé des corrections. Lisez le commentaire ci-dessous, corrigez votre dossier puis resoumettez-le.",
+      "RESUBMITTED": "Votre dossier corrigé a été resoumis et attend une nouvelle décision.",
+      "APPROVED": "Votre candidature a été approuvée. Surveillez vos notifications pour la suite (superviseur, compte mobile)."
     },
     "timelineStateDraft": "Brouillon",
     "timelineStateDraftDesc": "Dossier en cours de constitution par le candidat.",
