@@ -258,8 +258,9 @@ export function ReviewStep({
   const tn = useTranslations('apply.nav');
   const tc = useTranslations('common');
   const toast = useToast();
-
-  const universityName = universities.find((u) => u.id === draft.education.universityId)?.name;
+  const universityName =
+    universities.find((u) => u.id === draft.education.universityId)?.name ||
+    draft.education.universityId;
   const maskedCin = draft.personal.nationalId ? `•••• ${draft.personal.nationalId.slice(-4)}` : t('notProvided');
   const docsComplete = Boolean(applicationLetter) && Boolean(assignmentLetter);
   const aiReady =
@@ -733,26 +734,17 @@ export function ReviewStep({
             />
             {eErrors.speciality && <FieldError message={eErrors.speciality} />}
           </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="edit-university" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              {te('university')} <span className="text-accent-600">*</span>
-            </label>
-            <select
-              id="edit-university"
-              value={eForm.universityId}
-              onChange={(e) => setEForm((p) => ({...p, universityId: e.target.value}))}
-              className="h-10 rounded-lg border border-zinc-300 bg-white px-3 text-sm text-zinc-900 focus:border-brand-500 focus:outline-none dark:border-zinc-700 dark:bg-navy-900 dark:text-zinc-100"
-              required
-            >
-              <option value="">{te('universitySelect')}</option>
-              {universities.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
-            {eErrors.university && <FieldError message={eErrors.university} />}
-          </div>
+          <Input
+            id="edit-university"
+            label={te('university')}
+            type="text"
+            value={eForm.universityId}
+            onChange={(e) => setEForm((p) => ({...p, universityId: e.target.value}))}
+            placeholder={te('university')}
+            required
+            autoComplete="off"
+          />
+          {eErrors.university && <FieldError message={eErrors.university} />}
           {eErrors.form && <FieldError message={eErrors.form} />}
         </div>
       </Modal>
